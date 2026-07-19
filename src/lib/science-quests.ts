@@ -20,6 +20,15 @@ export const grade5ScienceQuestArc: Question[] = [
   item("s5-6", "Why should a forest habitat be protected?", ["Many plants and animals depend on it", "It makes every day colder", "It stops all rivers"], "Many plants and animals depend on it", "A habitat provides food, shelter, and space for living things.", "Forests support many living things and help keep ecosystems healthy."),
 ];
 
+export const grade6ScienceQuestArc: Question[] = [
+  item("s6-1", "Which nutrient mainly helps the body build and repair tissues?", ["Protein", "Water", "Fibre only"], "Protein", "Think about the nutrient linked with growth and repair.", "Protein helps the body grow and repair tissues."),
+  item("s6-2", "Which method separates sand from water?", ["Filtration", "Melting", "Magnetising the water"], "Filtration", "A filter lets liquid pass while trapping insoluble solid particles.", "Filtration separates insoluble sand from water."),
+  item("s6-3", "Which is a reversible change?", ["Melting ice", "Burning paper", "Cooking rice"], "Melting ice", "Ask whether the original material can be made again easily.", "Melted ice can freeze back into ice, so this change is reversible."),
+  item("s6-4", "A cyclist travels 24 km in 3 hours. What is the average speed?", ["8 km/h", "21 km/h", "72 km/h"], "8 km/h", "Speed = distance ÷ time.", "24 ÷ 3 = 8, so the average speed is 8 km/h."),
+  item("s6-5", "Why is a shadow formed?", ["An opaque object blocks light", "Light becomes heavier", "Air turns black"], "An opaque object blocks light", "Think about what happens when light cannot pass through an object.", "A shadow forms where an opaque object blocks light from reaching a surface."),
+  item("s6-6", "Why are decomposers important in an ecosystem?", ["They break down dead material and return nutrients", "They make all animals larger", "They stop plants using sunlight"], "They break down dead material and return nutrients", "Dead material does not disappear; think about what recycles it.", "Decomposers recycle nutrients by breaking down dead plants and animals."),
+];
+
 export function getScienceQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4ScienceQuestArc : grade === 5 ? grade5ScienceQuestArc : [];
+  return grade === 4 ? grade4ScienceQuestArc : grade === 5 ? grade5ScienceQuestArc : grade === 6 ? grade6ScienceQuestArc : [];
 }

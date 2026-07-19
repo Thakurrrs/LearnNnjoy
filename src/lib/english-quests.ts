@@ -20,6 +20,15 @@ export const grade5EnglishQuestArc: Question[] = [
   item("e5-6", "Which opening is best for an informative paragraph about saving water?", ["Water is precious, and small daily choices can help us save it.", "Once there was a dragon with a tap.", "My favourite colour is blue."], "Water is precious, and small daily choices can help us save it.", "An informative opening should introduce the topic clearly.", "This sentence introduces saving water and gives the reader the main idea."),
 ];
 
+export const grade6EnglishQuestArc: Question[] = [
+  item("e6-1", "A narrator says, ‘I kept the letter in my pocket all day, afraid to open it.’ What can you infer?", ["The letter matters to the narrator", "The narrator cannot read", "The letter is empty"], "The letter matters to the narrator", "Use the narrator’s careful, worried action as evidence.", "Keeping the letter close and fearing to open it suggests it is important to the narrator."),
+  item("e6-2", "Which word best replaces ‘said’ in: ‘“We did it!” Riya ___.’", ["exclaimed", "whispered", "muttered"], "exclaimed", "The exclamation mark suggests a strong, excited voice.", "‘Exclaimed’ matches the excitement shown by ‘We did it!’"),
+  item("e6-3", "Which sentence uses a semicolon correctly?", ["The rain stopped; the match began.", "The rain; stopped the match began.", "The rain stopped the; match began."], "The rain stopped; the match began.", "A semicolon can link two closely related complete statements.", "Both sides are complete statements and their ideas are closely connected."),
+  item("e6-4", "Which is the strongest evidence for the claim ‘cycling can reduce traffic pollution’?", ["Bicycles do not release exhaust while being ridden", "Cycling is always faster than trains", "Every road has a cycle lane"], "Bicycles do not release exhaust while being ridden", "Choose evidence that directly supports the claim.", "The lack of exhaust from bicycles directly supports the pollution claim."),
+  item("e6-5", "Which phrase creates the clearest image?", ["The moon hung like a silver lantern", "The moon was there", "Moon night thing"], "The moon hung like a silver lantern", "Look for a comparison that helps the reader picture the scene.", "The comparison to a silver lantern creates a vivid image of the moon."),
+  item("e6-6", "What should a conclusion of a persuasive paragraph do?", ["Restate the main point and leave a clear final thought", "Introduce an unrelated topic", "Repeat every sentence exactly"], "Restate the main point and leave a clear final thought", "A conclusion brings an argument to a purposeful close.", "A good conclusion reinforces the main point and gives the reader a final impression."),
+];
+
 export function getEnglishQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4EnglishQuestArc : grade === 5 ? grade5EnglishQuestArc : [];
+  return grade === 4 ? grade4EnglishQuestArc : grade === 5 ? grade5EnglishQuestArc : grade === 6 ? grade6EnglishQuestArc : [];
 }

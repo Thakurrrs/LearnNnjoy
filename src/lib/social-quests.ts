@@ -20,6 +20,15 @@ export const grade5SocialQuestArc: Question[] = [
   item("ss5-6", "A local council wants to know whether a park needs more bins. What is a fair first step?", ["Ask park users and observe the area", "Guess without visiting", "Only ask one person"], "Ask park users and observe the area", "A fair decision uses information from the people and place involved.", "Listening to users and observing the park provides better evidence for a community decision."),
 ];
 
+export const grade6SocialQuestArc: Question[] = [
+  item("ss6-1", "Why do historians use more than one source to learn about the past?", ["Different sources can provide evidence and perspectives", "One source is always enough", "History has no evidence"], "Different sources can provide evidence and perspectives", "Think about how one source can be limited or incomplete.", "Comparing sources helps historians build a stronger, more balanced understanding of the past."),
+  item("ss6-2", "Which tool helps show the exact direction of a place from another place?", ["Compass", "Thermometer", "Ruler only"], "Compass", "This tool is designed to identify directions such as north and east.", "A compass helps identify directions on the ground or on a map."),
+  item("ss6-3", "What does a globe show especially well?", ["The Earth as a round model", "Every building at full size", "Only one country"], "The Earth as a round model", "Think about how a globe differs from a flat map.", "A globe is a round model that represents the Earth’s shape and global locations."),
+  item("ss6-4", "Why are rules needed in a classroom or community?", ["They help people act safely and fairly together", "They remove everyone’s voice", "They make shared spaces unusable"], "They help people act safely and fairly together", "Consider what happens when people share a space without agreed expectations.", "Fair rules help people cooperate, stay safe, and respect one another."),
+  item("ss6-5", "A farmer’s work depends on reliable rainfall. Which type of resource is rainfall?", ["Natural resource", "Human-made resource", "A map symbol only"], "Natural resource", "It comes from nature rather than being made by people.", "Rainfall is a natural resource that supports agriculture and many living systems."),
+  item("ss6-6", "Which action best supports equality in a group project?", ["Give each member a meaningful chance to contribute", "Let one person do every task", "Ignore quieter group members"], "Give each member a meaningful chance to contribute", "Equality includes fair chances to participate.", "Sharing meaningful roles helps all members contribute and be respected."),
+];
+
 export function getSocialQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4SocialQuestArc : grade === 5 ? grade5SocialQuestArc : [];
+  return grade === 4 ? grade4SocialQuestArc : grade === 5 ? grade5SocialQuestArc : grade === 6 ? grade6SocialQuestArc : [];
 }
