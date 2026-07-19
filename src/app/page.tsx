@@ -41,18 +41,20 @@ function FractionVisual({ chargedPieces, onCharge }: { chargedPieces: number; on
   return <div className="visual-play"><div className="pizza interactive-pizza" aria-label="A four-part energy disc. Tap a piece to charge it.">{[0, 1, 2, 3].map((piece) => <button key={piece} type="button" className={piece < chargedPieces ? "charged" : ""} aria-label={`Charge piece ${piece + 1}`} onClick={onCharge} />)}</div><p>Tap the energy pieces to explore equal parts.</p></div>;
 }
 
-function NumberLineVisual() {
-  return <div className="number-line" aria-label="A number line showing halfway"><span>0</span><i /><b>6</b><i /><span>12</span></div>;
+function NumberLineVisual({ steps, onExplore }: { steps: number; onExplore: () => void }) {
+  const markerOffset = Math.min(80, steps * 26);
+  return <div className="visual-play"><div className="number-line interactive-line" aria-label="A number line showing a movable explorer marker"><span>0</span><i /><b style={{ transform: `translateX(${markerOffset}px)` }}>✦</b><i /><span>12</span></div><button className="visual-action" type="button" onClick={onExplore}>Move Nova along the path</button><p>Trace the direction before you decide.</p></div>;
 }
 
-function RatioVisual() {
-  return <div className="ratio-visual" aria-label="Two cups for four people, then four cups for eight people"><div>🥣🥣<small>4 explorers</small></div><strong>→</strong><div>🥣🥣🥣🥣<small>8 explorers</small></div></div>;
+function RatioVisual({ groups, onExplore }: { groups: number; onExplore: () => void }) {
+  const doubled = groups > 0;
+  return <div className="visual-play"><div className="ratio-visual" aria-label="Equal groups that can be doubled"><div>🥣🥣<small>4 explorers</small></div><strong>→</strong><div>{doubled ? "🥣🥣🥣🥣" : "🥣🥣"}<small>{doubled ? "8 explorers" : "4 explorers"}</small></div></div><button className="visual-action" type="button" onClick={onExplore}>{doubled ? "Notice what doubled together" : "Double the explorer group"}</button><p>Keep matching groups in step.</p></div>;
 }
 
 function Visual({ kind, chargedPieces, onCharge }: { kind: VisualKind; chargedPieces: number; onCharge: () => void }) {
   if (kind === "fraction") return <FractionVisual chargedPieces={chargedPieces} onCharge={onCharge} />;
-  if (kind === "number-line") return <NumberLineVisual />;
-  return <RatioVisual />;
+  if (kind === "number-line") return <NumberLineVisual steps={chargedPieces} onExplore={onCharge} />;
+  return <RatioVisual groups={chargedPieces} onExplore={onCharge} />;
 }
 
 export default function Home() {
@@ -81,6 +83,7 @@ export default function Home() {
   const [cloudMessage, setCloudMessage] = useState("");
   const cloudLoadStarted = useRef(false);
   const [chargedPieces, setChargedPieces] = useState(0);
+  const [wrongAttemptsOnQuestion, setWrongAttemptsOnQuestion] = useState(0);
 
   function applySavedProgress(saved: Partial<SavedProgress>) {
     if (saved.name) setName(saved.name);
@@ -189,6 +192,7 @@ export default function Home() {
       setLastCompletedDate(streak.lastCompletedDate);
       return;
     }
+    setWrongAttemptsOnQuestion((value) => value + 1);
     setFeedback("retry");
     setShowHint(true);
   }
@@ -198,6 +202,7 @@ export default function Home() {
     setFeedback(null);
     setShowHint(false);
     setChargedPieces(0);
+    setWrongAttemptsOnQuestion(0);
     if (screen === "diagnostic") {
       if (diagnosticIndex < diagnostic.length - 1) setDiagnosticIndex((value) => value + 1);
       else setScreen("quest");
@@ -211,6 +216,12 @@ export default function Home() {
     setSelected(null);
     setFeedback(null);
     setShowHint(true);
+  }
+
+  function recoveryPrompt() {
+    if (current.visual === "fraction") return "Start with equal pieces. Count how many pieces are being used, then compare that with the whole.";
+    if (current.visual === "number-line") return "Place yourself at the starting number, then move one small step at a time. The direction matters.";
+    return "Build one equal group first. When the group changes, make the matching group change in the same way.";
   }
 
   function chargePiece() {
@@ -237,6 +248,7 @@ export default function Home() {
     setEquippedCosmetic("trailblazer");
     setDailyStreak(0);
     setLastCompletedDate(null);
+    setWrongAttemptsOnQuestion(0);
   }
 
   function exportLocalPilotData() {
@@ -311,6 +323,6 @@ export default function Home() {
 
   return <main className="shell quest-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>🔥 {dailyStreak}</span><span>✨ {pet}</span><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button><button className="text-button" onClick={() => setScreen("parent")}>Parent view</button></div></nav>
     <section className="quest-layout"><aside className="quest-side"><div className={`mission-scene stage-${Math.min(3, correct)}`}><div className="scene-stars">✦ ✧ ✦</div><div className="beacon-core">✦</div><div className="beacon-pulse" /><div className="nova-orbit">✨</div><p>Beacon energy: {Math.min(3, correct)}/3</p></div><p className="eyebrow">{screen === "diagnostic" ? "NOVA'S RESCUE MISSION" : `GRADE ${grade} · LUMINA RESTORATION`}</p><h1>{missionTitle}</h1><p>{missionMoment}</p><div className="progress"><span style={{ width: `${screen === "diagnostic" ? ((diagnosticIndex + 1) / diagnostic.length) * 100 : ((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><small>{screen === "diagnostic" ? diagnosticIndex + 1 : questIndex + 1} of {screen === "diagnostic" ? diagnostic.length : gradeQuests.length} small discoveries</small></aside>
-      <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Explore first" : "Use your discovery"}</span></div><Visual kind={current.visual} chargedPieces={chargedPieces} onCharge={chargePiece} /><div className="quest-story"><span>Nova says</span><p>{current.visual === "fraction" ? "“The beacon responds when we notice how equal pieces fit together.”" : current.visual === "number-line" ? "“Let’s trace the path before we decide.”" : "“Let’s build equal groups, then see what changes.”"}</p></div><h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Nova&apos;s clue:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Not yet—and that&apos;s useful information.</b><span>{current.explanation}</span></div>}{feedback === "correct" && <div className="feedback correct"><b>Beacon energy restored! +25 Lumina coins</b><span>{current.explanation}</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={() => setShowHint(true)}>Ask Nova for a clue</button><button className="primary" disabled={!selected} onClick={answer}>Send my idea →</button></>}{feedback === "correct" && <button className="primary" onClick={continueLearning}>See what changed in Lumina →</button>}{feedback === "retry" && <button className="primary" onClick={retryCurrentQuestion}>Try a different idea</button>}</div></section>
+      <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Explore first" : "Use your discovery"}</span></div><Visual kind={current.visual} chargedPieces={chargedPieces} onCharge={chargePiece} /><div className="quest-story"><span>Nova says</span><p>{current.visual === "fraction" ? "“The beacon responds when we notice how equal pieces fit together.”" : current.visual === "number-line" ? "“Let’s trace the path before we decide.”" : "“Let’s build equal groups, then see what changes.”"}</p></div><h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Nova&apos;s clue:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Not yet—and that&apos;s useful information.</b><span>Let&apos;s slow the picture down and try a new route.</span></div>}{wrongAttemptsOnQuestion >= 2 && feedback !== "correct" && <div className="recovery-card"><p className="eyebrow">NOVA&apos;S SLOW-DOWN PATH</p><h3>You don&apos;t have to get it quickly to get it.</h3><p>{recoveryPrompt()}</p><button className="text-button" onClick={() => { setShowHint(true); setFeedback(null); }}>I&apos;m ready to look again</button></div>}{feedback === "correct" && <div className="feedback correct"><b>Beacon energy restored! +25 Lumina coins</b><span>{current.explanation}</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={() => setShowHint(true)}>Ask Nova for a clue</button><button className="primary" disabled={!selected} onClick={answer}>Send my idea →</button></>}{feedback === "correct" && <button className="primary" onClick={continueLearning}>See what changed in Lumina →</button>}{feedback === "retry" && <button className="primary" onClick={retryCurrentQuestion}>{wrongAttemptsOnQuestion >= 2 ? "Use the slow-down path" : "Try a different idea"}</button>}</div></section>
     </section></main>;
 }
