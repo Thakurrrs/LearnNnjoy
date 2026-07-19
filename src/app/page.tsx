@@ -18,6 +18,14 @@ import { chooseAdaptiveNextStep } from "@/lib/adaptive";
 
 type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "parent" | "world" | "map";
 type ActiveSubject = "maths" | "science" | "english" | "social";
+type SubjectMissionProgress = {
+  questIndex: number;
+  correct: number;
+  attempts: number;
+  hintRequests: number;
+  diagnosticCorrect: number;
+};
+type SubjectProgress = Partial<Record<ActiveSubject, SubjectMissionProgress>>;
 
 const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
 
@@ -43,8 +51,23 @@ type SavedProgress = {
   dailyStreak: number;
   lastCompletedDate: string | null;
   activeSubject: ActiveSubject;
+  subjectProgress: SubjectProgress;
   nextSupportMode: "rebuild" | "steady" | "stretch";
 };
+
+function isSubjectMissionProgress(value: unknown): value is SubjectMissionProgress {
+  if (!value || typeof value !== "object") return false;
+  const progress = value as Record<string, unknown>;
+  return ["questIndex", "correct", "attempts", "hintRequests", "diagnosticCorrect"].every((key) => typeof progress[key] === "number" && Number.isFinite(progress[key]));
+}
+
+function readSubjectProgress(value: unknown): SubjectProgress {
+  if (!value || typeof value !== "object") return {};
+  return (Object.entries(value as Record<string, unknown>) as [ActiveSubject, unknown][]).reduce<SubjectProgress>((progress, [subject, mission]) => {
+    if ((subject === "maths" || subject === "science" || subject === "english" || subject === "social") && isSubjectMissionProgress(mission)) progress[subject] = mission;
+    return progress;
+  }, {});
+}
 
 const cosmetics = [
   { id: "trailblazer", label: "Trailblazer pack", emoji: "🎒", cost: 0, detail: "Your first expedition companion." },
@@ -152,6 +175,7 @@ export default function Home() {
   const cloudLoadStarted = useRef(false);
   const [chargedPieces, setChargedPieces] = useState(0);
   const [wrongAttemptsOnQuestion, setWrongAttemptsOnQuestion] = useState(0);
+  const [subjectProgress, setSubjectProgress] = useState<SubjectProgress>({});
   const [nextSupportMode, setNextSupportMode] = useState<SavedProgress["nextSupportMode"]>("steady");
 
   function applySavedProgress(saved: Partial<SavedProgress>) {
@@ -176,6 +200,7 @@ export default function Home() {
     if (typeof saved.equippedCosmetic === "string") setEquippedCosmetic(saved.equippedCosmetic);
     if (typeof saved.dailyStreak === "number") setDailyStreak(saved.dailyStreak);
     if (typeof saved.lastCompletedDate === "string") setLastCompletedDate(saved.lastCompletedDate);
+    if (saved.subjectProgress) setSubjectProgress(readSubjectProgress(saved.subjectProgress));
     if (saved.nextSupportMode === "rebuild" || saved.nextSupportMode === "steady" || saved.nextSupportMode === "stretch") setNextSupportMode(saved.nextSupportMode);
   }
 
@@ -244,16 +269,16 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated || !name.trim()) return;
-    const progress: SavedProgress = { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, nextSupportMode };
+    const progress: SavedProgress = { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, subjectProgress, nextSupportMode };
     window.localStorage.setItem(PILOT_PROGRESS_KEY, JSON.stringify(progress));
-  }, [activeSubject, attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [activeSubject, attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells, subjectProgress]);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client || !hydrated || !authUser || !name.trim() || !guardianAcknowledged || cloudLoadStarted.current) return;
     cloudLoadStarted.current = true;
 
-    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, nextSupportMode } })
+    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, subjectProgress, nextSupportMode } })
       .then((hosted) => {
         applySavedProgress(hosted.state as Partial<SavedProgress>);
         setHostedLearnerId(hosted.learnerId);
@@ -263,18 +288,18 @@ export default function Home() {
         cloudLoadStarted.current = false;
         setCloudMessage(error instanceof Error ? error.message : "Cloud saving could not start yet. Your progress remains on this device.");
       });
-  }, [activeSubject, attempts, authUser, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [activeSubject, attempts, authUser, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells, subjectProgress]);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client || !hostedLearnerId || !hydrated) return;
     const timer = window.setTimeout(() => {
-      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, nextSupportMode }).catch(() => {
+      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, subjectProgress, nextSupportMode }).catch(() => {
         setCloudMessage("Your latest progress is still safe on this device; cloud saving will retry next time.");
       });
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [activeSubject, attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hostedLearnerId, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [activeSubject, attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hostedLearnerId, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells, subjectProgress]);
 
   async function sendMagicLink() {
     const client = getSupabaseBrowserClient();
@@ -361,6 +386,26 @@ export default function Home() {
     setStoryCells((cells) => cells.includes(cell) ? cells.filter((item) => item !== cell) : cells.length < 2 ? [...cells, cell] : cells);
   }
 
+  function currentMissionProgress(): SubjectMissionProgress {
+    return { questIndex, correct, attempts, hintRequests, diagnosticCorrect };
+  }
+
+  function startSubjectMission(nextSubject: ActiveSubject) {
+    setSubjectProgress((progress) => ({ ...progress, [activeSubject]: currentMissionProgress() }));
+    const savedMission = subjectProgress[nextSubject];
+    setActiveSubject(nextSubject);
+    setQuestIndex(savedMission?.questIndex ?? 0);
+    setCorrect(savedMission?.correct ?? 0);
+    setAttempts(savedMission?.attempts ?? 0);
+    setHintRequests(savedMission?.hintRequests ?? 0);
+    setDiagnosticCorrect(nextSubject === "maths" ? (savedMission?.diagnosticCorrect ?? diagnosticCorrect) : 0);
+    setSelected(null);
+    setFeedback(null);
+    setShowHint(false);
+    setWrongAttemptsOnQuestion(0);
+    setScreen(savedMission?.questIndex ? "chapter" : nextSubject === "maths" ? "quest" : "chapter");
+  }
+
   function chooseGrade(nextGrade: Grade) {
     setGrade(nextGrade);
     setActiveSubject("maths");
@@ -374,6 +419,7 @@ export default function Home() {
     setHintRequests(0);
     setCorrect(0);
     setAttempts(0);
+    setSubjectProgress({});
     setNextSupportMode("steady");
   }
 
@@ -389,38 +435,9 @@ export default function Home() {
     setHintRequests(0);
     setCorrect(0);
     setAttempts(0);
+    setSubjectProgress({});
     setNextSupportMode("steady");
     setScreen("welcome");
-  }
-
-  function startScienceMission() {
-    setActiveSubject("science");
-    setQuestIndex(0);
-    setSelected(null);
-    setFeedback(null);
-    setShowHint(false);
-    setWrongAttemptsOnQuestion(0);
-    setScreen("chapter");
-  }
-
-  function startEnglishMission() {
-    setActiveSubject("english");
-    setQuestIndex(0);
-    setSelected(null);
-    setFeedback(null);
-    setShowHint(false);
-    setWrongAttemptsOnQuestion(0);
-    setScreen("chapter");
-  }
-
-  function startSocialMission() {
-    setActiveSubject("social");
-    setQuestIndex(0);
-    setSelected(null);
-    setFeedback(null);
-    setShowHint(false);
-    setWrongAttemptsOnQuestion(0);
-    setScreen("chapter");
   }
 
   function eraseLocalPilotData() {
@@ -444,6 +461,7 @@ export default function Home() {
     setCoins(60);
     setCorrect(0);
     setAttempts(0);
+    setSubjectProgress({});
     setGuardianAcknowledged(false);
     setParentPulse(null);
     setOwnedCosmetics(["trailblazer"]);
@@ -535,7 +553,7 @@ export default function Home() {
   if (screen === "map") {
     return <main className={`shell dashboard-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("quest")}>Back to mission</button></nav>
       <section className="dashboard-heading"><p className="eyebrow">YOUR LEARNING ATLAS</p><h1>Every subject can become a world worth exploring.</h1><p>Grade {grade} · CBSE/NCERT competency roadmap · Maths, Science, English, and Social Science each have a playable mission.</p></section>
-      <section className="atlas-grid">{gradeRoadmap.map((subject) => <article key={subject.id} className={subject.pilotStatus === "live" ? "atlas-card live" : "atlas-card"}><div className="atlas-card-top"><span className="atlas-icon">{subject.icon}</span><span className={subject.pilotStatus === "live" ? "atlas-status live" : "atlas-status"}>{subject.pilotStatus === "live" ? "PILOT NOW" : "MAPPED NEXT"}</span></div><p className="eyebrow">{subject.questWorld}</p><h2>{subject.label}</h2><ul>{subject.topics.map((topic) => <li key={topic}>{topic}</li>)}</ul>{subject.pilotStatus === "live" ? <button className="primary" onClick={() => subject.id === "science" ? startScienceMission() : subject.id === "english" ? startEnglishMission() : subject.id === "social" ? startSocialMission() : (setActiveSubject("maths"), setScreen("quest"))}>{subject.id === "science" ? "Begin Earthkeepers mission" : subject.id === "english" ? "Open Story Studio" : subject.id === "social" ? "Enter Mapmakers’ Camp" : "Continue Maths mission"}</button> : <p className="atlas-note">This world is planned in the curriculum journey. It will unlock after the current pilot proves the learning loop.</p>}</article>)}</section>
+      <section className="atlas-grid">{gradeRoadmap.map((subject) => <article key={subject.id} className={subject.pilotStatus === "live" ? "atlas-card live" : "atlas-card"}><div className="atlas-card-top"><span className="atlas-icon">{subject.icon}</span><span className={subject.pilotStatus === "live" ? "atlas-status live" : "atlas-status"}>{subject.pilotStatus === "live" ? "PILOT NOW" : "MAPPED NEXT"}</span></div><p className="eyebrow">{subject.questWorld}</p><h2>{subject.label}</h2><ul>{subject.topics.map((topic) => <li key={topic}>{topic}</li>)}</ul>{subject.pilotStatus === "live" ? <button className="primary" onClick={() => startSubjectMission(subject.id)}>{subject.id === "science" ? "Begin Earthkeepers mission" : subject.id === "english" ? "Open Story Studio" : subject.id === "social" ? "Enter Mapmakers’ Camp" : "Continue Maths mission"}</button> : <p className="atlas-note">This world is planned in the curriculum journey. It will unlock after the current pilot proves the learning loop.</p>}</article>)}</section>
     </main>;
   }
 
