@@ -38,6 +38,15 @@ export const grade7EnglishQuestArc: Question[] = [
   item("e7-6", "Which revision makes this sentence more precise: ‘The thing was good.’", ["The solar cooker reduced the need for firewood.", "The thing was nice.", "Good thing happened."], "The solar cooker reduced the need for firewood.", "Choose words that name the object and explain its effect.", "The revision is precise because it identifies the solar cooker and its specific benefit."),
 ];
 
+export const grade8EnglishQuestArc: Question[] = [
+  item("e8-1", "Which detail most strongly suggests a narrator is unreliable?", ["Their account contradicts a fact shown elsewhere", "They use a full stop", "They describe a room"], "Their account contradicts a fact shown elsewhere", "An unreliable narrator may not give a fully accurate account.", "A contradiction with established evidence gives readers reason to question the narrator’s account."),
+  item("e8-2", "Which sentence uses a relative clause?", ["The book that I borrowed was inspiring.", "I borrowed the book yesterday.", "Borrow the book."], "The book that I borrowed was inspiring.", "Look for a clause that gives extra information about a noun.", "‘That I borrowed’ is a relative clause describing which book."),
+  item("e8-3", "What is the main purpose of citing a source in a report?", ["To show where information came from", "To make the report longer", "To avoid reading the source"], "To show where information came from", "Good research lets readers trace important information.", "Citations acknowledge sources and let readers check the evidence."),
+  item("e8-4", "Which claim is most precise?", ["The survey found that 62% of students preferred a shaded playground.", "Most people like things.", "Playgrounds are interesting."], "The survey found that 62% of students preferred a shaded playground.", "A precise claim names the evidence and the exact finding.", "This claim states both the data source and a specific result."),
+  item("e8-5", "Which transition best introduces a result?", ["As a result", "In contrast", "For instance"], "As a result", "A result follows from an earlier cause or action.", "‘As a result’ clearly signals an outcome of what came before."),
+  item("e8-6", "What does a strong revision usually improve first?", ["Clarity, evidence, and organisation", "Only the font size", "The number of unrelated ideas"], "Clarity, evidence, and organisation", "Revision is about making meaning stronger for the reader.", "Strong revision improves how clearly ideas are arranged and supported."),
+];
+
 export function getEnglishQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4EnglishQuestArc : grade === 5 ? grade5EnglishQuestArc : grade === 6 ? grade6EnglishQuestArc : grade === 7 ? grade7EnglishQuestArc : [];
+  return grade === 4 ? grade4EnglishQuestArc : grade === 5 ? grade5EnglishQuestArc : grade === 6 ? grade6EnglishQuestArc : grade === 7 ? grade7EnglishQuestArc : grade === 8 ? grade8EnglishQuestArc : [];
 }

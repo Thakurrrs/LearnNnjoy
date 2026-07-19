@@ -38,6 +38,15 @@ export const grade7ScienceQuestArc: Question[] = [
   item("s7-6", "Why should antibiotics not be used for a common viral cold without medical advice?", ["Antibiotics do not treat viruses", "They turn viruses into plants", "They replace sleep"], "Antibiotics do not treat viruses", "Antibiotics target bacteria, not viruses.", "A cold is usually caused by a virus, so antibiotics will not treat it."),
 ];
 
+export const grade8ScienceQuestArc: Question[] = [
+  item("s8-1", "Why are microorganisms used to make curd?", ["They convert milk sugar into acids", "They freeze milk instantly", "They add metal to milk"], "They convert milk sugar into acids", "Think about the useful activity of bacteria in fermentation.", "Certain bacteria ferment milk sugar, producing acids that help milk set into curd."),
+  item("s8-2", "Why does a sharp knife cut more easily than a blunt one with the same force?", ["It applies force over a smaller area", "It has no friction", "It weighs nothing"], "It applies force over a smaller area", "Pressure increases when the same force acts on a smaller area.", "A sharp edge concentrates force on a small area, producing greater pressure."),
+  item("s8-3", "Sound cannot travel through which medium?", ["Vacuum", "Air", "Water"], "Vacuum", "Sound needs particles to pass on vibrations.", "A vacuum has no particles, so sound cannot travel through it."),
+  item("s8-4", "Which structure controls the activities of a cell?", ["Nucleus", "Cell wall only", "Vacuole only"], "Nucleus", "Look for the cell part that contains genetic material and directs activities.", "The nucleus contains genetic material and controls many cell activities."),
+  item("s8-5", "Why should plastic waste be reduced near wildlife habitats?", ["Animals may ingest it or become entangled", "Plastic helps every animal grow", "It turns into soil overnight"], "Animals may ingest it or become entangled", "Consider how discarded objects can harm animals directly.", "Plastic can injure wildlife through ingestion or entanglement and can persist for a long time."),
+  item("s8-6", "A student wants to test whether light affects plant growth. What should stay the same between two groups?", ["Water, soil, and plant type", "The question being tested", "Only the colour of the labels"], "Water, soil, and plant type", "A fair test changes one main factor and controls the others.", "Keeping other conditions the same makes it more likely that light explains any difference."),
+];
+
 export function getScienceQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4ScienceQuestArc : grade === 5 ? grade5ScienceQuestArc : grade === 6 ? grade6ScienceQuestArc : grade === 7 ? grade7ScienceQuestArc : [];
+  return grade === 4 ? grade4ScienceQuestArc : grade === 5 ? grade5ScienceQuestArc : grade === 6 ? grade6ScienceQuestArc : grade === 7 ? grade7ScienceQuestArc : grade === 8 ? grade8ScienceQuestArc : [];
 }
