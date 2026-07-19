@@ -10,7 +10,7 @@ import { getScienceQuestsForGrade } from "@/lib/science-quests";
 import { getEnglishQuestsForGrade } from "@/lib/english-quests";
 import { getSocialQuestsForGrade } from "@/lib/social-quests";
 import { getGradeRoadmap } from "@/lib/curriculum-map";
-import { getLessonStory } from "@/lib/lesson-story";
+import { getLessonStory, type LessonStory } from "@/lib/lesson-story";
 import { recordDailyQuest } from "@/lib/streak";
 import { loadOrCreateHostedLearner, saveHostedLearnerState } from "@/lib/hosted-progress";
 import { getSupabaseBrowserClient, isHostedPilotConfigured } from "@/lib/supabase";
@@ -85,9 +85,10 @@ function MapVisual({ onExplore }: { onExplore: () => void }) {
   return <div className="visual-play"><div className="map-visual" aria-label="A small map with a compass and route markers"><b>N</b><span>⌁</span><i>●</i><i>✦</i></div><button className="visual-action" type="button" onClick={onExplore}>Trace the map clues</button><p>Maps use direction, symbols, and landmarks to tell a useful story about a place.</p></div>;
 }
 
-function StoryReel({ frames }: { frames: [string, string, string, string] }) {
+function StoryReel({ story }: { story: LessonStory }) {
   const [playing, setPlaying] = useState(false);
   const [frame, setFrame] = useState(0);
+  const { frames } = { frames: story.reelFrames };
 
   useEffect(() => {
     if (!playing) return;
@@ -100,6 +101,7 @@ function StoryReel({ frames }: { frames: [string, string, string, string] }) {
     setPlaying(true);
   }
 
+  if (story.videoAsset) return <section className="story-video"><video controls preload="metadata" src={story.videoAsset.src} aria-label="Optional lesson story video" /><details><summary>Read captions</summary><p>{story.videoAsset.transcript}</p></details></section>;
   if (!playing) return <button type="button" className="story-reel-launch" onClick={startReel}><span>▶</span><div><b>Play a 15-second visual recap</b><small>Optional · captions on · replay anytime</small></div></button>;
   return <section className="story-reel" aria-live="polite"><div className={`reel-orbit reel-step-${frame}`}>✦</div><p className="eyebrow">VISUAL RECAP · {frame + 1}/4</p><p>{frames[frame]}</p><div className="reel-progress"><span style={{ width: `${((frame + 1) / frames.length) * 100}%` }} /></div><div className="reel-actions"><button type="button" className="text-button" onClick={() => setPlaying(false)}>Close recap</button><button type="button" className="text-button" onClick={startReel}>Replay</button></div></section>;
 }
@@ -524,7 +526,7 @@ export default function Home() {
 
   if (screen === "chapter") {
     const sceneImage = current.visual === "number-line" ? "/images/lumina-mist-trail.png" : "/images/lumina-bridge.png";
-    return <main className={`chapter-shell chapter-${current.visual} ${gradeTheme}`}><Image src={sceneImage} alt="A chapter of Nova's learning adventure begins." fill priority sizes="100vw" className="chapter-art" /><div className="chapter-overlay" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>{subjectMissionName} · discovery {questIndex + 1} of {gradeQuests.length}</span></nav><section className="chapter-dialogue"><p className="eyebrow">NOVA&apos;S STORY</p><h1>{lessonStory.chapterTitle}</h1><p>{lessonStory.chapterDialogue}</p><StoryReel frames={lessonStory.reelFrames} />{current.visual === "ratio" && <div className="chapter-groups" aria-label="One matching group becomes two matching groups"><div>✦✦<small>one group</small></div><strong>→</strong><div>✦✦✦✦<small>two matching groups</small></div></div>}{current.visual === "fraction" && <div className="chapter-whole" aria-label="One whole divided into two equal pieces"><span /><span /></div>}<div className="chapter-progress"><span style={{ width: `${((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><button className="primary" onClick={() => setScreen("quest")}>{lessonStory.chapterAction} →</button></section></main>;
+    return <main className={`chapter-shell chapter-${current.visual} ${gradeTheme}`}><Image src={sceneImage} alt="A chapter of Nova's learning adventure begins." fill priority sizes="100vw" className="chapter-art" /><div className="chapter-overlay" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>{subjectMissionName} · discovery {questIndex + 1} of {gradeQuests.length}</span></nav><section className="chapter-dialogue"><p className="eyebrow">NOVA&apos;S STORY</p><h1>{lessonStory.chapterTitle}</h1><p>{lessonStory.chapterDialogue}</p><StoryReel story={lessonStory} />{current.visual === "ratio" && <div className="chapter-groups" aria-label="One matching group becomes two matching groups"><div>✦✦<small>one group</small></div><strong>→</strong><div>✦✦✦✦<small>two matching groups</small></div></div>}{current.visual === "fraction" && <div className="chapter-whole" aria-label="One whole divided into two equal pieces"><span /><span /></div>}<div className="chapter-progress"><span style={{ width: `${((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><button className="primary" onClick={() => setScreen("quest")}>{lessonStory.chapterAction} →</button></section></main>;
   }
 
   if (screen === "outcome") {

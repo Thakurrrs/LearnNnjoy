@@ -11,6 +11,7 @@ export type LessonStory = {
   outcomeIcon: string;
   videoCue: string;
   reelFrames: [string, string, string, string];
+  videoAsset?: { src: string; transcript: string; durationSeconds: number };
 };
 
 const byQuestionId: Record<string, Partial<LessonStory>> = {
