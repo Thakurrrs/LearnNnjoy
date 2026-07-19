@@ -134,7 +134,7 @@ export default function Home() {
   function applySavedProgress(saved: Partial<SavedProgress>) {
     if (saved.name) setName(saved.name);
     if (saved.grade && saved.grade >= 4 && saved.grade <= 12) setGrade(saved.grade as Grade);
-    if (saved.activeSubject === "maths" || ((saved.activeSubject === "science" || saved.activeSubject === "english" || saved.activeSubject === "social") && (saved.grade === 4 || saved.grade === 5 || saved.grade === 6 || saved.grade === 7 || saved.grade === 8 || saved.grade === 9 || saved.grade === 10))) setActiveSubject(saved.activeSubject);
+    if (saved.activeSubject === "maths" || ((saved.activeSubject === "science" || saved.activeSubject === "english" || saved.activeSubject === "social") && (saved.grade === 4 || saved.grade === 5 || saved.grade === 6 || saved.grade === 7 || saved.grade === 8 || saved.grade === 9 || saved.grade === 10 || saved.grade === 11))) setActiveSubject(saved.activeSubject);
     if (saved.screen && saved.screen !== "welcome") setScreen(saved.screen === "story" && saved.grade !== 4 ? "diagnostic" : saved.screen);
     if (typeof saved.diagnosticIndex === "number") setDiagnosticIndex(Math.min(saved.diagnosticIndex, 2));
     if (typeof saved.diagnosticCorrect === "number") setDiagnosticCorrect(Math.max(0, Math.min(3, saved.diagnosticCorrect)));
@@ -155,9 +155,9 @@ export default function Home() {
     if (typeof saved.lastCompletedDate === "string") setLastCompletedDate(saved.lastCompletedDate);
   }
 
-  const isScienceMission = activeSubject === "science" && grade <= 10;
-  const isEnglishMission = activeSubject === "english" && grade <= 10;
-  const isSocialMission = activeSubject === "social" && grade <= 10;
+  const isScienceMission = activeSubject === "science" && grade <= 11;
+  const isEnglishMission = activeSubject === "english" && grade <= 11;
+  const isSocialMission = activeSubject === "social" && grade <= 11;
   const subjectMissionName = isScienceMission ? "Earthkeepers field mission" : isEnglishMission ? "Story Studio mission" : isSocialMission ? "Mapmakers’ Camp" : "Lumina restoration";
   const gradeQuests = isScienceMission ? getScienceQuestsForGrade(grade) : isEnglishMission ? getEnglishQuestsForGrade(grade) : isSocialMission ? getSocialQuestsForGrade(grade) : getQuestsForGrade(grade);
   const gradeDiagnostic = getDiagnosticForGrade(grade);

@@ -63,9 +63,9 @@ export const curriculumMap: Record<Grade, GradeRoadmap> = {
   },
   11: {
     maths: entry("maths", "Mathematics", "✦", "Orbit Academy", ["Sets, functions and trigonometry", "Complex numbers and coordinate geometry", "Calculus foundations, probability and statistics"], "live"),
-    science: entry("science", "Science", "🔬", "Discovery Lab", ["Physics: motion, matter and waves", "Chemistry: structure and reactions", "Biology: diversity and physiology"], "mapped"),
-    social: entry("social", "Social Science", "🧭", "Chronicle Quest", ["Political theory and society", "Economics and development", "Historical inquiry and geography"], "mapped"),
-    english: entry("english", "English", "📚", "Story Studio", ["Close literary analysis", "Research and synthesis", "Clear academic expression"], "mapped"),
+    science: entry("science", "Science", "🔬", "Discovery Lab", ["Physics: motion, matter and waves", "Chemistry: structure and reactions", "Biology: diversity and physiology"], "live"),
+    social: entry("social", "Social Science", "🧭", "Chronicle Quest", ["Political theory and society", "Economics and development", "Historical inquiry and geography"], "live"),
+    english: entry("english", "English", "📚", "Story Studio", ["Close literary analysis", "Research and synthesis", "Clear academic expression"], "live"),
   },
   12: {
     maths: entry("maths", "Mathematics", "✦", "Orbit Academy", ["Relations, functions and calculus", "Vectors, matrices and three-dimensional geometry", "Probability, linear programming and applications"], "live"),
