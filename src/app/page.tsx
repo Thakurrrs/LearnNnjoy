@@ -11,7 +11,7 @@ import { recordDailyQuest } from "@/lib/streak";
 import { loadOrCreateHostedLearner, saveHostedLearnerState } from "@/lib/hosted-progress";
 import { getSupabaseBrowserClient, isHostedPilotConfigured } from "@/lib/supabase";
 
-type Screen = "welcome" | "story" | "diagnostic" | "path" | "quest" | "parent" | "world" | "map";
+type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "parent" | "world" | "map";
 
 const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
 
@@ -221,8 +221,10 @@ export default function Home() {
       else setScreen("path");
       return;
     }
-    if (questIndex < gradeQuests.length - 1) setQuestIndex((value) => value + 1);
-    else setQuestIndex(gradeQuests.length);
+    if (questIndex < gradeQuests.length - 1) {
+      setQuestIndex((value) => value + 1);
+      setScreen("chapter");
+    } else setQuestIndex(gradeQuests.length);
   }
 
   function retryCurrentQuestion() {
@@ -355,7 +357,16 @@ export default function Home() {
 
   if (screen === "path") {
     const trail = chooseLearningTrail(diagnosticCorrect);
-    return <main className="shell completion-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="pill">Nova found your trail</div></nav><section className="trail-card"><div className={`trail-emblem ${trail.id}`}>{trail.id === "visual" ? "◐" : trail.id === "guided" ? "✦" : "✧"}</div><p className="eyebrow">YOUR STARTING TRAIL</p><h1>{trail.label}</h1><p>{trail.message}</p><div className="trail-support"><b>How LearnNnjoy will help</b><span>{trail.support}</span></div><button className="primary" onClick={() => { setShowHint(trail.id === "visual"); setScreen("quest"); }}>Begin my Lumina mission →</button><small>This is not a score. It is simply the most comfortable place to begin today.</small></section></main>;
+    return <main className="shell completion-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="pill">Nova found your trail</div></nav><section className="trail-card"><div className={`trail-emblem ${trail.id}`}>{trail.id === "visual" ? "◐" : trail.id === "guided" ? "✦" : "✧"}</div><p className="eyebrow">YOUR STARTING TRAIL</p><h1>{trail.label}</h1><p>{trail.message}</p><div className="trail-support"><b>How LearnNnjoy will help</b><span>{trail.support}</span></div><button className="primary" onClick={() => { setShowHint(trail.id === "visual"); setScreen("chapter"); }}>Begin my Lumina mission →</button><small>This is not a score. It is simply the most comfortable place to begin today.</small></section></main>;
+  }
+
+  if (screen === "chapter") {
+    const chapter = current.visual === "fraction"
+      ? { title: "The beacon doors need equal light.", dialogue: "Nova found four ancient energy chambers. The beacon only listens when we notice how equal parts fit together.", action: "Step into the energy chamber" }
+      : current.visual === "number-line"
+        ? { title: "The mist trail has lost its markers.", dialogue: "Nova can see the destination, but not the path. Trace the steps carefully before choosing where to go.", action: "Follow the glowing trail" }
+        : { title: "The starlight bridge needs matching supplies.", dialogue: "Every explorer needs a fair share. Help Nova build equal groups so the bridge can hold everyone.", action: "Open the supply satchel" };
+    return <main className={`chapter-shell chapter-${current.visual}`}><Image src="/images/lumina-bridge.png" alt="A chapter of Nova's Lumina adventure begins." fill priority sizes="100vw" className="chapter-art" /><div className="chapter-overlay" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>Lumina restoration · discovery {questIndex + 1} of {gradeQuests.length}</span></nav><section className="chapter-dialogue"><p className="eyebrow">NOVA&apos;S STORY</p><h1>{chapter.title}</h1><p>{chapter.dialogue}</p><div className="chapter-progress"><span style={{ width: `${((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><button className="primary" onClick={() => setScreen("quest")}>{chapter.action} →</button></section></main>;
   }
 
   if (completed) {
