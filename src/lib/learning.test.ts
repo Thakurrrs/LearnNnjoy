@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { chooseLearningTrail, diagnostic, numberSenseSkills, recommendNextSkill } from "./learning";
-import { getQuestsForGrade } from "./grade-quests";
+import { getDiagnosticForGrade, getQuestsForGrade } from "./grade-quests";
 
 describe("Number Sense curriculum", () => {
   it("covers every pilot grade in its foundation skill", () => {
@@ -8,10 +8,18 @@ describe("Number Sense curriculum", () => {
   });
 
   it("keeps every quest and diagnostic item answerable", () => {
-    [...diagnostic, ...[4, 5, 6, 7, 8, 9, 10, 11, 12].flatMap((grade) => getQuestsForGrade(grade as 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12))].forEach((item) => {
+    const grades = [4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
+    [...diagnostic, ...grades.flatMap((grade) => [...getDiagnosticForGrade(grade), ...getQuestsForGrade(grade)])].forEach((item) => {
       expect(item.choices).toContain(item.answer);
       expect(item.hint.length).toBeGreaterThan(0);
       expect(item.explanation.length).toBeGreaterThan(0);
+    });
+  });
+
+  it("uses three grade-relevant ideas for every quiet starting calibration", () => {
+    ([4, 5, 6, 7, 8, 9, 10, 11, 12] as const).forEach((grade) => {
+      expect(getDiagnosticForGrade(grade)).toHaveLength(3);
+      expect(getDiagnosticForGrade(grade).every((item) => getQuestsForGrade(grade).includes(item))).toBe(true);
     });
   });
 

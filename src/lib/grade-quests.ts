@@ -65,3 +65,10 @@ export const gradeQuestArc: Record<Grade, Question[]> = {
 export function getQuestsForGrade(grade: Grade): Question[] {
   return gradeQuestArc[grade];
 }
+
+// The opening check samples the same mathematical territory as the learner's
+// grade mission. It is a quiet placement signal, not a test score.
+export function getDiagnosticForGrade(grade: Grade): Question[] {
+  const quests = gradeQuestArc[grade];
+  return [quests[0], quests[Math.min(3, quests.length - 1)], quests[Math.min(5, quests.length - 1)]];
+}
