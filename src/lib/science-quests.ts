@@ -56,6 +56,15 @@ export const grade9ScienceQuestArc: Question[] = [
   item("s9-6", "Why do scientists repeat measurements in an investigation?", ["To improve reliability and spot unusual results", "To change the hypothesis each time", "To avoid recording data"], "To improve reliability and spot unusual results", "Repeated data can reveal whether one reading was unusual.", "Repeating measurements makes evidence more reliable and helps identify anomalies."),
 ];
 
+export const grade10ScienceQuestArc: Question[] = [
+  item("s10-1", "Which observation best indicates a chemical reaction?", ["A gas is produced when substances are mixed", "Ice melts", "Paper is cut"], "A gas is produced when substances are mixed", "A new substance or gas can be evidence of chemical change.", "Gas production can show that a chemical reaction has formed new substances."),
+  item("s10-2", "Which process releases energy from glucose in living cells?", ["Cellular respiration", "Photosynthesis", "Filtration"], "Cellular respiration", "Cells break down food molecules to release usable energy.", "Cellular respiration releases energy from glucose for cell activities."),
+  item("s10-3", "In a series circuit, what happens if one bulb breaks?", ["The whole circuit stops conducting", "Other bulbs always get brighter", "Current becomes infinite"], "The whole circuit stops conducting", "A series circuit has one continuous path.", "A broken bulb opens the only path, so current cannot flow through the circuit."),
+  item("s10-4", "Why is a concave mirror used in a torch?", ["It can direct light into a strong beam", "It removes all light", "It makes electricity"], "It can direct light into a strong beam", "Think about how the mirror reflects rays from a source near its focus.", "A concave mirror can reflect light outward in a more directed beam."),
+  item("s10-5", "What is the role of DNA in heredity?", ["It carries genetic information", "It is only a source of heat", "It replaces every cell"], "It carries genetic information", "Traits are passed through instructions stored in cells.", "DNA carries genetic information that helps determine inherited traits."),
+  item("s10-6", "Which action most directly reduces household carbon emissions?", ["Using less electricity from fossil-fuel sources", "Leaving appliances on", "Burning mixed waste"], "Using less electricity from fossil-fuel sources", "Energy use can lead to emissions when power is generated from fossil fuels.", "Reducing electricity waste can lower demand for fossil-fuel-generated power and emissions."),
+];
+
 export function getScienceQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4ScienceQuestArc : grade === 5 ? grade5ScienceQuestArc : grade === 6 ? grade6ScienceQuestArc : grade === 7 ? grade7ScienceQuestArc : grade === 8 ? grade8ScienceQuestArc : grade === 9 ? grade9ScienceQuestArc : [];
+  return grade === 4 ? grade4ScienceQuestArc : grade === 5 ? grade5ScienceQuestArc : grade === 6 ? grade6ScienceQuestArc : grade === 7 ? grade7ScienceQuestArc : grade === 8 ? grade8ScienceQuestArc : grade === 9 ? grade9ScienceQuestArc : grade === 10 ? grade10ScienceQuestArc : [];
 }
