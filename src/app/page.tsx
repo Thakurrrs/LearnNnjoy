@@ -37,8 +37,8 @@ const cosmetics = [
   { id: "starglow", label: "Starglow companion", emoji: "🌟", cost: 75, detail: "A tiny light for the next trail." },
 ] as const;
 
-function FractionVisual() {
-  return <div className="pizza" aria-label="A pizza split into four equal slices"><span /><span /><span /><span /></div>;
+function FractionVisual({ chargedPieces, onCharge }: { chargedPieces: number; onCharge: () => void }) {
+  return <div className="visual-play"><div className="pizza interactive-pizza" aria-label="A four-part energy disc. Tap a piece to charge it.">{[0, 1, 2, 3].map((piece) => <button key={piece} type="button" className={piece < chargedPieces ? "charged" : ""} aria-label={`Charge piece ${piece + 1}`} onClick={onCharge} />)}</div><p>Tap the energy pieces to explore equal parts.</p></div>;
 }
 
 function NumberLineVisual() {
@@ -49,8 +49,8 @@ function RatioVisual() {
   return <div className="ratio-visual" aria-label="Two cups for four people, then four cups for eight people"><div>🥣🥣<small>4 explorers</small></div><strong>→</strong><div>🥣🥣🥣🥣<small>8 explorers</small></div></div>;
 }
 
-function Visual({ kind }: { kind: VisualKind }) {
-  if (kind === "fraction") return <FractionVisual />;
+function Visual({ kind, chargedPieces, onCharge }: { kind: VisualKind; chargedPieces: number; onCharge: () => void }) {
+  if (kind === "fraction") return <FractionVisual chargedPieces={chargedPieces} onCharge={onCharge} />;
   if (kind === "number-line") return <NumberLineVisual />;
   return <RatioVisual />;
 }
@@ -80,6 +80,7 @@ export default function Home() {
   const [hostedLearnerId, setHostedLearnerId] = useState<string | null>(null);
   const [cloudMessage, setCloudMessage] = useState("");
   const cloudLoadStarted = useRef(false);
+  const [chargedPieces, setChargedPieces] = useState(0);
 
   function applySavedProgress(saved: Partial<SavedProgress>) {
     if (saved.name) setName(saved.name);
@@ -102,6 +103,8 @@ export default function Home() {
   const current = screen === "diagnostic" ? diagnostic[diagnosticIndex] : gradeQuests[questIndex];
   const completed = questIndex >= gradeQuests.length;
   const confidence = useMemo(() => Math.min(92, 58 + correct * 11), [correct]);
+  const missionTitle = screen === "diagnostic" ? "Nova's signal is fading" : questIndex === 0 ? "Restore the first beacon" : questIndex === 1 ? "Clear the mist trail" : "Open the starlight bridge";
+  const missionMoment = screen === "diagnostic" ? "Your choices help Nova find the trail that feels right for you." : `One idea at a time. Each discovery brings Lumina back to life.`;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -194,6 +197,7 @@ export default function Home() {
     setSelected(null);
     setFeedback(null);
     setShowHint(false);
+    setChargedPieces(0);
     if (screen === "diagnostic") {
       if (diagnosticIndex < diagnostic.length - 1) setDiagnosticIndex((value) => value + 1);
       else setScreen("quest");
@@ -207,6 +211,10 @@ export default function Home() {
     setSelected(null);
     setFeedback(null);
     setShowHint(true);
+  }
+
+  function chargePiece() {
+    setChargedPieces((value) => Math.min(4, value + 1));
   }
 
   function eraseLocalPilotData() {
@@ -269,8 +277,8 @@ export default function Home() {
             <label>School grade<select value={grade} onChange={(event) => setGrade(Number(event.target.value) as Grade)}>{[4,5,6,7,8,9,10,11,12].map((item) => <option key={item} value={item}>Grade {item}</option>)}</select></label>
             <label className="consent"><input type="checkbox" checked={guardianAcknowledged} onChange={(event) => setGuardianAcknowledged(event.target.checked)} /><span>I am this learner&apos;s parent or guardian and I agree to the pilot storing their nickname, grade, and progress.</span></label>
             {isHostedPilotConfigured && <div className="cloud-sign-in"><p className="eyebrow">SAVE ACROSS DEVICES</p>{authUser ? <p className="fine-print">Signed in as {authUser.email}. {cloudMessage || "Cloud saving will start when the learner begins."}</p> : <><label>Guardian email<input type="email" value={guardianEmail} onChange={(event) => setGuardianEmail(event.target.value)} placeholder="parent@example.com" /></label><button className="text-button" disabled={!guardianEmail.trim()} onClick={sendMagicLink}>Email me a secure sign-in link</button>{cloudMessage && <p className="fine-print">{cloudMessage}</p>}</>}</div>}
-            <button className="primary" disabled={!name.trim() || !guardianAcknowledged} onClick={() => setScreen("diagnostic")}>Begin my gentle diagnostic <span>→</span></button>
-            <p className="fine-print">A 10-minute, no-pressure starting quest. No scores are shared with anyone; local pilot data can be removed in your browser at any time.</p>
+            <button className="primary" disabled={!name.trim() || !guardianAcknowledged} onClick={() => setScreen("diagnostic")}>Help Nova restore the first beacon <span>→</span></button>
+            <p className="fine-print">A 10-minute, no-pressure rescue mission. No scores are shared with anyone; local pilot data can be removed in your browser at any time.</p>
           </div>
         </div>
         <div className="hero-world"><Image className="hero-art" src="/images/lumina-hero.png" alt="A young explorer and glowing star companion discover a fraction beacon on a floating island." fill priority sizes="(max-width: 760px) 100vw, 45vw" /></div>
@@ -302,7 +310,7 @@ export default function Home() {
   }
 
   return <main className="shell quest-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>🔥 {dailyStreak}</span><span>✨ {pet}</span><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button><button className="text-button" onClick={() => setScreen("parent")}>Parent view</button></div></nav>
-    <section className="quest-layout"><aside className="quest-side"><p className="eyebrow">{screen === "diagnostic" ? "STARTING QUEST" : `GRADE ${grade} NUMBER SENSE EXPEDITION`}</p><h1>{screen === "diagnostic" ? "Find your starting trail" : "Restore Lumina’s fraction beacon"}</h1><p>{screen === "diagnostic" ? "There are no bad scores here. Your answers help us choose the right next challenge." : "Every answer helps map the path that fits you best."}</p><div className="progress"><span style={{ width: `${screen === "diagnostic" ? ((diagnosticIndex + 1) / diagnostic.length) * 100 : ((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><small>{screen === "diagnostic" ? diagnosticIndex + 1 : questIndex + 1} of {screen === "diagnostic" ? diagnostic.length : gradeQuests.length}</small></aside>
-      <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Discover" : "Quest"}</span></div><Visual kind={current.visual} /><h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Try this:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Almost—take another look.</b><span>{current.explanation}</span></div>}{feedback === "correct" && <div className="feedback correct"><b>That’s it! +25 Lumina coins</b><span>{current.explanation}</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={() => setShowHint(true)}>I need a clue</button><button className="primary" disabled={!selected} onClick={answer}>Check my thinking →</button></>}{feedback === "correct" && <button className="primary" onClick={continueLearning}>Continue expedition →</button>}{feedback === "retry" && <button className="primary" onClick={retryCurrentQuestion}>Try a new answer</button>}</div></section>
+    <section className="quest-layout"><aside className="quest-side"><div className={`mission-scene stage-${Math.min(3, correct)}`}><div className="scene-stars">✦ ✧ ✦</div><div className="beacon-core">✦</div><div className="beacon-pulse" /><div className="nova-orbit">✨</div><p>Beacon energy: {Math.min(3, correct)}/3</p></div><p className="eyebrow">{screen === "diagnostic" ? "NOVA'S RESCUE MISSION" : `GRADE ${grade} · LUMINA RESTORATION`}</p><h1>{missionTitle}</h1><p>{missionMoment}</p><div className="progress"><span style={{ width: `${screen === "diagnostic" ? ((diagnosticIndex + 1) / diagnostic.length) * 100 : ((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><small>{screen === "diagnostic" ? diagnosticIndex + 1 : questIndex + 1} of {screen === "diagnostic" ? diagnostic.length : gradeQuests.length} small discoveries</small></aside>
+      <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Explore first" : "Use your discovery"}</span></div><Visual kind={current.visual} chargedPieces={chargedPieces} onCharge={chargePiece} /><div className="quest-story"><span>Nova says</span><p>{current.visual === "fraction" ? "“The beacon responds when we notice how equal pieces fit together.”" : current.visual === "number-line" ? "“Let’s trace the path before we decide.”" : "“Let’s build equal groups, then see what changes.”"}</p></div><h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Nova&apos;s clue:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Not yet—and that&apos;s useful information.</b><span>{current.explanation}</span></div>}{feedback === "correct" && <div className="feedback correct"><b>Beacon energy restored! +25 Lumina coins</b><span>{current.explanation}</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={() => setShowHint(true)}>Ask Nova for a clue</button><button className="primary" disabled={!selected} onClick={answer}>Send my idea →</button></>}{feedback === "correct" && <button className="primary" onClick={continueLearning}>See what changed in Lumina →</button>}{feedback === "retry" && <button className="primary" onClick={retryCurrentQuestion}>Try a different idea</button>}</div></section>
     </section></main>;
 }
