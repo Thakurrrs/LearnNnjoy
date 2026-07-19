@@ -192,7 +192,11 @@ export default function Home() {
     : grade <= 9
       ? { role: "Pathfinder", object: "signal orb", world: "Lumina signal run" }
       : { role: "Navigator", object: "calibration core", world: "Lumina navigation brief" };
-  const current = screen === "diagnostic" ? gradeDiagnostic[diagnosticIndex] : gradeQuests[questIndex];
+  // Keep a valid lesson available while the completed screen is rendering. The
+  // completion state deliberately has questIndex === gradeQuests.length.
+  const current = screen === "diagnostic"
+    ? gradeDiagnostic[Math.min(diagnosticIndex, gradeDiagnostic.length - 1)]
+    : gradeQuests[Math.min(questIndex, gradeQuests.length - 1)];
   const lessonStory = getLessonStory(current);
   const completed = questIndex >= gradeQuests.length;
   const confidence = useMemo(() => Math.min(92, 58 + correct * 11), [correct]);
@@ -528,7 +532,7 @@ export default function Home() {
 
   if (screen === "map") {
     return <main className={`shell dashboard-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("quest")}>Back to mission</button></nav>
-      <section className="dashboard-heading"><p className="eyebrow">YOUR LEARNING ATLAS</p><h1>Every subject can become a world worth exploring.</h1><p>Grade {grade} · CBSE/NCERT competency roadmap · Every Grade 4 core subject now has a playable mission.</p></section>
+      <section className="dashboard-heading"><p className="eyebrow">YOUR LEARNING ATLAS</p><h1>Every subject can become a world worth exploring.</h1><p>Grade {grade} · CBSE/NCERT competency roadmap · Maths, Science, English, and Social Science each have a playable mission.</p></section>
       <section className="atlas-grid">{gradeRoadmap.map((subject) => <article key={subject.id} className={subject.pilotStatus === "live" ? "atlas-card live" : "atlas-card"}><div className="atlas-card-top"><span className="atlas-icon">{subject.icon}</span><span className={subject.pilotStatus === "live" ? "atlas-status live" : "atlas-status"}>{subject.pilotStatus === "live" ? "PILOT NOW" : "MAPPED NEXT"}</span></div><p className="eyebrow">{subject.questWorld}</p><h2>{subject.label}</h2><ul>{subject.topics.map((topic) => <li key={topic}>{topic}</li>)}</ul>{subject.pilotStatus === "live" ? <button className="primary" onClick={() => subject.id === "science" ? startScienceMission() : subject.id === "english" ? startEnglishMission() : subject.id === "social" ? startSocialMission() : (setActiveSubject("maths"), setScreen("quest"))}>{subject.id === "science" ? "Begin Earthkeepers mission" : subject.id === "english" ? "Open Story Studio" : subject.id === "social" ? "Enter Mapmakers’ Camp" : "Continue Maths mission"}</button> : <p className="atlas-note">This world is planned in the curriculum journey. It will unlock after the current pilot proves the learning loop.</p>}</article>)}</section>
     </main>;
   }
