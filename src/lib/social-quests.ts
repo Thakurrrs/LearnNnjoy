@@ -11,6 +11,15 @@ export const grade4SocialQuestArc: Question[] = [
   item("ss4-6", "Two classmates speak different home languages. What is a respectful response?", ["Be curious and listen", "Tell one classmate to stop speaking", "Exclude them from the game"], "Be curious and listen", "Communities can include many languages and ways of life.", "Listening with curiosity helps everyone feel included in a diverse community."),
 ];
 
+export const grade5SocialQuestArc: Question[] = [
+  item("ss5-1", "Which map feature helps you understand what a symbol means?", ["Key or legend", "Title only", "Page number"], "Key or legend", "Look for the part that explains map symbols.", "A map key, also called a legend, explains what each symbol represents."),
+  item("ss5-2", "A scale says 1 cm on the map represents 2 km in real life. What does 3 cm represent?", ["6 km", "3 km", "5 km"], "6 km", "Each centimetre stands for 2 km; make three equal groups.", "3 × 2 km = 6 km in real life."),
+  item("ss5-3", "Which is a responsibility of a community member?", ["Following shared safety rules", "Damaging public property", "Ignoring an emergency"], "Following shared safety rules", "Responsibilities help people live safely and fairly together.", "Following shared safety rules helps protect everyone in the community."),
+  item("ss5-4", "Why do families and communities celebrate different festivals?", ["People have diverse traditions and beliefs", "Only one festival is allowed", "Maps choose every celebration"], "People have diverse traditions and beliefs", "India includes many communities with different customs.", "Different festivals reflect the diverse traditions and beliefs of people and communities."),
+  item("ss5-5", "Which choice uses a natural resource responsibly?", ["Carrying a reusable bottle", "Wasting clean water", "Burning plastic in a park"], "Carrying a reusable bottle", "Think about choices that reduce waste and protect resources.", "A reusable bottle can reduce single-use waste and help care for shared resources."),
+  item("ss5-6", "A local council wants to know whether a park needs more bins. What is a fair first step?", ["Ask park users and observe the area", "Guess without visiting", "Only ask one person"], "Ask park users and observe the area", "A fair decision uses information from the people and place involved.", "Listening to users and observing the park provides better evidence for a community decision."),
+];
+
 export function getSocialQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4SocialQuestArc : [];
+  return grade === 4 ? grade4SocialQuestArc : grade === 5 ? grade5SocialQuestArc : [];
 }

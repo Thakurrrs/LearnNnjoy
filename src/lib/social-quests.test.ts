@@ -15,8 +15,9 @@ describe("Grade 4 Mapmakers’ Camp mission", () => {
     });
   });
 
-  it("makes the Grade 4 social world available from the atlas", () => {
+  it("makes the first two Mapmakers grade missions available from the atlas", () => {
     expect(curriculumMap[4].social.pilotStatus).toBe("live");
-    expect(getSocialQuestsForGrade(5)).toEqual([]);
+    expect(curriculumMap[5].social.pilotStatus).toBe("live");
+    expect(getSocialQuestsForGrade(5)).toHaveLength(6);
   });
 });

@@ -16,8 +16,9 @@ describe("Grade 4 Earthkeepers mission", () => {
     });
   });
 
-  it("makes Grade 4 EVS available from the learning atlas", () => {
+  it("makes the first two EVS grade missions available from the learning atlas", () => {
     expect(curriculumMap[4].science.pilotStatus).toBe("live");
-    expect(getScienceQuestsForGrade(5)).toEqual([]);
+    expect(curriculumMap[5].science.pilotStatus).toBe("live");
+    expect(getScienceQuestsForGrade(5)).toHaveLength(6);
   });
 });

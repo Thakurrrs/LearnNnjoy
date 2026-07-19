@@ -11,6 +11,15 @@ export const grade4EnglishQuestArc: Question[] = [
   item("e4-6", "What is the best title for a paragraph about classmates collecting litter from a park?", ["A Cleaner Park", "The Sleeping Dragon", "How to Bake Bread"], "A Cleaner Park", "A title should tell readers the main idea.", "The paragraph is about caring for a park, so ‘A Cleaner Park’ fits its main idea."),
 ];
 
+export const grade5EnglishQuestArc: Question[] = [
+  item("e5-1", "The paragraph says: ‘The empty playground was quiet after the rain, but one puddle reflected a bright rainbow.’ What is the mood?", ["Peaceful", "Furious", "Noisy"], "Peaceful", "Notice words such as quiet and bright.", "The quiet playground and bright rainbow create a peaceful mood."),
+  item("e5-2", "Which word is the best antonym for ‘ancient’?", ["Modern", "Old", "Historic"], "Modern", "An antonym has the opposite meaning.", "Modern means current or new, the opposite of ancient."),
+  item("e5-3", "Which sentence uses a comma correctly?", ["After lunch, we planted seeds.", "After, lunch we planted seeds.", "After lunch we, planted seeds."], "After lunch, we planted seeds.", "A short opening phrase can be followed by a comma.", "The comma separates the opening phrase ‘After lunch’ from the rest of the sentence."),
+  item("e5-4", "Leena packed an extra sandwich before the trip because she knew a classmate had forgotten theirs. What trait does this show?", ["Kindness", "Carelessness", "Impatience"], "Kindness", "Think about how Leena’s choice affects someone else.", "Packing extra food to help a classmate shows kindness."),
+  item("e5-5", "Which connective best completes: ‘The path was muddy, ___ we wore boots.’", ["so", "but", "because"], "so", "The second idea is the result of the first idea.", "The path was muddy, so wearing boots was a sensible result."),
+  item("e5-6", "Which opening is best for an informative paragraph about saving water?", ["Water is precious, and small daily choices can help us save it.", "Once there was a dragon with a tap.", "My favourite colour is blue."], "Water is precious, and small daily choices can help us save it.", "An informative opening should introduce the topic clearly.", "This sentence introduces saving water and gives the reader the main idea."),
+];
+
 export function getEnglishQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4EnglishQuestArc : [];
+  return grade === 4 ? grade4EnglishQuestArc : grade === 5 ? grade5EnglishQuestArc : [];
 }

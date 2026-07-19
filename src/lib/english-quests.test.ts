@@ -15,8 +15,9 @@ describe("Grade 4 Story Studio mission", () => {
     });
   });
 
-  it("keeps English live only where the first Story Studio mission exists", () => {
+  it("keeps the first two Story Studio grade missions live", () => {
     expect(curriculumMap[4].english.pilotStatus).toBe("live");
-    expect(getEnglishQuestsForGrade(5)).toEqual([]);
+    expect(curriculumMap[5].english.pilotStatus).toBe("live");
+    expect(getEnglishQuestsForGrade(5)).toHaveLength(6);
   });
 });

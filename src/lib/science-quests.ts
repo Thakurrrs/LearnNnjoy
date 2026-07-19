@@ -11,6 +11,15 @@ export const grade4ScienceQuestArc: Question[] = [
   item("s4-6", "Why is it important not to pour waste into a pond?", ["It can harm plants and animals living there", "It makes the pond grow taller", "It turns water into sunlight"], "It can harm plants and animals living there", "A pond is a habitat shared by many living things.", "Waste can pollute water and harm the plants, animals, and people who depend on it."),
 ];
 
+export const grade5ScienceQuestArc: Question[] = [
+  item("s5-1", "Which part of a plant takes in water from the soil?", ["Roots", "Flowers", "Leaves"], "Roots", "Think about the part below the ground.", "Roots absorb water and minerals from the soil."),
+  item("s5-2", "Water vapour cools and forms tiny drops in clouds. What is this called?", ["Condensation", "Melting", "Freezing"], "Condensation", "A gas cools and changes back into a liquid.", "Condensation is when water vapour cools into tiny liquid water drops."),
+  item("s5-3", "Which action can help prevent the spread of many germs?", ["Washing hands with soap", "Sharing an unwashed bottle", "Sneezing into the air"], "Washing hands with soap", "Germs can move from hands to food, faces, and other people.", "Washing hands with soap removes many germs and helps reduce their spread."),
+  item("s5-4", "A toy car slows down when it rolls across a rough carpet. Which force causes this?", ["Friction", "Magnetism", "Gravity disappearing"], "Friction", "A rough surface resists movement between touching objects.", "Friction between the carpet and wheels slows the car down."),
+  item("s5-5", "Which material is most suitable for a raincoat?", ["Waterproof fabric", "Tissue paper", "Cotton wool"], "Waterproof fabric", "A raincoat should stop water passing through.", "Waterproof fabric resists water, helping keep the wearer dry."),
+  item("s5-6", "Why should a forest habitat be protected?", ["Many plants and animals depend on it", "It makes every day colder", "It stops all rivers"], "Many plants and animals depend on it", "A habitat provides food, shelter, and space for living things.", "Forests support many living things and help keep ecosystems healthy."),
+];
+
 export function getScienceQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4ScienceQuestArc : [];
+  return grade === 4 ? grade4ScienceQuestArc : grade === 5 ? grade5ScienceQuestArc : [];
 }

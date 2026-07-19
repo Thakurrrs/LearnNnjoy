@@ -27,9 +27,9 @@ export const curriculumMap: Record<Grade, GradeRoadmap> = {
   },
   5: {
     maths: entry("maths", "Mathematics", "✦", "Lumina Restoration", ["Large numbers and operations", "Fractions, decimals and measurement", "Geometry, patterns and data"], "live"),
-    science: entry("science", "EVS", "🌿", "Earthkeepers", ["Living systems and health", "Materials, water and work", "People, places and sustainability"], "mapped"),
-    social: entry("social", "Our World", "🧭", "Mapmakers' Camp", ["India's regions and communities", "Maps and journeys", "Rights, responsibilities and resources"], "mapped"),
-    english: entry("english", "English", "📚", "Story Studio", ["Comprehension and inference", "Grammar in context", "Narrative and informative writing"], "mapped"),
+    science: entry("science", "EVS", "🌿", "Earthkeepers", ["Living systems and health", "Materials, water and work", "People, places and sustainability"], "live"),
+    social: entry("social", "Our World", "🧭", "Mapmakers' Camp", ["India's regions and communities", "Maps and journeys", "Rights, responsibilities and resources"], "live"),
+    english: entry("english", "English", "📚", "Story Studio", ["Comprehension and inference", "Grammar in context", "Narrative and informative writing"], "live"),
   },
   6: {
     maths: entry("maths", "Mathematics", "✦", "Lumina Restoration", ["Whole numbers and fractions", "Decimals, integers and ratio", "Geometry, algebraic thinking and data"], "live"),
