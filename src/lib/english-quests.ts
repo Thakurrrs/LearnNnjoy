@@ -29,6 +29,15 @@ export const grade6EnglishQuestArc: Question[] = [
   item("e6-6", "What should a conclusion of a persuasive paragraph do?", ["Restate the main point and leave a clear final thought", "Introduce an unrelated topic", "Repeat every sentence exactly"], "Restate the main point and leave a clear final thought", "A conclusion brings an argument to a purposeful close.", "A good conclusion reinforces the main point and gives the reader a final impression."),
 ];
 
+export const grade7EnglishQuestArc: Question[] = [
+  item("e7-1", "A writer describes a street as ‘a river of umbrellas.’ Which device is used?", ["Metaphor", "Instruction", "Fact"], "Metaphor", "The street is compared directly to a river without using ‘like’ or ‘as’.", "Calling the street a river of umbrellas is a metaphor that creates a strong image."),
+  item("e7-2", "Which source is strongest evidence for a report about local air quality?", ["A verified monitoring report", "A rumour from a friend", "An unrelated story"], "A verified monitoring report", "Choose information collected and checked for the exact topic.", "A verified monitoring report is directly relevant and more reliable evidence."),
+  item("e7-3", "Which sentence uses active voice?", ["The students planted the trees.", "The trees were planted by the students.", "The trees had been being planted."], "The students planted the trees.", "In active voice, the subject performs the action.", "The students are the subject and they perform the action of planting."),
+  item("e7-4", "Which phrase best signals a contrast in an argument?", ["However", "For example", "Therefore"], "However", "A contrast introduces an idea that differs from the previous one.", "‘However’ signals that the next point contrasts with what came before."),
+  item("e7-5", "What is the purpose of a counterargument in persuasive writing?", ["To acknowledge and respond to another view", "To change the topic completely", "To avoid giving evidence"], "To acknowledge and respond to another view", "Strong arguments show they have considered more than one perspective.", "A counterargument addresses another view and can strengthen the writer’s position."),
+  item("e7-6", "Which revision makes this sentence more precise: ‘The thing was good.’", ["The solar cooker reduced the need for firewood.", "The thing was nice.", "Good thing happened."], "The solar cooker reduced the need for firewood.", "Choose words that name the object and explain its effect.", "The revision is precise because it identifies the solar cooker and its specific benefit."),
+];
+
 export function getEnglishQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4EnglishQuestArc : grade === 5 ? grade5EnglishQuestArc : grade === 6 ? grade6EnglishQuestArc : [];
+  return grade === 4 ? grade4EnglishQuestArc : grade === 5 ? grade5EnglishQuestArc : grade === 6 ? grade6EnglishQuestArc : grade === 7 ? grade7EnglishQuestArc : [];
 }

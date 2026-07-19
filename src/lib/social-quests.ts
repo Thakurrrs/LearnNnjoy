@@ -29,6 +29,15 @@ export const grade6SocialQuestArc: Question[] = [
   item("ss6-6", "Which action best supports equality in a group project?", ["Give each member a meaningful chance to contribute", "Let one person do every task", "Ignore quieter group members"], "Give each member a meaningful chance to contribute", "Equality includes fair chances to participate.", "Sharing meaningful roles helps all members contribute and be respected."),
 ];
 
+export const grade7SocialQuestArc: Question[] = [
+  item("ss7-1", "Why do historians compare written records with archaeological evidence?", ["Each can reveal different parts of the past", "Archaeology makes records unnecessary", "Objects have no information"], "Each can reveal different parts of the past", "Different types of evidence can support or challenge one another.", "Comparing records and material evidence can produce a fuller understanding of the past."),
+  item("ss7-2", "Which factor most directly affects the climate of a place?", ["Latitude", "The colour of nearby houses", "The name of the town"], "Latitude", "Think about how far a place is from the equator and the amount of sunlight it receives.", "Latitude affects the angle and intensity of sunlight, influencing climate."),
+  item("ss7-3", "What is a renewable resource?", ["A resource that can be naturally replenished", "A resource that can never be used", "Only a manufactured product"], "A resource that can be naturally replenished", "Think of resources that nature can restore over time when used carefully.", "Renewable resources can be replenished naturally, such as sunlight or wind."),
+  item("ss7-4", "Why is public participation valuable in local decisions?", ["People can share needs and evidence about their community", "Only experts live in communities", "It guarantees every person gets the same opinion"], "People can share needs and evidence about their community", "Residents often know how a decision affects daily life.", "Public participation brings local knowledge and different perspectives into decisions."),
+  item("ss7-5", "Which situation is an example of equality before the law?", ["The same legal rules apply to all people", "Rules depend only on wealth", "Some people never need to follow rules"], "The same legal rules apply to all people", "Equality means the law should not favour people because of identity or status.", "Equality before the law means the same legal standards apply to everyone."),
+  item("ss7-6", "A shopkeeper compares the cost of two suppliers before buying stock. This is an example of what?", ["Making an economic choice with limited resources", "Changing the weather", "Drawing a political boundary"], "Making an economic choice with limited resources", "The shopkeeper must choose how to use money and supplies.", "Comparing costs is an economic decision about using limited resources wisely."),
+];
+
 export function getSocialQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4SocialQuestArc : grade === 5 ? grade5SocialQuestArc : grade === 6 ? grade6SocialQuestArc : [];
+  return grade === 4 ? grade4SocialQuestArc : grade === 5 ? grade5SocialQuestArc : grade === 6 ? grade6SocialQuestArc : grade === 7 ? grade7SocialQuestArc : [];
 }

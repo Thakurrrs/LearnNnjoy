@@ -29,6 +29,15 @@ export const grade6ScienceQuestArc: Question[] = [
   item("s6-6", "Why are decomposers important in an ecosystem?", ["They break down dead material and return nutrients", "They make all animals larger", "They stop plants using sunlight"], "They break down dead material and return nutrients", "Dead material does not disappear; think about what recycles it.", "Decomposers recycle nutrients by breaking down dead plants and animals."),
 ];
 
+export const grade7ScienceQuestArc: Question[] = [
+  item("s7-1", "Which process lets green plants make food using sunlight?", ["Photosynthesis", "Respiration only", "Filtration"], "Photosynthesis", "Think about the plant process that uses sunlight, water, and carbon dioxide.", "Photosynthesis is the process by which green plants use sunlight to make food."),
+  item("s7-2", "Heat moves from a hotter cup of tea to a cooler spoon mainly by what?", ["Conduction", "Evaporation only", "Digestion"], "Conduction", "The spoon is touching the hot tea.", "Conduction transfers heat through direct contact between the tea and spoon."),
+  item("s7-3", "Why is a balanced diet important?", ["It provides different nutrients the body needs", "It contains only sugar", "It removes the need for water"], "It provides different nutrients the body needs", "Different body functions need different nutrients.", "A balanced diet provides a range of nutrients for energy, growth, repair, and health."),
+  item("s7-4", "In a food web, what may happen if many insects disappear?", ["Animals that eat insects may have less food", "Every animal gets more food", "Plants stop needing sunlight"], "Animals that eat insects may have less food", "Food webs connect feeding relationships.", "If insects decline, animals that depend on them for food may be affected."),
+  item("s7-5", "Which mixture can be separated using evaporation?", ["Salt dissolved in water", "Iron pins and sand", "Large stones and leaves"], "Salt dissolved in water", "The water can leave as vapour, but the dissolved solid remains.", "Evaporation removes water and leaves the dissolved salt behind."),
+  item("s7-6", "Why should antibiotics not be used for a common viral cold without medical advice?", ["Antibiotics do not treat viruses", "They turn viruses into plants", "They replace sleep"], "Antibiotics do not treat viruses", "Antibiotics target bacteria, not viruses.", "A cold is usually caused by a virus, so antibiotics will not treat it."),
+];
+
 export function getScienceQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4ScienceQuestArc : grade === 5 ? grade5ScienceQuestArc : grade === 6 ? grade6ScienceQuestArc : [];
+  return grade === 4 ? grade4ScienceQuestArc : grade === 5 ? grade5ScienceQuestArc : grade === 6 ? grade6ScienceQuestArc : grade === 7 ? grade7ScienceQuestArc : [];
 }
