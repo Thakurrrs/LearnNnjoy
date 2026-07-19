@@ -11,7 +11,7 @@ import { recordDailyQuest } from "@/lib/streak";
 import { loadOrCreateHostedLearner, saveHostedLearnerState } from "@/lib/hosted-progress";
 import { getSupabaseBrowserClient, isHostedPilotConfigured } from "@/lib/supabase";
 
-type Screen = "welcome" | "diagnostic" | "path" | "quest" | "parent" | "world" | "map";
+type Screen = "welcome" | "story" | "diagnostic" | "path" | "quest" | "parent" | "world" | "map";
 
 const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
 
@@ -21,6 +21,8 @@ type SavedProgress = {
   screen: Screen;
   diagnosticIndex: number;
   diagnosticCorrect: number;
+  storyBeat: number;
+  storyCells: number[];
   questIndex: number;
   coins: number;
   correct: number;
@@ -65,6 +67,8 @@ export default function Home() {
   const [grade, setGrade] = useState<Grade>(4);
   const [diagnosticIndex, setDiagnosticIndex] = useState(0);
   const [diagnosticCorrect, setDiagnosticCorrect] = useState(0);
+  const [storyBeat, setStoryBeat] = useState(0);
+  const [storyCells, setStoryCells] = useState<number[]>([]);
   const [questIndex, setQuestIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [showHint, setShowHint] = useState(false);
@@ -94,6 +98,8 @@ export default function Home() {
     if (saved.screen && saved.screen !== "welcome") setScreen(saved.screen);
     if (typeof saved.diagnosticIndex === "number") setDiagnosticIndex(Math.min(saved.diagnosticIndex, diagnostic.length - 1));
     if (typeof saved.diagnosticCorrect === "number") setDiagnosticCorrect(Math.max(0, Math.min(diagnostic.length, saved.diagnosticCorrect)));
+    if (typeof saved.storyBeat === "number") setStoryBeat(Math.max(0, Math.min(2, saved.storyBeat)));
+    if (Array.isArray(saved.storyCells) && saved.storyCells.every((cell) => typeof cell === "number" && cell >= 0 && cell < 4)) setStoryCells(saved.storyCells);
     if (typeof saved.questIndex === "number") setQuestIndex(Math.max(0, saved.questIndex));
     if (typeof saved.coins === "number") setCoins(saved.coins);
     if (typeof saved.correct === "number") setCorrect(saved.correct);
@@ -143,16 +149,16 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated || !name.trim()) return;
-    const progress: SavedProgress = { name, grade, screen, diagnosticIndex, diagnosticCorrect, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate };
+    const progress: SavedProgress = { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate };
     window.localStorage.setItem(PILOT_PROGRESS_KEY, JSON.stringify(progress));
-  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, grade, guardianAcknowledged, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen]);
+  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, grade, guardianAcknowledged, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client || !hydrated || !authUser || !name.trim() || !guardianAcknowledged || cloudLoadStarted.current) return;
     cloudLoadStarted.current = true;
 
-    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, screen, diagnosticIndex, diagnosticCorrect, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate } })
+    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate } })
       .then((hosted) => {
         applySavedProgress(hosted.state as Partial<SavedProgress>);
         setHostedLearnerId(hosted.learnerId);
@@ -162,18 +168,18 @@ export default function Home() {
         cloudLoadStarted.current = false;
         setCloudMessage(error instanceof Error ? error.message : "Cloud saving could not start yet. Your progress remains on this device.");
       });
-  }, [attempts, authUser, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, grade, guardianAcknowledged, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen]);
+  }, [attempts, authUser, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, grade, guardianAcknowledged, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client || !hostedLearnerId || !hydrated) return;
     const timer = window.setTimeout(() => {
-      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, screen, diagnosticIndex, diagnosticCorrect, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate }).catch(() => {
+      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate }).catch(() => {
         setCloudMessage("Your latest progress is still safe on this device; cloud saving will retry next time.");
       });
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, grade, guardianAcknowledged, hostedLearnerId, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen]);
+  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, grade, guardianAcknowledged, hostedLearnerId, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   async function sendMagicLink() {
     const client = getSupabaseBrowserClient();
@@ -235,6 +241,10 @@ export default function Home() {
     setChargedPieces((value) => Math.min(4, value + 1));
   }
 
+  function toggleStoryCell(cell: number) {
+    setStoryCells((cells) => cells.includes(cell) ? cells.filter((item) => item !== cell) : cells.length < 2 ? [...cells, cell] : cells);
+  }
+
   function eraseLocalPilotData() {
     if (!window.confirm("Remove this learner's local pilot progress from this browser? This cannot be undone.")) return;
     window.localStorage.removeItem(PILOT_PROGRESS_KEY);
@@ -243,6 +253,8 @@ export default function Home() {
     setGrade(4);
     setDiagnosticIndex(0);
     setDiagnosticCorrect(0);
+    setStoryBeat(0);
+    setStoryCells([]);
     setQuestIndex(0);
     setSelected(null);
     setShowHint(false);
@@ -297,7 +309,7 @@ export default function Home() {
             <label>School grade<select value={grade} onChange={(event) => setGrade(Number(event.target.value) as Grade)}>{[4,5,6,7,8,9,10,11,12].map((item) => <option key={item} value={item}>Grade {item}</option>)}</select></label>
             <label className="consent"><input type="checkbox" checked={guardianAcknowledged} onChange={(event) => setGuardianAcknowledged(event.target.checked)} /><span>I am this learner&apos;s parent or guardian and I agree to the pilot storing their nickname, grade, and progress.</span></label>
             {isHostedPilotConfigured && <div className="cloud-sign-in"><p className="eyebrow">SAVE ACROSS DEVICES</p>{authUser ? <p className="fine-print">Signed in as {authUser.email}. {cloudMessage || "Cloud saving will start when the learner begins."}</p> : <><label>Guardian email<input type="email" value={guardianEmail} onChange={(event) => setGuardianEmail(event.target.value)} placeholder="parent@example.com" /></label><button className="text-button" disabled={!guardianEmail.trim()} onClick={sendMagicLink}>Email me a secure sign-in link</button>{cloudMessage && <p className="fine-print">{cloudMessage}</p>}</>}</div>}
-            <button className="primary" disabled={!name.trim() || !guardianAcknowledged} onClick={() => setScreen("diagnostic")}>Help Nova restore the first beacon <span>→</span></button>
+            <button className="primary" disabled={!name.trim() || !guardianAcknowledged} onClick={() => setScreen("story")}>Help Nova restore the first beacon <span>→</span></button>
             <p className="fine-print">A 10-minute, no-pressure rescue mission. No scores are shared with anyone; local pilot data can be removed in your browser at any time.</p>
           </div>
         </div>
@@ -305,6 +317,15 @@ export default function Home() {
       </section>
       <section className="promise-row"><div><b>8–12 min</b><span>one focused quest</span></div><div><b>Visual first</b><span>understand before memorising</span></div><div><b>Private progress</b><span>no rankings or pressure</span></div></section>
     </main>;
+  }
+
+  if (screen === "story") {
+    const bridgeReady = storyCells.length === 2;
+    return <main className={`story-shell beat-${storyBeat}`}><Image src="/images/lumina-bridge.png" alt="Nova waits by a broken starlight bridge in the world of Lumina." fill priority sizes="100vw" className="story-art" /><div className="story-vignette" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>Nova and the Broken Beacon · {storyBeat + 1}/3</span></nav><section className="story-player">
+      {storyBeat === 0 && <div className="story-dialogue"><p className="eyebrow">CHAPTER ONE</p><h1>The starlight bridge has gone quiet.</h1><p>Nova has found two empty power chambers. Without them, nobody can cross to the beacon.</p><button className="primary" onClick={() => setStoryBeat(1)}>Follow Nova to the bridge →</button></div>}
+      {storyBeat === 1 && <div className="story-dialogue"><p className="eyebrow">HELP NOVA</p><h1>Wake exactly half of the bridge energy.</h1><p>Tap two of the four equal chambers. Watch what changes—there is no timer.</p><div className="bridge-cells" aria-label="Four equal bridge energy chambers">{[0, 1, 2, 3].map((cell) => <button type="button" key={cell} className={storyCells.includes(cell) ? "charged" : ""} onClick={() => toggleStoryCell(cell)} aria-pressed={storyCells.includes(cell)}><span>✦</span></button>)}</div><p className="story-helper">{bridgeReady ? "Two of four equal chambers are glowing. Send the energy!" : `${storyCells.length} of 4 chambers glowing`}</p><button className="primary" disabled={!bridgeReady} onClick={() => setStoryBeat(2)}>Send starlight to the bridge →</button></div>}
+      {storyBeat === 2 && <div className="story-dialogue resolved"><p className="eyebrow">BRIDGE RESTORED</p><h1>You made one half glow.</h1><p>Two of four equal chambers make one half. Nova can cross now—and will map the next trail with you.</p><div className="story-reveal">✦ ✦ <span>✦ ✦</span></div><button className="primary" onClick={() => setScreen("diagnostic")}>Continue with Nova →</button></div>}
+    </section></main>;
   }
 
   if (screen === "parent") {
