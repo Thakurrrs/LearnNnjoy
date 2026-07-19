@@ -171,6 +171,23 @@ export default function Home() {
     setLastCompletedDate(null);
   }
 
+  function exportLocalPilotData() {
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      learner: { nickname: name, grade },
+      progress: { diagnosticIndex, questIndex, correct, attempts, dailyStreak, lastCompletedDate },
+      rewards: { coins, ownedCosmetics, equippedCosmetic },
+      parentPulse,
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "learnnjoy-pilot-data.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   function chooseCosmetic(id: string, cost: number) {
     if (ownedCosmetics.includes(id)) return setEquippedCosmetic(id);
     if (coins < cost) return;
@@ -207,7 +224,7 @@ export default function Home() {
       <section className="metric-grid"><article><span>Quest minutes</span><b>{Math.max(8, attempts * 5 + 8)}</b><small>Across focused sessions</small></article><article><span>Concept confidence</span><b>{confidence}%</b><small>Up from the starter diagnostic</small></article><article><span>Skills growing</span><b>{correct}/3</b><small>Fractions, comparison, proportion</small></article></section>
       <section className="parent-note"><div className="note-icon">✦</div><div><p className="eyebrow">A KIND NEXT STEP</p><h2>{recommendNextSkill(correct, attempts)}</h2><p>Explaining an idea aloud helps it stick. Keep it curious: there is no need to correct or test them.</p></div></section>
       <section className="pulse-card"><p className="eyebrow">ONE-MINUTE PARENT PULSE</p><h2>How did maths feel for {name} this week?</h2><div className="pulse-options"><button className={parentPulse === "lighter" ? "active" : ""} onClick={() => setParentPulse("lighter")}>✨ Lighter</button><button className={parentPulse === "steady" ? "active" : ""} onClick={() => setParentPulse("steady")}>🙂 Steady</button><button className={parentPulse === "hard" ? "active" : ""} onClick={() => setParentPulse("hard")}>🌧 Felt hard</button></div>{parentPulse && <p className="pulse-thanks">Thank you. This helps shape the next quest.</p>}</section>
-      <section className="privacy-note"><strong>Private by design.</strong> LearnNnjoy stores a nickname, grade, and learning progress for this pilot. There are no public profiles, ads, or peer rankings. <button className="delete-data" onClick={eraseLocalPilotData}>Remove local pilot data</button></section>
+      <section className="privacy-note"><strong>Private by design.</strong> LearnNnjoy stores a nickname, grade, and learning progress for this pilot. There are no public profiles, ads, or peer rankings. <button className="delete-data" onClick={exportLocalPilotData}>Export local data</button><button className="delete-data" onClick={eraseLocalPilotData}>Remove local pilot data</button></section>
     </main>;
   }
 
