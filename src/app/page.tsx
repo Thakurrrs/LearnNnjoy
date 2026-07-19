@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import type { User } from "@supabase/supabase-js";
 import "./world.css";
 import { diagnostic, recommendNextSkill, type Grade, type VisualKind } from "@/lib/learning";
 import { getQuestsForGrade } from "@/lib/grade-quests";
 import { recordDailyQuest } from "@/lib/streak";
+import { loadOrCreateHostedLearner, saveHostedLearnerState } from "@/lib/hosted-progress";
+import { getSupabaseBrowserClient, isHostedPilotConfigured } from "@/lib/supabase";
 
 type Screen = "welcome" | "diagnostic" | "quest" | "parent" | "world";
 
@@ -72,6 +75,28 @@ export default function Home() {
   const [equippedCosmetic, setEquippedCosmetic] = useState("trailblazer");
   const [dailyStreak, setDailyStreak] = useState(0);
   const [lastCompletedDate, setLastCompletedDate] = useState<string | null>(null);
+  const [guardianEmail, setGuardianEmail] = useState("");
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [hostedLearnerId, setHostedLearnerId] = useState<string | null>(null);
+  const [cloudMessage, setCloudMessage] = useState("");
+  const cloudLoadStarted = useRef(false);
+
+  function applySavedProgress(saved: Partial<SavedProgress>) {
+    if (saved.name) setName(saved.name);
+    if (saved.grade && saved.grade >= 4 && saved.grade <= 12) setGrade(saved.grade as Grade);
+    if (saved.screen && saved.screen !== "welcome") setScreen(saved.screen);
+    if (typeof saved.diagnosticIndex === "number") setDiagnosticIndex(Math.min(saved.diagnosticIndex, diagnostic.length - 1));
+    if (typeof saved.questIndex === "number") setQuestIndex(Math.max(0, saved.questIndex));
+    if (typeof saved.coins === "number") setCoins(saved.coins);
+    if (typeof saved.correct === "number") setCorrect(saved.correct);
+    if (typeof saved.attempts === "number") setAttempts(saved.attempts);
+    if (typeof saved.guardianAcknowledged === "boolean") setGuardianAcknowledged(saved.guardianAcknowledged);
+    if (saved.parentPulse === "lighter" || saved.parentPulse === "steady" || saved.parentPulse === "hard") setParentPulse(saved.parentPulse);
+    if (Array.isArray(saved.ownedCosmetics) && saved.ownedCosmetics.every((item) => typeof item === "string")) setOwnedCosmetics(saved.ownedCosmetics);
+    if (typeof saved.equippedCosmetic === "string") setEquippedCosmetic(saved.equippedCosmetic);
+    if (typeof saved.dailyStreak === "number") setDailyStreak(saved.dailyStreak);
+    if (typeof saved.lastCompletedDate === "string") setLastCompletedDate(saved.lastCompletedDate);
+  }
 
   const gradeQuests = getQuestsForGrade(grade);
   const current = screen === "diagnostic" ? diagnostic[diagnosticIndex] : gradeQuests[questIndex];
@@ -84,20 +109,7 @@ export default function Home() {
       if (stored) {
         try {
           const saved = JSON.parse(stored) as Partial<SavedProgress>;
-          if (saved.name) setName(saved.name);
-          if (saved.grade && saved.grade >= 4 && saved.grade <= 12) setGrade(saved.grade as Grade);
-          if (saved.screen && saved.screen !== "welcome") setScreen(saved.screen);
-          if (typeof saved.diagnosticIndex === "number") setDiagnosticIndex(Math.min(saved.diagnosticIndex, diagnostic.length - 1));
-          if (typeof saved.questIndex === "number") setQuestIndex(Math.max(0, saved.questIndex));
-          if (typeof saved.coins === "number") setCoins(saved.coins);
-          if (typeof saved.correct === "number") setCorrect(saved.correct);
-          if (typeof saved.attempts === "number") setAttempts(saved.attempts);
-          if (typeof saved.guardianAcknowledged === "boolean") setGuardianAcknowledged(saved.guardianAcknowledged);
-          if (saved.parentPulse === "lighter" || saved.parentPulse === "steady" || saved.parentPulse === "hard") setParentPulse(saved.parentPulse);
-          if (Array.isArray(saved.ownedCosmetics) && saved.ownedCosmetics.every((item) => typeof item === "string")) setOwnedCosmetics(saved.ownedCosmetics);
-          if (typeof saved.equippedCosmetic === "string") setEquippedCosmetic(saved.equippedCosmetic);
-          if (typeof saved.dailyStreak === "number") setDailyStreak(saved.dailyStreak);
-          if (typeof saved.lastCompletedDate === "string") setLastCompletedDate(saved.lastCompletedDate);
+          applySavedProgress(saved);
         } catch {
           window.localStorage.removeItem(PILOT_PROGRESS_KEY);
         }
@@ -109,10 +121,58 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    const client = getSupabaseBrowserClient();
+    if (!client) return;
+
+    void client.auth.getUser().then(({ data }) => setAuthUser(data.user));
+    const { data: listener } = client.auth.onAuthStateChange((_event, session) => setAuthUser(session?.user ?? null));
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
     if (!hydrated || !name.trim()) return;
     const progress: SavedProgress = { name, grade, screen, diagnosticIndex, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate };
     window.localStorage.setItem(PILOT_PROGRESS_KEY, JSON.stringify(progress));
   }, [attempts, coins, correct, dailyStreak, diagnosticIndex, equippedCosmetic, grade, guardianAcknowledged, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen]);
+
+  useEffect(() => {
+    const client = getSupabaseBrowserClient();
+    if (!client || !hydrated || !authUser || !name.trim() || !guardianAcknowledged || cloudLoadStarted.current) return;
+    cloudLoadStarted.current = true;
+
+    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, screen, diagnosticIndex, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate } })
+      .then((hosted) => {
+        applySavedProgress(hosted.state as Partial<SavedProgress>);
+        setHostedLearnerId(hosted.learnerId);
+        setCloudMessage("Cloud saving is on for this guardian account.");
+      })
+      .catch((error: unknown) => {
+        cloudLoadStarted.current = false;
+        setCloudMessage(error instanceof Error ? error.message : "Cloud saving could not start yet. Your progress remains on this device.");
+      });
+  }, [attempts, authUser, coins, correct, dailyStreak, diagnosticIndex, equippedCosmetic, grade, guardianAcknowledged, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen]);
+
+  useEffect(() => {
+    const client = getSupabaseBrowserClient();
+    if (!client || !hostedLearnerId || !hydrated) return;
+    const timer = window.setTimeout(() => {
+      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, screen, diagnosticIndex, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate }).catch(() => {
+        setCloudMessage("Your latest progress is still safe on this device; cloud saving will retry next time.");
+      });
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [attempts, coins, correct, dailyStreak, diagnosticIndex, equippedCosmetic, grade, guardianAcknowledged, hostedLearnerId, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen]);
+
+  async function sendMagicLink() {
+    const client = getSupabaseBrowserClient();
+    if (!client || !guardianEmail.trim()) return;
+    setCloudMessage("Sending your secure sign-in link…");
+    const { error } = await client.auth.signInWithOtp({
+      email: guardianEmail.trim(),
+      options: { emailRedirectTo: window.location.origin },
+    });
+    setCloudMessage(error ? error.message : "Check the guardian inbox for the secure sign-in link.");
+  }
 
   function answer() {
     if (!selected || !current) return;
@@ -208,6 +268,7 @@ export default function Home() {
             <label>Explorer nickname<input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Aanya" maxLength={24} /></label>
             <label>School grade<select value={grade} onChange={(event) => setGrade(Number(event.target.value) as Grade)}>{[4,5,6,7,8,9,10,11,12].map((item) => <option key={item} value={item}>Grade {item}</option>)}</select></label>
             <label className="consent"><input type="checkbox" checked={guardianAcknowledged} onChange={(event) => setGuardianAcknowledged(event.target.checked)} /><span>I am this learner&apos;s parent or guardian and I agree to the pilot storing their nickname, grade, and progress.</span></label>
+            {isHostedPilotConfigured && <div className="cloud-sign-in"><p className="eyebrow">SAVE ACROSS DEVICES</p>{authUser ? <p className="fine-print">Signed in as {authUser.email}. {cloudMessage || "Cloud saving will start when the learner begins."}</p> : <><label>Guardian email<input type="email" value={guardianEmail} onChange={(event) => setGuardianEmail(event.target.value)} placeholder="parent@example.com" /></label><button className="text-button" disabled={!guardianEmail.trim()} onClick={sendMagicLink}>Email me a secure sign-in link</button>{cloudMessage && <p className="fine-print">{cloudMessage}</p>}</>}</div>}
             <button className="primary" disabled={!name.trim() || !guardianAcknowledged} onClick={() => setScreen("diagnostic")}>Begin my gentle diagnostic <span>→</span></button>
             <p className="fine-print">A 10-minute, no-pressure starting quest. No scores are shared with anyone; local pilot data can be removed in your browser at any time.</p>
           </div>
@@ -224,7 +285,7 @@ export default function Home() {
       <section className="metric-grid"><article><span>Quest minutes</span><b>{Math.max(8, attempts * 5 + 8)}</b><small>Across focused sessions</small></article><article><span>Concept confidence</span><b>{confidence}%</b><small>Up from the starter diagnostic</small></article><article><span>Skills growing</span><b>{correct}/3</b><small>Fractions, comparison, proportion</small></article></section>
       <section className="parent-note"><div className="note-icon">✦</div><div><p className="eyebrow">A KIND NEXT STEP</p><h2>{recommendNextSkill(correct, attempts)}</h2><p>Explaining an idea aloud helps it stick. Keep it curious: there is no need to correct or test them.</p></div></section>
       <section className="pulse-card"><p className="eyebrow">ONE-MINUTE PARENT PULSE</p><h2>How did maths feel for {name} this week?</h2><div className="pulse-options"><button className={parentPulse === "lighter" ? "active" : ""} onClick={() => setParentPulse("lighter")}>✨ Lighter</button><button className={parentPulse === "steady" ? "active" : ""} onClick={() => setParentPulse("steady")}>🙂 Steady</button><button className={parentPulse === "hard" ? "active" : ""} onClick={() => setParentPulse("hard")}>🌧 Felt hard</button></div>{parentPulse && <p className="pulse-thanks">Thank you. This helps shape the next quest.</p>}</section>
-      <section className="privacy-note"><strong>Private by design.</strong> LearnNnjoy stores a nickname, grade, and learning progress for this pilot. There are no public profiles, ads, or peer rankings. <button className="delete-data" onClick={exportLocalPilotData}>Export local data</button><button className="delete-data" onClick={eraseLocalPilotData}>Remove local pilot data</button></section>
+      <section className="privacy-note"><strong>Private by design.</strong> LearnNnjoy stores a nickname, grade, and learning progress for this pilot. There are no public profiles, ads, or peer rankings. {authUser && <span> Cloud saving is active for {authUser.email}.</span>} <button className="delete-data" onClick={exportLocalPilotData}>Export local data</button><button className="delete-data" onClick={eraseLocalPilotData}>Remove local pilot data</button></section>
     </main>;
   }
 
