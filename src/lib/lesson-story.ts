@@ -108,6 +108,19 @@ function defaultStory(question: Question): LessonStory {
       videoCue: "A small habitat wakes gently: sunlight, water, a plant, and an animal appear as the field note records the observation.",
     };
   }
+  if (question.visual === "reading") {
+    return {
+      learningObjective: "Readers use exact details, vocabulary, and structure to make meaning from a text.",
+      chapterTitle: "The Story Studio is missing one important clue.",
+      chapterDialogue: "Nova has opened a page that changes as you read it. The answer is already in the story—look closely and connect the details.",
+      chapterAction: "Read the page closely",
+      coachLine: "“Let’s find the words that help us understand the story.”",
+      outcomeTitle: "The story clue shines clearly.",
+      outcomeDetail: "You used the words on the page to build a stronger meaning, one detail at a time.",
+      outcomeIcon: "📚",
+      videoCue: "A storybook opens; key words glow gently and connect into a small illustrated scene as the page turns.",
+    };
+  }
   return {
     learningObjective: "Matching groups preserve a proportional relationship.",
     chapterTitle: "The starlight bridge needs matching supplies.",

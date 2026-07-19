@@ -7,6 +7,7 @@ import "./world.css";
 import { chooseLearningTrail, recommendNextSkill, type Grade, type VisualKind } from "@/lib/learning";
 import { getDiagnosticForGrade, getQuestsForGrade } from "@/lib/grade-quests";
 import { getScienceQuestsForGrade } from "@/lib/science-quests";
+import { getEnglishQuestsForGrade } from "@/lib/english-quests";
 import { getGradeRoadmap } from "@/lib/curriculum-map";
 import { getLessonStory } from "@/lib/lesson-story";
 import { recordDailyQuest } from "@/lib/streak";
@@ -15,7 +16,7 @@ import { getSupabaseBrowserClient, isHostedPilotConfigured } from "@/lib/supabas
 import { chooseAdaptiveNextStep } from "@/lib/adaptive";
 
 type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "parent" | "world" | "map";
-type ActiveSubject = "maths" | "science";
+type ActiveSubject = "maths" | "science" | "english";
 
 const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
 
@@ -75,12 +76,17 @@ function EcosystemVisual({ onExplore }: { onExplore: () => void }) {
   return <div className="visual-play"><div className="ecosystem-visual" aria-label="A small living habitat with sun, plant, water, and animal"><span>☀️</span><span>🌱</span><span>💧</span><span>🐇</span></div><button className="visual-action" type="button" onClick={onExplore}>Observe the habitat</button><p>Notice what living things need and how their world changes.</p></div>;
 }
 
+function ReadingVisual({ onExplore }: { onExplore: () => void }) {
+  return <div className="visual-play"><div className="reading-visual" aria-label="An open storybook with highlighted reading clues"><span>Once upon a clue…</span><b>✦</b><span>notice · infer · explain</span></div><button className="visual-action" type="button" onClick={onExplore}>Follow the story clues</button><p>Good readers notice details, then connect what they mean.</p></div>;
+}
+
 function Visual({ kind, chargedPieces, onCharge }: { kind: VisualKind; chargedPieces: number; onCharge: () => void }) {
   if (kind === "fraction") return <FractionVisual chargedPieces={chargedPieces} onCharge={onCharge} />;
   if (kind === "number-line") return <NumberLineVisual steps={chargedPieces} onExplore={onCharge} />;
   if (kind === "ratio") return <RatioVisual groups={chargedPieces} onExplore={onCharge} />;
   if (kind === "formula") return <FormulaVisual onExplore={onCharge} />;
   if (kind === "ecosystem") return <EcosystemVisual onExplore={onCharge} />;
+  if (kind === "reading") return <ReadingVisual onExplore={onCharge} />;
   return <CoordinateVisual onExplore={onCharge} />;
 }
 
@@ -122,7 +128,7 @@ export default function Home() {
   function applySavedProgress(saved: Partial<SavedProgress>) {
     if (saved.name) setName(saved.name);
     if (saved.grade && saved.grade >= 4 && saved.grade <= 12) setGrade(saved.grade as Grade);
-    if (saved.activeSubject === "maths" || (saved.activeSubject === "science" && saved.grade === 4)) setActiveSubject(saved.activeSubject);
+    if (saved.activeSubject === "maths" || ((saved.activeSubject === "science" || saved.activeSubject === "english") && saved.grade === 4)) setActiveSubject(saved.activeSubject);
     if (saved.screen && saved.screen !== "welcome") setScreen(saved.screen);
     if (typeof saved.diagnosticIndex === "number") setDiagnosticIndex(Math.min(saved.diagnosticIndex, 2));
     if (typeof saved.diagnosticCorrect === "number") setDiagnosticCorrect(Math.max(0, Math.min(3, saved.diagnosticCorrect)));
@@ -144,7 +150,9 @@ export default function Home() {
   }
 
   const isScienceMission = activeSubject === "science" && grade === 4;
-  const gradeQuests = isScienceMission ? getScienceQuestsForGrade(grade) : getQuestsForGrade(grade);
+  const isEnglishMission = activeSubject === "english" && grade === 4;
+  const subjectMissionName = isScienceMission ? "Earthkeepers field mission" : isEnglishMission ? "Story Studio mission" : "Lumina restoration";
+  const gradeQuests = isScienceMission ? getScienceQuestsForGrade(grade) : isEnglishMission ? getEnglishQuestsForGrade(grade) : getQuestsForGrade(grade);
   const gradeDiagnostic = getDiagnosticForGrade(grade);
   const gradeRoadmap = getGradeRoadmap(grade);
   const gradeTheme = grade <= 6 ? "theme-explorer" : grade <= 9 ? "theme-pathfinder" : "theme-navigator";
@@ -166,10 +174,10 @@ export default function Home() {
   });
   const completedQuestCount = Math.min(gradeQuests.length, questIndex + (screen === "outcome" || completed ? 1 : 0));
   const completedSkills = [...new Set(gradeQuests.slice(0, completedQuestCount).map((quest) => quest.skill))];
-  const skillNames = { fractions: "equal parts and fractions", "number-sense": "number sense and distance", proportion: "matching groups and proportion", algebra: "algebraic rules and relationships", geometry: "shape, position, and spatial reasoning", data: "data, chance, and interpretation", "science-inquiry": "living things, materials, and environmental care" } as const;
+  const skillNames = { fractions: "equal parts and fractions", "number-sense": "number sense and distance", proportion: "matching groups and proportion", algebra: "algebraic rules and relationships", geometry: "shape, position, and spatial reasoning", data: "data, chance, and interpretation", "science-inquiry": "living things, materials, and environmental care", language: "reading, vocabulary, and clear expression" } as const;
   const beaconEnergy = Math.min(3, Math.ceil(questCorrect / Math.max(1, Math.ceil(gradeQuests.length / 3))));
-  const missionTitle = isScienceMission ? questIndex === 0 ? "Wake the garden sensors" : questIndex === 1 ? "Follow the food trail" : "Protect the pond habitat" : screen === "diagnostic" ? grade <= 7 ? "Nova's signal is fading" : "Set your starting signal" : questIndex === 0 ? "Restore the first beacon" : questIndex === 1 ? "Clear the mist trail" : "Open the starlight bridge";
-  const missionMoment = isScienceMission ? "Observe closely, make a prediction, and use the evidence in front of you." : screen === "diagnostic" ? grade <= 7 ? "Your choices help Nova find the trail that feels right for you." : "Three short grade-level ideas help set a useful starting point—this is not a score." : `One idea at a time. Each discovery brings Lumina back to life.`;
+  const missionTitle = isScienceMission ? questIndex === 0 ? "Wake the garden sensors" : questIndex === 1 ? "Follow the food trail" : "Protect the pond habitat" : isEnglishMission ? questIndex === 0 ? "Open the storybook portal" : questIndex === 1 ? "Gather the word clues" : "Shape a brighter ending" : screen === "diagnostic" ? grade <= 7 ? "Nova's signal is fading" : "Set your starting signal" : questIndex === 0 ? "Restore the first beacon" : questIndex === 1 ? "Clear the mist trail" : "Open the starlight bridge";
+  const missionMoment = isScienceMission ? "Observe closely, make a prediction, and use the evidence in front of you." : isEnglishMission ? "Read closely, follow the clues, and make meaning from the story." : screen === "diagnostic" ? grade <= 7 ? "Your choices help Nova find the trail that feels right for you." : "Three short grade-level ideas help set a useful starting point—this is not a score." : `One idea at a time. Each discovery brings Lumina back to life.`;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -290,6 +298,7 @@ export default function Home() {
     if (current.visual === "formula") return "Keep the rule visible. Undo or apply one operation at a time, checking what stays balanced.";
     if (current.visual === "coordinate") return "Read the model before choosing. Look for position, structure, or the full set of possible outcomes.";
     if (current.visual === "ecosystem") return "Look at the habitat clue again. Ask what a living thing needs, what a material does, or how the change affects the world around it.";
+    if (current.visual === "reading") return "Return to the exact words in the sentence. Then ask what those details tell you together.";
     return "Build one equal group first. When the group changes, make the matching group change in the same way.";
   }
 
@@ -308,6 +317,16 @@ export default function Home() {
 
   function startScienceMission() {
     setActiveSubject("science");
+    setQuestIndex(0);
+    setSelected(null);
+    setFeedback(null);
+    setShowHint(false);
+    setWrongAttemptsOnQuestion(0);
+    setScreen("chapter");
+  }
+
+  function startEnglishMission() {
+    setActiveSubject("english");
     setQuestIndex(0);
     setSelected(null);
     setFeedback(null);
@@ -425,8 +444,8 @@ export default function Home() {
 
   if (screen === "map") {
     return <main className={`shell dashboard-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("quest")}>Back to mission</button></nav>
-      <section className="dashboard-heading"><p className="eyebrow">YOUR LEARNING ATLAS</p><h1>Every subject can become a world worth exploring.</h1><p>Grade {grade} · CBSE/NCERT competency roadmap · Maths and Grade 4 EVS are now playable.</p></section>
-      <section className="atlas-grid">{gradeRoadmap.map((subject) => <article key={subject.id} className={subject.pilotStatus === "live" ? "atlas-card live" : "atlas-card"}><div className="atlas-card-top"><span className="atlas-icon">{subject.icon}</span><span className={subject.pilotStatus === "live" ? "atlas-status live" : "atlas-status"}>{subject.pilotStatus === "live" ? "PILOT NOW" : "MAPPED NEXT"}</span></div><p className="eyebrow">{subject.questWorld}</p><h2>{subject.label}</h2><ul>{subject.topics.map((topic) => <li key={topic}>{topic}</li>)}</ul>{subject.pilotStatus === "live" ? <button className="primary" onClick={() => subject.id === "science" ? startScienceMission() : (setActiveSubject("maths"), setScreen("quest"))}>{subject.id === "science" ? "Begin Earthkeepers mission" : "Continue Maths mission"}</button> : <p className="atlas-note">This world is planned in the curriculum journey. It will unlock after the current pilot proves the learning loop.</p>}</article>)}</section>
+      <section className="dashboard-heading"><p className="eyebrow">YOUR LEARNING ATLAS</p><h1>Every subject can become a world worth exploring.</h1><p>Grade {grade} · CBSE/NCERT competency roadmap · Maths, Grade 4 EVS, and Grade 4 English are now playable.</p></section>
+      <section className="atlas-grid">{gradeRoadmap.map((subject) => <article key={subject.id} className={subject.pilotStatus === "live" ? "atlas-card live" : "atlas-card"}><div className="atlas-card-top"><span className="atlas-icon">{subject.icon}</span><span className={subject.pilotStatus === "live" ? "atlas-status live" : "atlas-status"}>{subject.pilotStatus === "live" ? "PILOT NOW" : "MAPPED NEXT"}</span></div><p className="eyebrow">{subject.questWorld}</p><h2>{subject.label}</h2><ul>{subject.topics.map((topic) => <li key={topic}>{topic}</li>)}</ul>{subject.pilotStatus === "live" ? <button className="primary" onClick={() => subject.id === "science" ? startScienceMission() : subject.id === "english" ? startEnglishMission() : (setActiveSubject("maths"), setScreen("quest"))}>{subject.id === "science" ? "Begin Earthkeepers mission" : subject.id === "english" ? "Open Story Studio" : "Continue Maths mission"}</button> : <p className="atlas-note">This world is planned in the curriculum journey. It will unlock after the current pilot proves the learning loop.</p>}</article>)}</section>
     </main>;
   }
 
@@ -437,7 +456,7 @@ export default function Home() {
 
   if (screen === "chapter") {
     const sceneImage = current.visual === "number-line" ? "/images/lumina-mist-trail.png" : "/images/lumina-bridge.png";
-    return <main className={`chapter-shell chapter-${current.visual} ${gradeTheme}`}><Image src={sceneImage} alt="A chapter of Nova's Lumina adventure begins." fill priority sizes="100vw" className="chapter-art" /><div className="chapter-overlay" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>Lumina restoration · discovery {questIndex + 1} of {gradeQuests.length}</span></nav><section className="chapter-dialogue"><p className="eyebrow">NOVA&apos;S STORY</p><h1>{lessonStory.chapterTitle}</h1><p>{lessonStory.chapterDialogue}</p>{current.visual === "ratio" && <div className="chapter-groups" aria-label="One matching group becomes two matching groups"><div>✦✦<small>one group</small></div><strong>→</strong><div>✦✦✦✦<small>two matching groups</small></div></div>}{current.visual === "fraction" && <div className="chapter-whole" aria-label="One whole divided into two equal pieces"><span /><span /></div>}<div className="chapter-progress"><span style={{ width: `${((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><button className="primary" onClick={() => setScreen("quest")}>{lessonStory.chapterAction} →</button></section></main>;
+    return <main className={`chapter-shell chapter-${current.visual} ${gradeTheme}`}><Image src={sceneImage} alt="A chapter of Nova's learning adventure begins." fill priority sizes="100vw" className="chapter-art" /><div className="chapter-overlay" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>{subjectMissionName} · discovery {questIndex + 1} of {gradeQuests.length}</span></nav><section className="chapter-dialogue"><p className="eyebrow">NOVA&apos;S STORY</p><h1>{lessonStory.chapterTitle}</h1><p>{lessonStory.chapterDialogue}</p>{current.visual === "ratio" && <div className="chapter-groups" aria-label="One matching group becomes two matching groups"><div>✦✦<small>one group</small></div><strong>→</strong><div>✦✦✦✦<small>two matching groups</small></div></div>}{current.visual === "fraction" && <div className="chapter-whole" aria-label="One whole divided into two equal pieces"><span /><span /></div>}<div className="chapter-progress"><span style={{ width: `${((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><button className="primary" onClick={() => setScreen("quest")}>{lessonStory.chapterAction} →</button></section></main>;
   }
 
   if (screen === "outcome") {
@@ -446,7 +465,7 @@ export default function Home() {
   }
 
   if (completed) {
-    return <main className={`shell completion-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("parent")}>View parent snapshot</button></nav><section className="completion-card"><div className="burst">✦</div><p className="eyebrow">EXPEDITION COMPLETE</p><h1>You restored the fraction beacon, {name}!</h1><p>You used visual models and fair sharing to make {gradeQuests.length} connected discoveries about {completedSkills.map((skill) => skillNames[skill]).join(" and ")}.</p><div className="reward"><span>🪙</span><div><b>+{questCorrect * 25} Lumina coins</b><small>Earned by solving the mission ideas.</small></div></div><button className="primary" onClick={() => setScreen("parent")}>See this week&apos;s progress →</button></section></main>;
+    return <main className={`shell completion-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("parent")}>View parent snapshot</button></nav><section className="completion-card"><div className="burst">✦</div><p className="eyebrow">MISSION COMPLETE</p><h1>{isScienceMission ? `You protected the habitat, ${name}!` : isEnglishMission ? `You unlocked the Story Studio, ${name}!` : `You restored the fraction beacon, ${name}!`}</h1><p>You made {gradeQuests.length} connected discoveries about {completedSkills.map((skill) => skillNames[skill]).join(" and ")}.</p><div className="reward"><span>🪙</span><div><b>+{questCorrect * 25} Lumina coins</b><small>Earned by solving the mission ideas.</small></div></div><button className="primary" onClick={() => setScreen("parent")}>See this week&apos;s progress →</button></section></main>;
   }
 
   return <main className={`shell quest-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>🔥 {dailyStreak}</span><span>✨ {pet}</span><button className="text-button" onClick={() => setScreen("map")}>Learning atlas</button><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button><button className="text-button" onClick={() => setScreen("parent")}>Parent view</button></div></nav>
