@@ -43,6 +43,7 @@ type SavedProgress = {
   dailyStreak: number;
   lastCompletedDate: string | null;
   activeSubject: ActiveSubject;
+  nextSupportMode: "rebuild" | "steady" | "stretch";
 };
 
 const cosmetics = [
@@ -151,6 +152,7 @@ export default function Home() {
   const cloudLoadStarted = useRef(false);
   const [chargedPieces, setChargedPieces] = useState(0);
   const [wrongAttemptsOnQuestion, setWrongAttemptsOnQuestion] = useState(0);
+  const [nextSupportMode, setNextSupportMode] = useState<SavedProgress["nextSupportMode"]>("steady");
 
   function applySavedProgress(saved: Partial<SavedProgress>) {
     if (saved.name) setName(saved.name);
@@ -174,6 +176,7 @@ export default function Home() {
     if (typeof saved.equippedCosmetic === "string") setEquippedCosmetic(saved.equippedCosmetic);
     if (typeof saved.dailyStreak === "number") setDailyStreak(saved.dailyStreak);
     if (typeof saved.lastCompletedDate === "string") setLastCompletedDate(saved.lastCompletedDate);
+    if (saved.nextSupportMode === "rebuild" || saved.nextSupportMode === "steady" || saved.nextSupportMode === "stretch") setNextSupportMode(saved.nextSupportMode);
   }
 
   const isScienceMission = activeSubject === "science" && grade <= 12;
@@ -235,16 +238,16 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated || !name.trim()) return;
-    const progress: SavedProgress = { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate };
+    const progress: SavedProgress = { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, nextSupportMode };
     window.localStorage.setItem(PILOT_PROGRESS_KEY, JSON.stringify(progress));
-  }, [activeSubject, attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [activeSubject, attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client || !hydrated || !authUser || !name.trim() || !guardianAcknowledged || cloudLoadStarted.current) return;
     cloudLoadStarted.current = true;
 
-    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate } })
+    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, nextSupportMode } })
       .then((hosted) => {
         applySavedProgress(hosted.state as Partial<SavedProgress>);
         setHostedLearnerId(hosted.learnerId);
@@ -254,18 +257,18 @@ export default function Home() {
         cloudLoadStarted.current = false;
         setCloudMessage(error instanceof Error ? error.message : "Cloud saving could not start yet. Your progress remains on this device.");
       });
-  }, [activeSubject, attempts, authUser, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [activeSubject, attempts, authUser, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client || !hostedLearnerId || !hydrated) return;
     const timer = window.setTimeout(() => {
-      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate }).catch(() => {
+      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, nextSupportMode }).catch(() => {
         setCloudMessage("Your latest progress is still safe on this device; cloud saving will retry next time.");
       });
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [activeSubject, attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hostedLearnerId, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [activeSubject, attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hostedLearnerId, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   async function sendMagicLink() {
     const client = getSupabaseBrowserClient();
@@ -282,6 +285,11 @@ export default function Home() {
     if (!selected || !current) return;
     setAttempts((value) => value + 1);
     if (selected === current.answer) {
+      const nextStep = chooseAdaptiveNextStep(current, {
+        wrongAttempts: wrongAttemptsOnQuestion,
+        hintUsed: showHint,
+        recentAccuracy: questCorrect / Math.max(1, attempts - diagnosticCorrect),
+      });
       setFeedback("correct");
       setCorrect((value) => value + 1);
       if (screen === "diagnostic") setDiagnosticCorrect((value) => value + 1);
@@ -289,7 +297,10 @@ export default function Home() {
       const streak = recordDailyQuest({ dailyStreak, lastCompletedDate }, new Date().toISOString().slice(0, 10));
       setDailyStreak(streak.dailyStreak);
       setLastCompletedDate(streak.lastCompletedDate);
-      if (screen === "quest") setScreen("outcome");
+      if (screen === "quest") {
+        setNextSupportMode(nextStep.mode);
+        setScreen("outcome");
+      }
       return;
     }
     setWrongAttemptsOnQuestion((value) => value + 1);
@@ -300,7 +311,7 @@ export default function Home() {
   function continueLearning() {
     setSelected(null);
     setFeedback(null);
-    setShowHint(false);
+    setShowHint(screen === "outcome" && nextSupportMode === "rebuild");
     setChargedPieces(0);
     setWrongAttemptsOnQuestion(0);
     if (screen === "diagnostic") {
@@ -357,6 +368,7 @@ export default function Home() {
     setHintRequests(0);
     setCorrect(0);
     setAttempts(0);
+    setNextSupportMode("steady");
   }
 
   function openGradePicker() {
@@ -371,6 +383,7 @@ export default function Home() {
     setHintRequests(0);
     setCorrect(0);
     setAttempts(0);
+    setNextSupportMode("steady");
     setScreen("welcome");
   }
 
@@ -431,6 +444,7 @@ export default function Home() {
     setEquippedCosmetic("trailblazer");
     setDailyStreak(0);
     setLastCompletedDate(null);
+    setNextSupportMode("steady");
     setWrongAttemptsOnQuestion(0);
   }
 
