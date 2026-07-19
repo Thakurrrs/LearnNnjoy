@@ -15,9 +15,10 @@ describe("Number Sense curriculum", () => {
     });
   });
 
-  it("ships a three-quest Number Sense path for every pilot grade", () => {
-    [4, 5, 6, 7, 8, 9, 10, 11, 12].forEach((grade) => {
-      expect(getQuestsForGrade(grade as 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)).toHaveLength(3);
+  it("ships a six-discovery Grade 4 fraction arc and starter arcs for every other grade", () => {
+    expect(getQuestsForGrade(4)).toHaveLength(6);
+    [5, 6, 7, 8, 9, 10, 11, 12].forEach((grade) => {
+      expect(getQuestsForGrade(grade as 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)).toHaveLength(3);
     });
   });
 

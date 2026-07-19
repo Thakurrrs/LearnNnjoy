@@ -4,9 +4,12 @@ const item = (id: string, prompt: string, choices: string[], answer: string, hin
 
 export const gradeQuestArc: Record<Grade, Question[]> = {
   4: [
-    item("g4-1", "Mira shares one pizza equally with one friend. What fraction does each person get?", ["1/2", "1/3", "2/3"], "1/2", "Two people share one whole.", "Each person gets one of two equal parts: 1/2.", "fraction", "fractions"),
-    item("g4-2", "A trail is 12 km long. You have walked 6 km. What part is complete?", ["1/4", "1/2", "3/4"], "1/2", "Compare 6 with the whole 12.", "6 is half of 12, so half the trail is complete.", "number-line", "number-sense"),
-    item("g4-3", "Four explorers share 8 lanterns equally. How many lanterns does each explorer get?", ["1", "2", "4"], "2", "Split 8 into four equal groups.", "8 divided equally among 4 explorers gives 2 lanterns each.", "ratio", "number-sense"),
+    item("g4-1", "Mira and Nova share one whole moon-fruit equally. What fraction does Nova get?", ["1/2", "1/3", "2/3"], "1/2", "There is one whole and two equal explorers.", "Nova gets one of two equal parts: 1/2.", "fraction", "fractions"),
+    item("g4-2", "Which picture would show one half of one whole?", ["1 of 2 equal parts", "1 of 2 unequal parts", "1 of 4 equal parts"], "1 of 2 equal parts", "The whole must be split into equal parts.", "One half means one out of two equal parts. Unequal parts are not fair halves.", "fraction", "fractions"),
+    item("g4-3", "Which fraction is another way to show one half?", ["1/4", "2/4", "3/4"], "2/4", "Imagine four equal panels. How many panels make the same amount as one half?", "Two out of four equal parts covers the same amount as one half: 2/4 = 1/2.", "fraction", "fractions"),
+    item("g4-4", "A lantern has 4 equal windows. 3 windows glow. What fraction of the lantern is glowing?", ["1/4", "2/4", "3/4"], "3/4", "Count the glowing equal windows, then count all windows.", "Three of four equal windows glow, so the glowing fraction is 3/4.", "fraction", "fractions"),
+    item("g4-5", "Eight starlights are shared into 4 equal packs. How many starlights are in each pack?", ["1", "2", "4"], "2", "Make four equal groups from eight objects.", "Eight shared equally into four packs gives 2 in each pack.", "ratio", "number-sense"),
+    item("g4-6", "A trail has 12 equal steps. Which step is exactly halfway along the trail?", ["Step 3", "Step 6", "Step 9"], "Step 6", "Half of 12 is the same as splitting 12 into two equal groups.", "Step 6 is halfway because there are 6 equal steps before it and 6 after it.", "number-line", "number-sense"),
   ],
   5: [
     item("g5-1", "Which fraction is equal to 1/2?", ["2/4", "1/4", "3/4"], "2/4", "Double the top and bottom of 1/2.", "Two fourths covers the same amount as one half.", "fraction", "fractions"),
