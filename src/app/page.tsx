@@ -23,6 +23,8 @@ type SavedProgress = {
   diagnosticCorrect: number;
   storyBeat: number;
   storyCells: number[];
+  fruitSplit: boolean;
+  fruitShared: boolean;
   questIndex: number;
   coins: number;
   correct: number;
@@ -69,6 +71,8 @@ export default function Home() {
   const [diagnosticCorrect, setDiagnosticCorrect] = useState(0);
   const [storyBeat, setStoryBeat] = useState(0);
   const [storyCells, setStoryCells] = useState<number[]>([]);
+  const [fruitSplit, setFruitSplit] = useState(false);
+  const [fruitShared, setFruitShared] = useState(false);
   const [questIndex, setQuestIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [showHint, setShowHint] = useState(false);
@@ -98,8 +102,10 @@ export default function Home() {
     if (saved.screen && saved.screen !== "welcome") setScreen(saved.screen);
     if (typeof saved.diagnosticIndex === "number") setDiagnosticIndex(Math.min(saved.diagnosticIndex, diagnostic.length - 1));
     if (typeof saved.diagnosticCorrect === "number") setDiagnosticCorrect(Math.max(0, Math.min(diagnostic.length, saved.diagnosticCorrect)));
-    if (typeof saved.storyBeat === "number") setStoryBeat(Math.max(0, Math.min(2, saved.storyBeat)));
+    if (typeof saved.storyBeat === "number") setStoryBeat(Math.max(0, Math.min(3, saved.storyBeat)));
     if (Array.isArray(saved.storyCells) && saved.storyCells.every((cell) => typeof cell === "number" && cell >= 0 && cell < 4)) setStoryCells(saved.storyCells);
+    if (typeof saved.fruitSplit === "boolean") setFruitSplit(saved.fruitSplit);
+    if (typeof saved.fruitShared === "boolean") setFruitShared(saved.fruitShared);
     if (typeof saved.questIndex === "number") setQuestIndex(Math.max(0, saved.questIndex));
     if (typeof saved.coins === "number") setCoins(saved.coins);
     if (typeof saved.correct === "number") setCorrect(saved.correct);
@@ -149,16 +155,16 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated || !name.trim()) return;
-    const progress: SavedProgress = { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate };
+    const progress: SavedProgress = { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate };
     window.localStorage.setItem(PILOT_PROGRESS_KEY, JSON.stringify(progress));
-  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, grade, guardianAcknowledged, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client || !hydrated || !authUser || !name.trim() || !guardianAcknowledged || cloudLoadStarted.current) return;
     cloudLoadStarted.current = true;
 
-    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate } })
+    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate } })
       .then((hosted) => {
         applySavedProgress(hosted.state as Partial<SavedProgress>);
         setHostedLearnerId(hosted.learnerId);
@@ -168,18 +174,18 @@ export default function Home() {
         cloudLoadStarted.current = false;
         setCloudMessage(error instanceof Error ? error.message : "Cloud saving could not start yet. Your progress remains on this device.");
       });
-  }, [attempts, authUser, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, grade, guardianAcknowledged, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [attempts, authUser, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client || !hostedLearnerId || !hydrated) return;
     const timer = window.setTimeout(() => {
-      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate }).catch(() => {
+      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate }).catch(() => {
         setCloudMessage("Your latest progress is still safe on this device; cloud saving will retry next time.");
       });
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, grade, guardianAcknowledged, hostedLearnerId, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hostedLearnerId, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   async function sendMagicLink() {
     const client = getSupabaseBrowserClient();
@@ -258,6 +264,8 @@ export default function Home() {
     setDiagnosticCorrect(0);
     setStoryBeat(0);
     setStoryCells([]);
+    setFruitSplit(false);
+    setFruitShared(false);
     setQuestIndex(0);
     setSelected(null);
     setShowHint(false);
@@ -324,10 +332,11 @@ export default function Home() {
 
   if (screen === "story") {
     const bridgeReady = storyCells.length === 2;
-    return <main className={`story-shell beat-${storyBeat}`}><Image src="/images/lumina-bridge.png" alt="Nova waits by a broken starlight bridge in the world of Lumina." fill priority sizes="100vw" className="story-art" /><div className="story-vignette" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>Nova and the Broken Beacon · {storyBeat + 1}/3</span></nav><section className="story-player">
-      {storyBeat === 0 && <div className="story-dialogue"><p className="eyebrow">CHAPTER ONE</p><h1>The starlight bridge has gone quiet.</h1><p>Nova has found two empty power chambers. Without them, nobody can cross to the beacon.</p><button className="primary" onClick={() => setStoryBeat(1)}>Follow Nova to the bridge →</button></div>}
-      {storyBeat === 1 && <div className="story-dialogue"><p className="eyebrow">HELP NOVA</p><h1>Wake exactly half of the bridge energy.</h1><p>Tap two of the four equal chambers. Watch what changes—there is no timer.</p><div className="bridge-cells" aria-label="Four equal bridge energy chambers">{[0, 1, 2, 3].map((cell) => <button type="button" key={cell} className={storyCells.includes(cell) ? "charged" : ""} onClick={() => toggleStoryCell(cell)} aria-pressed={storyCells.includes(cell)}><span>✦</span></button>)}</div><p className="story-helper">{bridgeReady ? "Two of four equal chambers are glowing. Send the energy!" : `${storyCells.length} of 4 chambers glowing`}</p><button className="primary" disabled={!bridgeReady} onClick={() => setStoryBeat(2)}>Send starlight to the bridge →</button></div>}
-      {storyBeat === 2 && <div className="story-dialogue resolved"><p className="eyebrow">BRIDGE RESTORED</p><h1>You made one half glow.</h1><p>Two of four equal chambers make one half. Nova can cross now—and will map the next trail with you.</p><div className="story-reveal">✦ ✦ <span>✦ ✦</span></div><button className="primary" onClick={() => setScreen("diagnostic")}>Continue with Nova →</button></div>}
+    return <main className={`story-shell beat-${storyBeat}`}><Image src="/images/lumina-bridge.png" alt="Nova waits by a broken starlight bridge in the world of Lumina." fill priority sizes="100vw" className="story-art" /><div className="story-vignette" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>Nova and the Broken Beacon · {storyBeat + 1}/4</span></nav><section className="story-player">
+      {storyBeat === 0 && <div className="story-dialogue"><p className="eyebrow">CHAPTER ONE</p><h1>Nova has one whole moon-fruit.</h1><p>Two explorers are hungry before they cross the bridge. Can you help Nova share the one whole fruit fairly?</p><button className="primary" onClick={() => setStoryBeat(1)}>Help Nova share it →</button></div>}
+      {storyBeat === 1 && <div className="story-dialogue"><p className="eyebrow">MAKE A FAIR SHARE</p><h1>{!fruitSplit ? "Here is one whole moon-fruit." : !fruitShared ? "Now choose one equal piece for Nova." : "Nova has one of two equal pieces."}</h1><p>{!fruitSplit ? "Tap the fruit to make one fair cut through its middle." : !fruitShared ? "Both pieces came from the same whole and are the same size. Tap either piece to give it to Nova." : "One whole was split into 2 equal parts. Nova has 1 of those 2 parts: one-half, written 1/2."}</p><div className={fruitSplit ? "moon-fruit split" : "moon-fruit"} aria-label="One whole moon-fruit that can be split into two equal parts">{!fruitSplit ? <button type="button" aria-label="Split the whole moon-fruit fairly" onClick={() => setFruitSplit(true)}>✦</button> : <><button type="button" className={fruitShared ? "shared" : ""} aria-label="Give this equal half to Nova" onClick={() => setFruitShared(true)}>✦</button><button type="button" className={fruitShared ? "remaining" : ""} aria-label="The other equal half">✦</button></>}</div><p className="story-helper">{!fruitSplit ? "One whole · tap to split it fairly" : !fruitShared ? "2 equal parts · choose one for Nova" : "1 of 2 equal parts = 1/2"}</p>{fruitShared && <button className="primary" onClick={() => setStoryBeat(2)}>Use one-half at the bridge →</button>}</div>}
+      {storyBeat === 2 && <div className="story-dialogue"><p className="eyebrow">TRY THE IDEA AGAIN</p><h1>The bridge has four equal energy panels.</h1><p>Nova knows that one-half can look different. Light two of the four equal panels to make half the bridge glow.</p><div className="bridge-cells" aria-label="Four equal bridge energy chambers">{[0, 1, 2, 3].map((cell) => <button type="button" key={cell} className={storyCells.includes(cell) ? "charged" : ""} onClick={() => toggleStoryCell(cell)} aria-pressed={storyCells.includes(cell)}><span>✦</span></button>)}</div><p className="story-helper">{bridgeReady ? "Two of four equal panels are glowing. That is also one half." : `${storyCells.length} of 4 panels glowing`}</p><button className="primary" disabled={!bridgeReady} onClick={() => setStoryBeat(3)}>Send starlight to the bridge →</button></div>}
+      {storyBeat === 3 && <div className="story-dialogue resolved"><p className="eyebrow">BRIDGE RESTORED</p><h1>One-half can be 1 of 2 or 2 of 4.</h1><p>You started with one clear whole, made fair equal parts, and used the same idea again. Nova can now map the next trail with you.</p><div className="story-reveal">✦ ✦ <span>✦ ✦</span></div><button className="primary" onClick={() => setScreen("diagnostic")}>Continue with Nova →</button></div>}
     </section></main>;
   }
 
