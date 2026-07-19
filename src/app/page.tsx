@@ -25,6 +25,7 @@ type SavedProgress = {
   storyCells: number[];
   fruitSplit: boolean;
   fruitShared: boolean;
+  hintRequests: number;
   questIndex: number;
   coins: number;
   correct: number;
@@ -73,6 +74,7 @@ export default function Home() {
   const [storyCells, setStoryCells] = useState<number[]>([]);
   const [fruitSplit, setFruitSplit] = useState(false);
   const [fruitShared, setFruitShared] = useState(false);
+  const [hintRequests, setHintRequests] = useState(0);
   const [questIndex, setQuestIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [showHint, setShowHint] = useState(false);
@@ -106,6 +108,7 @@ export default function Home() {
     if (Array.isArray(saved.storyCells) && saved.storyCells.every((cell) => typeof cell === "number" && cell >= 0 && cell < 4)) setStoryCells(saved.storyCells);
     if (typeof saved.fruitSplit === "boolean") setFruitSplit(saved.fruitSplit);
     if (typeof saved.fruitShared === "boolean") setFruitShared(saved.fruitShared);
+    if (typeof saved.hintRequests === "number") setHintRequests(Math.max(0, saved.hintRequests));
     if (typeof saved.questIndex === "number") setQuestIndex(Math.max(0, saved.questIndex));
     if (typeof saved.coins === "number") setCoins(saved.coins);
     if (typeof saved.correct === "number") setCorrect(saved.correct);
@@ -124,6 +127,10 @@ export default function Home() {
   const completed = questIndex >= gradeQuests.length;
   const confidence = useMemo(() => Math.min(92, 58 + correct * 11), [correct]);
   const learningTrail = chooseLearningTrail(diagnosticCorrect);
+  const questCorrect = Math.max(0, correct - diagnosticCorrect);
+  const completedQuestCount = Math.min(gradeQuests.length, questIndex + (screen === "outcome" || completed ? 1 : 0));
+  const completedSkills = [...new Set(gradeQuests.slice(0, completedQuestCount).map((quest) => quest.skill))];
+  const skillNames = { fractions: "equal parts and fractions", "number-sense": "number sense and distance", proportion: "matching groups and proportion" } as const;
   const missionTitle = screen === "diagnostic" ? "Nova's signal is fading" : questIndex === 0 ? "Restore the first beacon" : questIndex === 1 ? "Clear the mist trail" : "Open the starlight bridge";
   const missionMoment = screen === "diagnostic" ? "Your choices help Nova find the trail that feels right for you." : `One idea at a time. Each discovery brings Lumina back to life.`;
 
@@ -155,16 +162,16 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated || !name.trim()) return;
-    const progress: SavedProgress = { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate };
+    const progress: SavedProgress = { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate };
     window.localStorage.setItem(PILOT_PROGRESS_KEY, JSON.stringify(progress));
-  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client || !hydrated || !authUser || !name.trim() || !guardianAcknowledged || cloudLoadStarted.current) return;
     cloudLoadStarted.current = true;
 
-    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate } })
+    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate } })
       .then((hosted) => {
         applySavedProgress(hosted.state as Partial<SavedProgress>);
         setHostedLearnerId(hosted.learnerId);
@@ -174,18 +181,18 @@ export default function Home() {
         cloudLoadStarted.current = false;
         setCloudMessage(error instanceof Error ? error.message : "Cloud saving could not start yet. Your progress remains on this device.");
       });
-  }, [attempts, authUser, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [attempts, authUser, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client || !hostedLearnerId || !hydrated) return;
     const timer = window.setTimeout(() => {
-      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate }).catch(() => {
+      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate }).catch(() => {
         setCloudMessage("Your latest progress is still safe on this device; cloud saving will retry next time.");
       });
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hostedLearnerId, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hostedLearnerId, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   async function sendMagicLink() {
     const client = getSupabaseBrowserClient();
@@ -250,6 +257,11 @@ export default function Home() {
     setChargedPieces((value) => Math.min(4, value + 1));
   }
 
+  function askNovaForClue() {
+    if (!showHint) setHintRequests((value) => value + 1);
+    setShowHint(true);
+  }
+
   function toggleStoryCell(cell: number) {
     setStoryCells((cells) => cells.includes(cell) ? cells.filter((item) => item !== cell) : cells.length < 2 ? [...cells, cell] : cells);
   }
@@ -266,6 +278,7 @@ export default function Home() {
     setStoryCells([]);
     setFruitSplit(false);
     setFruitShared(false);
+    setHintRequests(0);
     setQuestIndex(0);
     setSelected(null);
     setShowHint(false);
@@ -286,7 +299,7 @@ export default function Home() {
     const exportData = {
       exportedAt: new Date().toISOString(),
       learner: { nickname: name, grade },
-      progress: { diagnosticIndex, questIndex, correct, attempts, dailyStreak, lastCompletedDate },
+      progress: { diagnosticIndex, diagnosticCorrect, questIndex, correct, attempts, hintRequests, dailyStreak, lastCompletedDate },
       rewards: { coins, ownedCosmetics, equippedCosmetic },
       parentPulse,
     };
@@ -343,8 +356,9 @@ export default function Home() {
   if (screen === "parent") {
     return <main className="shell dashboard-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("quest")}>Back to quest</button></nav>
       <section className="dashboard-heading"><p className="eyebrow">WEEKLY PARENT SNAPSHOT</p><h1>{name}&apos;s learning, without the pressure.</h1><p>Week one · Number Sense Expedition</p></section>
-      <section className="metric-grid"><article><span>Quest minutes</span><b>{Math.max(8, attempts * 5 + 8)}</b><small>Across focused sessions</small></article><article><span>Concept confidence</span><b>{confidence}%</b><small>Up from the starter diagnostic</small></article><article><span>Skills growing</span><b>{correct}/3</b><small>Fractions, comparison, proportion</small></article></section>
-      <section className="parent-note"><div className="note-icon">✦</div><div><p className="eyebrow">A KIND NEXT STEP</p><h2>{recommendNextSkill(correct, attempts)}</h2><p>Explaining an idea aloud helps it stick. Keep it curious: there is no need to correct or test them.</p></div></section>
+      <section className="metric-grid"><article><span>Focused mission minutes</span><b>{Math.max(8, attempts * 5 + 8)}</b><small>Short, story-led learning moments</small></article><article><span>Concept confidence</span><b>{confidence}%</b><small>Based on attempts and completed ideas</small></article><article><span>Ideas explored</span><b>{completedQuestCount}/{gradeQuests.length}</b><small>{completedSkills.length ? completedSkills.map((skill) => skillNames[skill]).join(" · ") : "The first discovery is waiting"}</small></article></section>
+      <section className="concept-evidence"><p className="eyebrow">WHAT {name.toUpperCase()} HAS PRACTISED</p>{completedSkills.length ? <ul>{completedSkills.map((skill) => <li key={skill}><span>✓</span><div><b>{skillNames[skill]}</b><small>{skill === "fractions" ? "Saw a whole, made equal parts, and connected 1/2 with 2/4." : skill === "number-sense" ? "Used position and distance to reason about numbers." : "Built matching groups to keep a relationship fair."}</small></div></li>)}</ul> : <p>Nova is ready to begin with one clear, visual idea.</p>}<p className="support-evidence">Nova&apos;s clues requested: {hintRequests}. Asking for a clue is a healthy learning strategy, not a penalty.</p></section>
+      <section className="parent-note"><div className="note-icon">✦</div><div><p className="eyebrow">A KIND NEXT STEP</p><h2>{recommendNextSkill(questCorrect, Math.max(0, attempts - diagnostic.length))}</h2><p>Explaining an idea aloud helps it stick. Keep it curious: there is no need to correct or test them.</p></div></section>
       <section className="pulse-card"><p className="eyebrow">ONE-MINUTE PARENT PULSE</p><h2>How did maths feel for {name} this week?</h2><div className="pulse-options"><button className={parentPulse === "lighter" ? "active" : ""} onClick={() => setParentPulse("lighter")}>✨ Lighter</button><button className={parentPulse === "steady" ? "active" : ""} onClick={() => setParentPulse("steady")}>🙂 Steady</button><button className={parentPulse === "hard" ? "active" : ""} onClick={() => setParentPulse("hard")}>🌧 Felt hard</button></div>{parentPulse && <p className="pulse-thanks">Thank you. This helps shape the next quest.</p>}</section>
       <section className="privacy-note"><strong>Private by design.</strong> LearnNnjoy stores a nickname, grade, and learning progress for this pilot. There are no public profiles, ads, or peer rankings. {authUser && <span> Cloud saving is active for {authUser.email}.</span>} <button className="delete-data" onClick={exportLocalPilotData}>Export local data</button><button className="delete-data" onClick={eraseLocalPilotData}>Remove local pilot data</button></section>
     </main>;
@@ -394,6 +408,6 @@ export default function Home() {
 
   return <main className="shell quest-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>🔥 {dailyStreak}</span><span>✨ {pet}</span><button className="text-button" onClick={() => setScreen("map")}>Learning atlas</button><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button><button className="text-button" onClick={() => setScreen("parent")}>Parent view</button></div></nav>
     <section className="quest-layout"><aside className="quest-side"><div className={`mission-scene stage-${Math.min(3, correct)}`}><div className="scene-stars">✦ ✧ ✦</div><div className="beacon-core">✦</div><div className="beacon-pulse" /><div className="nova-orbit">✨</div><p>Beacon energy: {Math.min(3, correct)}/3</p></div><p className="eyebrow">{screen === "diagnostic" ? "NOVA'S RESCUE MISSION" : `GRADE ${grade} · LUMINA RESTORATION`}</p><h1>{missionTitle}</h1><p>{missionMoment}</p><div className="progress"><span style={{ width: `${screen === "diagnostic" ? ((diagnosticIndex + 1) / diagnostic.length) * 100 : ((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><small>{screen === "diagnostic" ? diagnosticIndex + 1 : questIndex + 1} of {screen === "diagnostic" ? diagnostic.length : gradeQuests.length} small discoveries</small></aside>
-      <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Explore first" : "Use your discovery"}</span></div><Visual kind={current.visual} chargedPieces={chargedPieces} onCharge={chargePiece} /><div className="quest-story"><span>Nova says</span><p>{current.visual === "fraction" ? "“The beacon responds when we notice how equal pieces fit together.”" : current.visual === "number-line" ? "“Let’s trace the path before we decide.”" : "“Let’s build equal groups, then see what changes.”"}</p></div>{screen === "quest" && learningTrail.id === "visual" && <p className="trail-nudge">Visual Trail · Start with the picture. The symbols can wait.</p>}<h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Nova&apos;s clue:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Not yet—and that&apos;s useful information.</b><span>Let&apos;s slow the picture down and try a new route.</span></div>}{wrongAttemptsOnQuestion >= 2 && feedback !== "correct" && <div className="recovery-card"><p className="eyebrow">NOVA&apos;S SLOW-DOWN PATH</p><h3>You don&apos;t have to get it quickly to get it.</h3><p>{recoveryPrompt()}</p><button className="text-button" onClick={() => { setShowHint(true); setFeedback(null); }}>I&apos;m ready to look again</button></div>}{feedback === "correct" && <div className="feedback correct"><b>Beacon energy restored! +25 Lumina coins</b><span>{current.explanation}</span></div>}{feedback === "correct" && screen === "quest" && learningTrail.id === "stretch" && <div className="stretch-prompt"><b>Pathfinder thought</b><span>Can you explain this answer to Nova without using the choices?</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={() => setShowHint(true)}>Ask Nova for a clue</button><button className="primary" disabled={!selected} onClick={answer}>Send my idea →</button></>}{feedback === "correct" && <button className="primary" onClick={continueLearning}>See what changed in Lumina →</button>}{feedback === "retry" && <button className="primary" onClick={retryCurrentQuestion}>{wrongAttemptsOnQuestion >= 2 ? "Use the slow-down path" : "Try a different idea"}</button>}</div></section>
+      <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Explore first" : "Use your discovery"}</span></div><Visual kind={current.visual} chargedPieces={chargedPieces} onCharge={chargePiece} /><div className="quest-story"><span>Nova says</span><p>{current.visual === "fraction" ? "“The beacon responds when we notice how equal pieces fit together.”" : current.visual === "number-line" ? "“Let’s trace the path before we decide.”" : "“Let’s build equal groups, then see what changes.”"}</p></div>{screen === "quest" && learningTrail.id === "visual" && <p className="trail-nudge">Visual Trail · Start with the picture. The symbols can wait.</p>}<h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Nova&apos;s clue:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Not yet—and that&apos;s useful information.</b><span>Let&apos;s slow the picture down and try a new route.</span></div>}{wrongAttemptsOnQuestion >= 2 && feedback !== "correct" && <div className="recovery-card"><p className="eyebrow">NOVA&apos;S SLOW-DOWN PATH</p><h3>You don&apos;t have to get it quickly to get it.</h3><p>{recoveryPrompt()}</p><button className="text-button" onClick={() => { setShowHint(true); setFeedback(null); }}>I&apos;m ready to look again</button></div>}{feedback === "correct" && <div className="feedback correct"><b>Beacon energy restored! +25 Lumina coins</b><span>{current.explanation}</span></div>}{feedback === "correct" && screen === "quest" && learningTrail.id === "stretch" && <div className="stretch-prompt"><b>Pathfinder thought</b><span>Can you explain this answer to Nova without using the choices?</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={askNovaForClue}>Ask Nova for a clue</button><button className="primary" disabled={!selected} onClick={answer}>Send my idea →</button></>}{feedback === "correct" && <button className="primary" onClick={continueLearning}>See what changed in Lumina →</button>}{feedback === "retry" && <button className="primary" onClick={retryCurrentQuestion}>{wrongAttemptsOnQuestion >= 2 ? "Use the slow-down path" : "Try a different idea"}</button>}</div></section>
     </section></main>;
 }
