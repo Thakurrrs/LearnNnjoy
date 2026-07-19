@@ -6,11 +6,12 @@ import type { User } from "@supabase/supabase-js";
 import "./world.css";
 import { diagnostic, recommendNextSkill, type Grade, type VisualKind } from "@/lib/learning";
 import { getQuestsForGrade } from "@/lib/grade-quests";
+import { getGradeRoadmap } from "@/lib/curriculum-map";
 import { recordDailyQuest } from "@/lib/streak";
 import { loadOrCreateHostedLearner, saveHostedLearnerState } from "@/lib/hosted-progress";
 import { getSupabaseBrowserClient, isHostedPilotConfigured } from "@/lib/supabase";
 
-type Screen = "welcome" | "diagnostic" | "quest" | "parent" | "world";
+type Screen = "welcome" | "diagnostic" | "quest" | "parent" | "world" | "map";
 
 const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
 
@@ -103,6 +104,7 @@ export default function Home() {
   }
 
   const gradeQuests = getQuestsForGrade(grade);
+  const gradeRoadmap = getGradeRoadmap(grade);
   const current = screen === "diagnostic" ? diagnostic[diagnosticIndex] : gradeQuests[questIndex];
   const completed = questIndex >= gradeQuests.length;
   const confidence = useMemo(() => Math.min(92, 58 + correct * 11), [correct]);
@@ -317,11 +319,18 @@ export default function Home() {
     </main>;
   }
 
+  if (screen === "map") {
+    return <main className="shell dashboard-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("quest")}>Back to mission</button></nav>
+      <section className="dashboard-heading"><p className="eyebrow">YOUR LEARNING ATLAS</p><h1>Every subject can become a world worth exploring.</h1><p>Grade {grade} · CBSE/NCERT competency roadmap · Maths is currently in the pilot.</p></section>
+      <section className="atlas-grid">{gradeRoadmap.map((subject) => <article key={subject.id} className={subject.pilotStatus === "live" ? "atlas-card live" : "atlas-card"}><div className="atlas-card-top"><span className="atlas-icon">{subject.icon}</span><span className={subject.pilotStatus === "live" ? "atlas-status live" : "atlas-status"}>{subject.pilotStatus === "live" ? "PILOT NOW" : "MAPPED NEXT"}</span></div><p className="eyebrow">{subject.questWorld}</p><h2>{subject.label}</h2><ul>{subject.topics.map((topic) => <li key={topic}>{topic}</li>)}</ul>{subject.pilotStatus === "live" ? <button className="primary" onClick={() => setScreen("quest")}>Continue Lumina mission</button> : <p className="atlas-note">This world is planned in the curriculum journey. It will unlock after the Maths pilot proves the learning loop.</p>}</article>)}</section>
+    </main>;
+  }
+
   if (completed) {
     return <main className="shell completion-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("parent")}>View parent snapshot</button></nav><section className="completion-card"><div className="burst">✦</div><p className="eyebrow">EXPEDITION COMPLETE</p><h1>You found the fraction beacon, {name}!</h1><p>You used pictures, number lines, and proportional thinking to solve three real-world problems.</p><div className="reward"><span>🪙</span><div><b>+{correct * 25} Lumina coins</b><small>Use them to grow your explorer world.</small></div></div><button className="primary" onClick={() => setScreen("parent")}>See this week&apos;s progress →</button></section></main>;
   }
 
-  return <main className="shell quest-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>🔥 {dailyStreak}</span><span>✨ {pet}</span><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button><button className="text-button" onClick={() => setScreen("parent")}>Parent view</button></div></nav>
+  return <main className="shell quest-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>🔥 {dailyStreak}</span><span>✨ {pet}</span><button className="text-button" onClick={() => setScreen("map")}>Learning atlas</button><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button><button className="text-button" onClick={() => setScreen("parent")}>Parent view</button></div></nav>
     <section className="quest-layout"><aside className="quest-side"><div className={`mission-scene stage-${Math.min(3, correct)}`}><div className="scene-stars">✦ ✧ ✦</div><div className="beacon-core">✦</div><div className="beacon-pulse" /><div className="nova-orbit">✨</div><p>Beacon energy: {Math.min(3, correct)}/3</p></div><p className="eyebrow">{screen === "diagnostic" ? "NOVA'S RESCUE MISSION" : `GRADE ${grade} · LUMINA RESTORATION`}</p><h1>{missionTitle}</h1><p>{missionMoment}</p><div className="progress"><span style={{ width: `${screen === "diagnostic" ? ((diagnosticIndex + 1) / diagnostic.length) * 100 : ((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><small>{screen === "diagnostic" ? diagnosticIndex + 1 : questIndex + 1} of {screen === "diagnostic" ? diagnostic.length : gradeQuests.length} small discoveries</small></aside>
       <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Explore first" : "Use your discovery"}</span></div><Visual kind={current.visual} chargedPieces={chargedPieces} onCharge={chargePiece} /><div className="quest-story"><span>Nova says</span><p>{current.visual === "fraction" ? "“The beacon responds when we notice how equal pieces fit together.”" : current.visual === "number-line" ? "“Let’s trace the path before we decide.”" : "“Let’s build equal groups, then see what changes.”"}</p></div><h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Nova&apos;s clue:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Not yet—and that&apos;s useful information.</b><span>Let&apos;s slow the picture down and try a new route.</span></div>}{wrongAttemptsOnQuestion >= 2 && feedback !== "correct" && <div className="recovery-card"><p className="eyebrow">NOVA&apos;S SLOW-DOWN PATH</p><h3>You don&apos;t have to get it quickly to get it.</h3><p>{recoveryPrompt()}</p><button className="text-button" onClick={() => { setShowHint(true); setFeedback(null); }}>I&apos;m ready to look again</button></div>}{feedback === "correct" && <div className="feedback correct"><b>Beacon energy restored! +25 Lumina coins</b><span>{current.explanation}</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={() => setShowHint(true)}>Ask Nova for a clue</button><button className="primary" disabled={!selected} onClick={answer}>Send my idea →</button></>}{feedback === "correct" && <button className="primary" onClick={continueLearning}>See what changed in Lumina →</button>}{feedback === "retry" && <button className="primary" onClick={retryCurrentQuestion}>{wrongAttemptsOnQuestion >= 2 ? "Use the slow-down path" : "Try a different idea"}</button>}</div></section>
     </section></main>;
