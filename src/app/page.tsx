@@ -1,0 +1,181 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { diagnostic, recommendNextSkill, type Grade, type VisualKind } from "@/lib/learning";
+import { getQuestsForGrade } from "@/lib/grade-quests";
+
+type Screen = "welcome" | "diagnostic" | "quest" | "parent";
+
+const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
+
+type SavedProgress = {
+  name: string;
+  grade: Grade;
+  screen: Screen;
+  diagnosticIndex: number;
+  questIndex: number;
+  coins: number;
+  correct: number;
+  attempts: number;
+  guardianAcknowledged: boolean;
+  parentPulse: "lighter" | "steady" | "hard" | null;
+};
+
+function FractionVisual() {
+  return <div className="pizza" aria-label="A pizza split into four equal slices"><span /><span /><span /><span /></div>;
+}
+
+function NumberLineVisual() {
+  return <div className="number-line" aria-label="A number line showing halfway"><span>0</span><i /><b>6</b><i /><span>12</span></div>;
+}
+
+function RatioVisual() {
+  return <div className="ratio-visual" aria-label="Two cups for four people, then four cups for eight people"><div>🥣🥣<small>4 explorers</small></div><strong>→</strong><div>🥣🥣🥣🥣<small>8 explorers</small></div></div>;
+}
+
+function Visual({ kind }: { kind: VisualKind }) {
+  if (kind === "fraction") return <FractionVisual />;
+  if (kind === "number-line") return <NumberLineVisual />;
+  return <RatioVisual />;
+}
+
+export default function Home() {
+  const [screen, setScreen] = useState<Screen>("welcome");
+  const [name, setName] = useState("");
+  const [grade, setGrade] = useState<Grade>(4);
+  const [diagnosticIndex, setDiagnosticIndex] = useState(0);
+  const [questIndex, setQuestIndex] = useState(0);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [showHint, setShowHint] = useState(false);
+  const [feedback, setFeedback] = useState<"correct" | "retry" | null>(null);
+  const [coins, setCoins] = useState(60);
+  const [correct, setCorrect] = useState(0);
+  const [attempts, setAttempts] = useState(0);
+  const pet = "Nova";
+  const [hydrated, setHydrated] = useState(false);
+  const [guardianAcknowledged, setGuardianAcknowledged] = useState(false);
+  const [parentPulse, setParentPulse] = useState<SavedProgress["parentPulse"]>(null);
+
+  const gradeQuests = getQuestsForGrade(grade);
+  const current = screen === "diagnostic" ? diagnostic[diagnosticIndex] : gradeQuests[questIndex];
+  const completed = questIndex >= gradeQuests.length;
+  const confidence = useMemo(() => Math.min(92, 58 + correct * 11), [correct]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const stored = window.localStorage.getItem(PILOT_PROGRESS_KEY);
+      if (stored) {
+        try {
+          const saved = JSON.parse(stored) as Partial<SavedProgress>;
+          if (saved.name) setName(saved.name);
+          if (saved.grade && saved.grade >= 4 && saved.grade <= 12) setGrade(saved.grade as Grade);
+          if (saved.screen && saved.screen !== "welcome") setScreen(saved.screen);
+          if (typeof saved.diagnosticIndex === "number") setDiagnosticIndex(Math.min(saved.diagnosticIndex, diagnostic.length - 1));
+          if (typeof saved.questIndex === "number") setQuestIndex(Math.max(0, saved.questIndex));
+          if (typeof saved.coins === "number") setCoins(saved.coins);
+          if (typeof saved.correct === "number") setCorrect(saved.correct);
+          if (typeof saved.attempts === "number") setAttempts(saved.attempts);
+          if (typeof saved.guardianAcknowledged === "boolean") setGuardianAcknowledged(saved.guardianAcknowledged);
+          if (saved.parentPulse === "lighter" || saved.parentPulse === "steady" || saved.parentPulse === "hard") setParentPulse(saved.parentPulse);
+        } catch {
+          window.localStorage.removeItem(PILOT_PROGRESS_KEY);
+        }
+      }
+      setHydrated(true);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated || !name.trim()) return;
+    const progress: SavedProgress = { name, grade, screen, diagnosticIndex, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse };
+    window.localStorage.setItem(PILOT_PROGRESS_KEY, JSON.stringify(progress));
+  }, [attempts, coins, correct, diagnosticIndex, grade, guardianAcknowledged, hydrated, name, parentPulse, questIndex, screen]);
+
+  function answer() {
+    if (!selected || !current) return;
+    setAttempts((value) => value + 1);
+    if (selected === current.answer) {
+      setFeedback("correct");
+      setCorrect((value) => value + 1);
+      setCoins((value) => value + 25);
+      return;
+    }
+    setFeedback("retry");
+    setShowHint(true);
+  }
+
+  function continueLearning() {
+    setSelected(null);
+    setFeedback(null);
+    setShowHint(false);
+    if (screen === "diagnostic") {
+      if (diagnosticIndex < diagnostic.length - 1) setDiagnosticIndex((value) => value + 1);
+      else setScreen("quest");
+      return;
+    }
+    if (questIndex < gradeQuests.length - 1) setQuestIndex((value) => value + 1);
+    else setQuestIndex(gradeQuests.length);
+  }
+
+  function eraseLocalPilotData() {
+    if (!window.confirm("Remove this learner's local pilot progress from this browser? This cannot be undone.")) return;
+    window.localStorage.removeItem(PILOT_PROGRESS_KEY);
+    setScreen("welcome");
+    setName("");
+    setGrade(4);
+    setDiagnosticIndex(0);
+    setQuestIndex(0);
+    setSelected(null);
+    setShowHint(false);
+    setFeedback(null);
+    setCoins(60);
+    setCorrect(0);
+    setAttempts(0);
+    setGuardianAcknowledged(false);
+    setParentPulse(null);
+  }
+
+  if (screen === "welcome") {
+    return <main className="shell welcome-shell">
+      <nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="pill">Parent-supervised pilot</div></nav>
+      <section className="hero">
+        <div className="hero-copy">
+          <p className="eyebrow">THE NUMBER SENSE EXPEDITION</p>
+          <h1>Maths becomes a world your child wants to explore.</h1>
+          <p className="lede">Short visual quests for Grades 4–12, designed to replace “I can’t do maths” with “let me try one more.”</p>
+          <div className="welcome-card">
+            <label>Explorer nickname<input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Aanya" maxLength={24} /></label>
+            <label>School grade<select value={grade} onChange={(event) => setGrade(Number(event.target.value) as Grade)}>{[4,5,6,7,8,9,10,11,12].map((item) => <option key={item} value={item}>Grade {item}</option>)}</select></label>
+            <label className="consent"><input type="checkbox" checked={guardianAcknowledged} onChange={(event) => setGuardianAcknowledged(event.target.checked)} /><span>I am this learner&apos;s parent or guardian and I agree to the pilot storing their nickname, grade, and progress.</span></label>
+            <button className="primary" disabled={!name.trim() || !guardianAcknowledged} onClick={() => setScreen("diagnostic")}>Begin my gentle diagnostic <span>→</span></button>
+            <p className="fine-print">A 10-minute, no-pressure starting quest. No scores are shared with anyone; local pilot data can be removed in your browser at any time.</p>
+          </div>
+        </div>
+        <div className="hero-world"><Image className="hero-art" src="/images/lumina-hero.png" alt="A young explorer and glowing star companion discover a fraction beacon on a floating island." fill priority sizes="(max-width: 760px) 100vw, 45vw" /></div>
+      </section>
+      <section className="promise-row"><div><b>8–12 min</b><span>one focused quest</span></div><div><b>Visual first</b><span>understand before memorising</span></div><div><b>Private progress</b><span>no rankings or pressure</span></div></section>
+    </main>;
+  }
+
+  if (screen === "parent") {
+    return <main className="shell dashboard-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("quest")}>Back to quest</button></nav>
+      <section className="dashboard-heading"><p className="eyebrow">WEEKLY PARENT SNAPSHOT</p><h1>{name}&apos;s learning, without the pressure.</h1><p>Week one · Number Sense Expedition</p></section>
+      <section className="metric-grid"><article><span>Quest minutes</span><b>{Math.max(8, attempts * 5 + 8)}</b><small>Across focused sessions</small></article><article><span>Concept confidence</span><b>{confidence}%</b><small>Up from the starter diagnostic</small></article><article><span>Skills growing</span><b>{correct}/3</b><small>Fractions, comparison, proportion</small></article></section>
+      <section className="parent-note"><div className="note-icon">✦</div><div><p className="eyebrow">A KIND NEXT STEP</p><h2>{recommendNextSkill(correct, attempts)}</h2><p>Explaining an idea aloud helps it stick. Keep it curious: there is no need to correct or test them.</p></div></section>
+      <section className="pulse-card"><p className="eyebrow">ONE-MINUTE PARENT PULSE</p><h2>How did maths feel for {name} this week?</h2><div className="pulse-options"><button className={parentPulse === "lighter" ? "active" : ""} onClick={() => setParentPulse("lighter")}>✨ Lighter</button><button className={parentPulse === "steady" ? "active" : ""} onClick={() => setParentPulse("steady")}>🙂 Steady</button><button className={parentPulse === "hard" ? "active" : ""} onClick={() => setParentPulse("hard")}>🌧 Felt hard</button></div>{parentPulse && <p className="pulse-thanks">Thank you. This helps shape the next quest.</p>}</section>
+      <section className="privacy-note"><strong>Private by design.</strong> LearnNnjoy stores a nickname, grade, and learning progress for this pilot. There are no public profiles, ads, or peer rankings. <button className="delete-data" onClick={eraseLocalPilotData}>Remove local pilot data</button></section>
+    </main>;
+  }
+
+  if (completed) {
+    return <main className="shell completion-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("parent")}>View parent snapshot</button></nav><section className="completion-card"><div className="burst">✦</div><p className="eyebrow">EXPEDITION COMPLETE</p><h1>You found the fraction beacon, {name}!</h1><p>You used pictures, number lines, and proportional thinking to solve three real-world problems.</p><div className="reward"><span>🪙</span><div><b>+{correct * 25} Lumina coins</b><small>Use them to grow your explorer world.</small></div></div><button className="primary" onClick={() => setScreen("parent")}>See this week&apos;s progress →</button></section></main>;
+  }
+
+  return <main className="shell quest-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>✨ {pet}</span><button className="text-button" onClick={() => setScreen("parent")}>Parent view</button></div></nav>
+    <section className="quest-layout"><aside className="quest-side"><p className="eyebrow">{screen === "diagnostic" ? "STARTING QUEST" : `GRADE ${grade} NUMBER SENSE EXPEDITION`}</p><h1>{screen === "diagnostic" ? "Find your starting trail" : "Restore Lumina’s fraction beacon"}</h1><p>{screen === "diagnostic" ? "There are no bad scores here. Your answers help us choose the right next challenge." : "Every answer helps map the path that fits you best."}</p><div className="progress"><span style={{ width: `${screen === "diagnostic" ? ((diagnosticIndex + 1) / diagnostic.length) * 100 : ((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><small>{screen === "diagnostic" ? diagnosticIndex + 1 : questIndex + 1} of {screen === "diagnostic" ? diagnostic.length : gradeQuests.length}</small></aside>
+      <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Discover" : "Quest"}</span></div><Visual kind={current.visual} /><h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Try this:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Almost—take another look.</b><span>{current.explanation}</span></div>}{feedback === "correct" && <div className="feedback correct"><b>That’s it! +25 Lumina coins</b><span>{current.explanation}</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={() => setShowHint(true)}>I need a clue</button><button className="primary" disabled={!selected} onClick={answer}>Check my thinking →</button></>}{feedback && <button className="primary" onClick={continueLearning}>{feedback === "correct" ? "Continue expedition →" : "Try a new answer"}</button>}</div></section>
+    </section></main>;
+}
