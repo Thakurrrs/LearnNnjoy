@@ -4,9 +4,9 @@ import { getScienceQuestsForGrade } from "./science-quests";
 import { getSocialQuestsForGrade } from "./social-quests";
 
 describe("core-subject pilot coverage", () => {
-  it("ships six answerable missions for Grades 4 through 11 in every core non-Maths subject", () => {
+  it("ships six answerable missions for Grades 4 through 12 in every core non-Maths subject", () => {
     const sources = [getScienceQuestsForGrade, getEnglishQuestsForGrade, getSocialQuestsForGrade];
-    ([4, 5, 6, 7, 8, 9, 10, 11] as const).forEach((grade) => {
+    ([4, 5, 6, 7, 8, 9, 10, 11, 12] as const).forEach((grade) => {
       sources.forEach((getQuests) => {
         const quests = getQuests(grade);
         expect(quests).toHaveLength(6);
