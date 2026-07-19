@@ -1,6 +1,6 @@
 export type Grade = 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
-export type VisualKind = "fraction" | "number-line" | "ratio" | "formula" | "coordinate" | "ecosystem" | "reading";
+export type VisualKind = "fraction" | "number-line" | "ratio" | "formula" | "coordinate" | "ecosystem" | "reading" | "map";
 
 export type Question = {
   id: string;
@@ -10,7 +10,7 @@ export type Question = {
   hint: string;
   explanation: string;
   visual: VisualKind;
-  skill: "fractions" | "number-sense" | "proportion" | "algebra" | "geometry" | "data" | "science-inquiry" | "language";
+  skill: "fractions" | "number-sense" | "proportion" | "algebra" | "geometry" | "data" | "science-inquiry" | "language" | "social-inquiry";
 };
 
 export type CurriculumSkill = {

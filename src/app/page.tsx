@@ -8,6 +8,7 @@ import { chooseLearningTrail, recommendNextSkill, type Grade, type VisualKind } 
 import { getDiagnosticForGrade, getQuestsForGrade } from "@/lib/grade-quests";
 import { getScienceQuestsForGrade } from "@/lib/science-quests";
 import { getEnglishQuestsForGrade } from "@/lib/english-quests";
+import { getSocialQuestsForGrade } from "@/lib/social-quests";
 import { getGradeRoadmap } from "@/lib/curriculum-map";
 import { getLessonStory } from "@/lib/lesson-story";
 import { recordDailyQuest } from "@/lib/streak";
@@ -16,7 +17,7 @@ import { getSupabaseBrowserClient, isHostedPilotConfigured } from "@/lib/supabas
 import { chooseAdaptiveNextStep } from "@/lib/adaptive";
 
 type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "parent" | "world" | "map";
-type ActiveSubject = "maths" | "science" | "english";
+type ActiveSubject = "maths" | "science" | "english" | "social";
 
 const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
 
@@ -80,6 +81,10 @@ function ReadingVisual({ onExplore }: { onExplore: () => void }) {
   return <div className="visual-play"><div className="reading-visual" aria-label="An open storybook with highlighted reading clues"><span>Once upon a clue…</span><b>✦</b><span>notice · infer · explain</span></div><button className="visual-action" type="button" onClick={onExplore}>Follow the story clues</button><p>Good readers notice details, then connect what they mean.</p></div>;
 }
 
+function MapVisual({ onExplore }: { onExplore: () => void }) {
+  return <div className="visual-play"><div className="map-visual" aria-label="A small map with a compass and route markers"><b>N</b><span>⌁</span><i>●</i><i>✦</i></div><button className="visual-action" type="button" onClick={onExplore}>Trace the map clues</button><p>Maps use direction, symbols, and landmarks to tell a useful story about a place.</p></div>;
+}
+
 function Visual({ kind, chargedPieces, onCharge }: { kind: VisualKind; chargedPieces: number; onCharge: () => void }) {
   if (kind === "fraction") return <FractionVisual chargedPieces={chargedPieces} onCharge={onCharge} />;
   if (kind === "number-line") return <NumberLineVisual steps={chargedPieces} onExplore={onCharge} />;
@@ -87,6 +92,7 @@ function Visual({ kind, chargedPieces, onCharge }: { kind: VisualKind; chargedPi
   if (kind === "formula") return <FormulaVisual onExplore={onCharge} />;
   if (kind === "ecosystem") return <EcosystemVisual onExplore={onCharge} />;
   if (kind === "reading") return <ReadingVisual onExplore={onCharge} />;
+  if (kind === "map") return <MapVisual onExplore={onCharge} />;
   return <CoordinateVisual onExplore={onCharge} />;
 }
 
@@ -128,7 +134,7 @@ export default function Home() {
   function applySavedProgress(saved: Partial<SavedProgress>) {
     if (saved.name) setName(saved.name);
     if (saved.grade && saved.grade >= 4 && saved.grade <= 12) setGrade(saved.grade as Grade);
-    if (saved.activeSubject === "maths" || ((saved.activeSubject === "science" || saved.activeSubject === "english") && saved.grade === 4)) setActiveSubject(saved.activeSubject);
+    if (saved.activeSubject === "maths" || ((saved.activeSubject === "science" || saved.activeSubject === "english" || saved.activeSubject === "social") && saved.grade === 4)) setActiveSubject(saved.activeSubject);
     if (saved.screen && saved.screen !== "welcome") setScreen(saved.screen === "story" && saved.grade !== 4 ? "diagnostic" : saved.screen);
     if (typeof saved.diagnosticIndex === "number") setDiagnosticIndex(Math.min(saved.diagnosticIndex, 2));
     if (typeof saved.diagnosticCorrect === "number") setDiagnosticCorrect(Math.max(0, Math.min(3, saved.diagnosticCorrect)));
@@ -151,8 +157,9 @@ export default function Home() {
 
   const isScienceMission = activeSubject === "science" && grade === 4;
   const isEnglishMission = activeSubject === "english" && grade === 4;
-  const subjectMissionName = isScienceMission ? "Earthkeepers field mission" : isEnglishMission ? "Story Studio mission" : "Lumina restoration";
-  const gradeQuests = isScienceMission ? getScienceQuestsForGrade(grade) : isEnglishMission ? getEnglishQuestsForGrade(grade) : getQuestsForGrade(grade);
+  const isSocialMission = activeSubject === "social" && grade === 4;
+  const subjectMissionName = isScienceMission ? "Earthkeepers field mission" : isEnglishMission ? "Story Studio mission" : isSocialMission ? "Mapmakers’ Camp" : "Lumina restoration";
+  const gradeQuests = isScienceMission ? getScienceQuestsForGrade(grade) : isEnglishMission ? getEnglishQuestsForGrade(grade) : isSocialMission ? getSocialQuestsForGrade(grade) : getQuestsForGrade(grade);
   const gradeDiagnostic = getDiagnosticForGrade(grade);
   const gradeRoadmap = getGradeRoadmap(grade);
   const gradeTheme = grade <= 6 ? "theme-explorer" : grade <= 9 ? "theme-pathfinder" : "theme-navigator";
@@ -174,10 +181,10 @@ export default function Home() {
   });
   const completedQuestCount = Math.min(gradeQuests.length, questIndex + (screen === "outcome" || completed ? 1 : 0));
   const completedSkills = [...new Set(gradeQuests.slice(0, completedQuestCount).map((quest) => quest.skill))];
-  const skillNames = { fractions: "equal parts and fractions", "number-sense": "number sense and distance", proportion: "matching groups and proportion", algebra: "algebraic rules and relationships", geometry: "shape, position, and spatial reasoning", data: "data, chance, and interpretation", "science-inquiry": "living things, materials, and environmental care", language: "reading, vocabulary, and clear expression" } as const;
+  const skillNames = { fractions: "equal parts and fractions", "number-sense": "number sense and distance", proportion: "matching groups and proportion", algebra: "algebraic rules and relationships", geometry: "shape, position, and spatial reasoning", data: "data, chance, and interpretation", "science-inquiry": "living things, materials, and environmental care", language: "reading, vocabulary, and clear expression", "social-inquiry": "maps, community, and shared responsibility" } as const;
   const beaconEnergy = Math.min(3, Math.ceil(questCorrect / Math.max(1, Math.ceil(gradeQuests.length / 3))));
-  const missionTitle = isScienceMission ? questIndex === 0 ? "Wake the garden sensors" : questIndex === 1 ? "Follow the food trail" : "Protect the pond habitat" : isEnglishMission ? questIndex === 0 ? "Open the storybook portal" : questIndex === 1 ? "Gather the word clues" : "Shape a brighter ending" : screen === "diagnostic" ? grade <= 7 ? "Nova's signal is fading" : "Set your starting signal" : questIndex === 0 ? "Restore the first beacon" : questIndex === 1 ? "Clear the mist trail" : "Open the starlight bridge";
-  const missionMoment = isScienceMission ? "Observe closely, make a prediction, and use the evidence in front of you." : isEnglishMission ? "Read closely, follow the clues, and make meaning from the story." : screen === "diagnostic" ? grade <= 7 ? "Your choices help Nova find the trail that feels right for you." : "Three short grade-level ideas help set a useful starting point—this is not a score." : `One idea at a time. Each discovery brings Lumina back to life.`;
+  const missionTitle = isScienceMission ? questIndex === 0 ? "Wake the garden sensors" : questIndex === 1 ? "Follow the food trail" : "Protect the pond habitat" : isEnglishMission ? questIndex === 0 ? "Open the storybook portal" : questIndex === 1 ? "Gather the word clues" : "Shape a brighter ending" : isSocialMission ? questIndex === 0 ? "Find the north marker" : questIndex === 1 ? "Trace the community route" : "Care for the shared map" : screen === "diagnostic" ? grade <= 7 ? "Nova's signal is fading" : "Set your starting signal" : questIndex === 0 ? "Restore the first beacon" : questIndex === 1 ? "Clear the mist trail" : "Open the starlight bridge";
+  const missionMoment = isScienceMission ? "Observe closely, make a prediction, and use the evidence in front of you." : isEnglishMission ? "Read closely, follow the clues, and make meaning from the story." : isSocialMission ? "Use the map clues, notice people’s needs, and think about how a community works together." : screen === "diagnostic" ? grade <= 7 ? "Your choices help Nova find the trail that feels right for you." : "Three short grade-level ideas help set a useful starting point—this is not a score." : `One idea at a time. Each discovery brings Lumina back to life.`;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -299,6 +306,7 @@ export default function Home() {
     if (current.visual === "coordinate") return "Read the model before choosing. Look for position, structure, or the full set of possible outcomes.";
     if (current.visual === "ecosystem") return "Look at the habitat clue again. Ask what a living thing needs, what a material does, or how the change affects the world around it.";
     if (current.visual === "reading") return "Return to the exact words in the sentence. Then ask what those details tell you together.";
+    if (current.visual === "map") return "Use the compass, symbols, or people clues one at a time. Ask what the map or situation is showing you.";
     return "Build one equal group first. When the group changes, make the matching group change in the same way.";
   }
 
@@ -342,6 +350,16 @@ export default function Home() {
 
   function startEnglishMission() {
     setActiveSubject("english");
+    setQuestIndex(0);
+    setSelected(null);
+    setFeedback(null);
+    setShowHint(false);
+    setWrongAttemptsOnQuestion(0);
+    setScreen("chapter");
+  }
+
+  function startSocialMission() {
+    setActiveSubject("social");
     setQuestIndex(0);
     setSelected(null);
     setFeedback(null);
@@ -442,7 +460,7 @@ export default function Home() {
     return <main className={`shell dashboard-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("quest")}>Back to quest</button></nav>
       <section className="dashboard-heading"><p className="eyebrow">WEEKLY PARENT SNAPSHOT</p><h1>{name}&apos;s learning, without the pressure.</h1><p>Week one · Number Sense Expedition</p></section>
       <section className="metric-grid"><article><span>Focused mission minutes</span><b>{Math.max(8, attempts * 5 + 8)}</b><small>Short, story-led learning moments</small></article><article><span>Concept confidence</span><b>{confidence}%</b><small>Based on attempts and completed ideas</small></article><article><span>Ideas explored</span><b>{completedQuestCount}/{gradeQuests.length}</b><small>{completedSkills.length ? completedSkills.map((skill) => skillNames[skill]).join(" · ") : "The first discovery is waiting"}</small></article></section>
-      <section className="concept-evidence"><p className="eyebrow">WHAT {name.toUpperCase()} HAS PRACTISED</p>{completedSkills.length ? <ul>{completedSkills.map((skill) => <li key={skill}><span>✓</span><div><b>{skillNames[skill]}</b><small>{skill === "fractions" ? "Saw a whole, made equal parts, and connected 1/2 with 2/4." : skill === "number-sense" ? "Used position and distance to reason about numbers." : skill === "science-inquiry" ? "Observed habitats, materials, and changes in the world using evidence." : "Built matching groups to keep a relationship fair."}</small></div></li>)}</ul> : <p>Nova is ready to begin with one clear, visual idea.</p>}<p className="support-evidence">Nova&apos;s clues requested: {hintRequests}. Asking for a clue is a healthy learning strategy, not a penalty.</p></section>
+      <section className="concept-evidence"><p className="eyebrow">WHAT {name.toUpperCase()} HAS PRACTISED</p>{completedSkills.length ? <ul>{completedSkills.map((skill) => <li key={skill}><span>✓</span><div><b>{skillNames[skill]}</b><small>{skill === "fractions" ? "Saw a whole, made equal parts, and connected 1/2 with 2/4." : skill === "number-sense" ? "Used position and distance to reason about numbers." : skill === "science-inquiry" ? "Observed habitats, materials, and changes in the world using evidence." : skill === "social-inquiry" ? "Used map clues and caring choices to understand shared places and community." : "Built matching groups to keep a relationship fair."}</small></div></li>)}</ul> : <p>Nova is ready to begin with one clear, visual idea.</p>}<p className="support-evidence">Nova&apos;s clues requested: {hintRequests}. Asking for a clue is a healthy learning strategy, not a penalty.</p></section>
       <section className="parent-note"><div className="note-icon">✦</div><div><p className="eyebrow">A KIND NEXT STEP</p><h2>{recommendNextSkill(questCorrect, Math.max(0, attempts - gradeDiagnostic.length))}</h2><p>Explaining an idea aloud helps it stick. Keep it curious: there is no need to correct or test them.</p></div></section>
       <section className="pulse-card"><p className="eyebrow">ONE-MINUTE PARENT PULSE</p><h2>How did maths feel for {name} this week?</h2><div className="pulse-options"><button className={parentPulse === "lighter" ? "active" : ""} onClick={() => setParentPulse("lighter")}>✨ Lighter</button><button className={parentPulse === "steady" ? "active" : ""} onClick={() => setParentPulse("steady")}>🙂 Steady</button><button className={parentPulse === "hard" ? "active" : ""} onClick={() => setParentPulse("hard")}>🌧 Felt hard</button></div>{parentPulse && <p className="pulse-thanks">Thank you. This helps shape the next quest.</p>}</section>
       <section className="privacy-note"><strong>Private by design.</strong> LearnNnjoy stores a nickname, grade, and learning progress for this pilot. There are no public profiles, ads, or peer rankings. {authUser && <span> Cloud saving is active for {authUser.email}.</span>} <button className="delete-data" onClick={exportLocalPilotData}>Export local data</button><button className="delete-data" onClick={eraseLocalPilotData}>Remove local pilot data</button></section>
@@ -459,8 +477,8 @@ export default function Home() {
 
   if (screen === "map") {
     return <main className={`shell dashboard-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("quest")}>Back to mission</button></nav>
-      <section className="dashboard-heading"><p className="eyebrow">YOUR LEARNING ATLAS</p><h1>Every subject can become a world worth exploring.</h1><p>Grade {grade} · CBSE/NCERT competency roadmap · Maths, Grade 4 EVS, and Grade 4 English are now playable.</p></section>
-      <section className="atlas-grid">{gradeRoadmap.map((subject) => <article key={subject.id} className={subject.pilotStatus === "live" ? "atlas-card live" : "atlas-card"}><div className="atlas-card-top"><span className="atlas-icon">{subject.icon}</span><span className={subject.pilotStatus === "live" ? "atlas-status live" : "atlas-status"}>{subject.pilotStatus === "live" ? "PILOT NOW" : "MAPPED NEXT"}</span></div><p className="eyebrow">{subject.questWorld}</p><h2>{subject.label}</h2><ul>{subject.topics.map((topic) => <li key={topic}>{topic}</li>)}</ul>{subject.pilotStatus === "live" ? <button className="primary" onClick={() => subject.id === "science" ? startScienceMission() : subject.id === "english" ? startEnglishMission() : (setActiveSubject("maths"), setScreen("quest"))}>{subject.id === "science" ? "Begin Earthkeepers mission" : subject.id === "english" ? "Open Story Studio" : "Continue Maths mission"}</button> : <p className="atlas-note">This world is planned in the curriculum journey. It will unlock after the current pilot proves the learning loop.</p>}</article>)}</section>
+      <section className="dashboard-heading"><p className="eyebrow">YOUR LEARNING ATLAS</p><h1>Every subject can become a world worth exploring.</h1><p>Grade {grade} · CBSE/NCERT competency roadmap · Every Grade 4 core subject now has a playable mission.</p></section>
+      <section className="atlas-grid">{gradeRoadmap.map((subject) => <article key={subject.id} className={subject.pilotStatus === "live" ? "atlas-card live" : "atlas-card"}><div className="atlas-card-top"><span className="atlas-icon">{subject.icon}</span><span className={subject.pilotStatus === "live" ? "atlas-status live" : "atlas-status"}>{subject.pilotStatus === "live" ? "PILOT NOW" : "MAPPED NEXT"}</span></div><p className="eyebrow">{subject.questWorld}</p><h2>{subject.label}</h2><ul>{subject.topics.map((topic) => <li key={topic}>{topic}</li>)}</ul>{subject.pilotStatus === "live" ? <button className="primary" onClick={() => subject.id === "science" ? startScienceMission() : subject.id === "english" ? startEnglishMission() : subject.id === "social" ? startSocialMission() : (setActiveSubject("maths"), setScreen("quest"))}>{subject.id === "science" ? "Begin Earthkeepers mission" : subject.id === "english" ? "Open Story Studio" : subject.id === "social" ? "Enter Mapmakers’ Camp" : "Continue Maths mission"}</button> : <p className="atlas-note">This world is planned in the curriculum journey. It will unlock after the current pilot proves the learning loop.</p>}</article>)}</section>
     </main>;
   }
 
@@ -480,7 +498,7 @@ export default function Home() {
   }
 
   if (completed) {
-    return <main className={`shell completion-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("parent")}>View parent snapshot</button></nav><section className="completion-card"><div className="burst">✦</div><p className="eyebrow">MISSION COMPLETE</p><h1>{isScienceMission ? `You protected the habitat, ${name}!` : isEnglishMission ? `You unlocked the Story Studio, ${name}!` : `You restored the fraction beacon, ${name}!`}</h1><p>You made {gradeQuests.length} connected discoveries about {completedSkills.map((skill) => skillNames[skill]).join(" and ")}.</p><div className="reward"><span>🪙</span><div><b>+{questCorrect * 25} Lumina coins</b><small>Earned by solving the mission ideas.</small></div></div><button className="primary" onClick={() => setScreen("parent")}>See this week&apos;s progress →</button></section></main>;
+    return <main className={`shell completion-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("parent")}>View parent snapshot</button></nav><section className="completion-card"><div className="burst">✦</div><p className="eyebrow">MISSION COMPLETE</p><h1>{isScienceMission ? `You protected the habitat, ${name}!` : isEnglishMission ? `You unlocked the Story Studio, ${name}!` : isSocialMission ? `You mapped a kinder community, ${name}!` : `You restored the fraction beacon, ${name}!`}</h1><p>You made {gradeQuests.length} connected discoveries about {completedSkills.map((skill) => skillNames[skill]).join(" and ")}.</p><div className="reward"><span>🪙</span><div><b>+{questCorrect * 25} Lumina coins</b><small>Earned by solving the mission ideas.</small></div></div><button className="primary" onClick={() => setScreen("parent")}>See this week&apos;s progress →</button></section></main>;
   }
 
   return <main className={`shell quest-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>🔥 {dailyStreak}</span><span>✨ {pet}</span><button className="text-button" onClick={() => setScreen("map")}>Learning atlas</button><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button><button className="text-button" onClick={() => setScreen("parent")}>Parent view</button></div></nav>

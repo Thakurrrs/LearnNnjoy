@@ -121,6 +121,19 @@ function defaultStory(question: Question): LessonStory {
       videoCue: "A storybook opens; key words glow gently and connect into a small illustrated scene as the page turns.",
     };
   }
+  if (question.visual === "map") {
+    return {
+      learningObjective: "Maps, shared spaces, and everyday choices help us understand how communities work together.",
+      chapterTitle: "Mapmakers’ Camp has found a community clue.",
+      chapterDialogue: "Nova’s map is more than a route. It shows places, people, and choices that can help everyone belong and move safely.",
+      chapterAction: "Read the map clue",
+      coachLine: "“Let’s notice what this place needs and what the clues tell us.”",
+      outcomeTitle: "The community route is clearer.",
+      outcomeDetail: "You used a map clue and a caring choice to understand how people share spaces together.",
+      outcomeIcon: "🧭",
+      videoCue: "A hand-drawn map unfolds; a compass turns north and gentle route markers connect homes, parks, and shared places.",
+    };
+  }
   return {
     learningObjective: "Matching groups preserve a proportional relationship.",
     chapterTitle: "The starlight bridge needs matching supplies.",
