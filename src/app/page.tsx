@@ -6,6 +6,7 @@ import type { User } from "@supabase/supabase-js";
 import "./world.css";
 import { chooseLearningTrail, recommendNextSkill, type Grade, type VisualKind } from "@/lib/learning";
 import { getDiagnosticForGrade, getQuestsForGrade } from "@/lib/grade-quests";
+import { getScienceQuestsForGrade } from "@/lib/science-quests";
 import { getGradeRoadmap } from "@/lib/curriculum-map";
 import { getLessonStory } from "@/lib/lesson-story";
 import { recordDailyQuest } from "@/lib/streak";
@@ -13,6 +14,7 @@ import { loadOrCreateHostedLearner, saveHostedLearnerState } from "@/lib/hosted-
 import { getSupabaseBrowserClient, isHostedPilotConfigured } from "@/lib/supabase";
 
 type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "parent" | "world" | "map";
+type ActiveSubject = "maths" | "science";
 
 const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
 
@@ -37,6 +39,7 @@ type SavedProgress = {
   equippedCosmetic: string;
   dailyStreak: number;
   lastCompletedDate: string | null;
+  activeSubject: ActiveSubject;
 };
 
 const cosmetics = [
@@ -67,11 +70,16 @@ function CoordinateVisual({ onExplore }: { onExplore: () => void }) {
   return <div className="visual-play"><div className="coordinate-visual" aria-label="A small coordinate grid with a highlighted point"><i /><i /><i /><i /><b>✦</b></div><button className="visual-action" type="button" onClick={onExplore}>Inspect the grid</button><p>Use position, direction, and distance together.</p></div>;
 }
 
+function EcosystemVisual({ onExplore }: { onExplore: () => void }) {
+  return <div className="visual-play"><div className="ecosystem-visual" aria-label="A small living habitat with sun, plant, water, and animal"><span>☀️</span><span>🌱</span><span>💧</span><span>🐇</span></div><button className="visual-action" type="button" onClick={onExplore}>Observe the habitat</button><p>Notice what living things need and how their world changes.</p></div>;
+}
+
 function Visual({ kind, chargedPieces, onCharge }: { kind: VisualKind; chargedPieces: number; onCharge: () => void }) {
   if (kind === "fraction") return <FractionVisual chargedPieces={chargedPieces} onCharge={onCharge} />;
   if (kind === "number-line") return <NumberLineVisual steps={chargedPieces} onExplore={onCharge} />;
   if (kind === "ratio") return <RatioVisual groups={chargedPieces} onExplore={onCharge} />;
   if (kind === "formula") return <FormulaVisual onExplore={onCharge} />;
+  if (kind === "ecosystem") return <EcosystemVisual onExplore={onCharge} />;
   return <CoordinateVisual onExplore={onCharge} />;
 }
 
@@ -79,6 +87,7 @@ export default function Home() {
   const [screen, setScreen] = useState<Screen>("welcome");
   const [name, setName] = useState("");
   const [grade, setGrade] = useState<Grade>(4);
+  const [activeSubject, setActiveSubject] = useState<ActiveSubject>("maths");
   const [diagnosticIndex, setDiagnosticIndex] = useState(0);
   const [diagnosticCorrect, setDiagnosticCorrect] = useState(0);
   const [storyBeat, setStoryBeat] = useState(0);
@@ -112,6 +121,7 @@ export default function Home() {
   function applySavedProgress(saved: Partial<SavedProgress>) {
     if (saved.name) setName(saved.name);
     if (saved.grade && saved.grade >= 4 && saved.grade <= 12) setGrade(saved.grade as Grade);
+    if (saved.activeSubject === "maths" || (saved.activeSubject === "science" && saved.grade === 4)) setActiveSubject(saved.activeSubject);
     if (saved.screen && saved.screen !== "welcome") setScreen(saved.screen);
     if (typeof saved.diagnosticIndex === "number") setDiagnosticIndex(Math.min(saved.diagnosticIndex, 2));
     if (typeof saved.diagnosticCorrect === "number") setDiagnosticCorrect(Math.max(0, Math.min(3, saved.diagnosticCorrect)));
@@ -132,7 +142,8 @@ export default function Home() {
     if (typeof saved.lastCompletedDate === "string") setLastCompletedDate(saved.lastCompletedDate);
   }
 
-  const gradeQuests = getQuestsForGrade(grade);
+  const isScienceMission = activeSubject === "science" && grade === 4;
+  const gradeQuests = isScienceMission ? getScienceQuestsForGrade(grade) : getQuestsForGrade(grade);
   const gradeDiagnostic = getDiagnosticForGrade(grade);
   const gradeRoadmap = getGradeRoadmap(grade);
   const gradeTheme = grade <= 6 ? "theme-explorer" : grade <= 9 ? "theme-pathfinder" : "theme-navigator";
@@ -149,10 +160,10 @@ export default function Home() {
   const questCorrect = Math.max(0, correct - diagnosticCorrect);
   const completedQuestCount = Math.min(gradeQuests.length, questIndex + (screen === "outcome" || completed ? 1 : 0));
   const completedSkills = [...new Set(gradeQuests.slice(0, completedQuestCount).map((quest) => quest.skill))];
-  const skillNames = { fractions: "equal parts and fractions", "number-sense": "number sense and distance", proportion: "matching groups and proportion", algebra: "algebraic rules and relationships", geometry: "shape, position, and spatial reasoning", data: "data, chance, and interpretation" } as const;
+  const skillNames = { fractions: "equal parts and fractions", "number-sense": "number sense and distance", proportion: "matching groups and proportion", algebra: "algebraic rules and relationships", geometry: "shape, position, and spatial reasoning", data: "data, chance, and interpretation", "science-inquiry": "living things, materials, and environmental care" } as const;
   const beaconEnergy = Math.min(3, Math.ceil(questCorrect / Math.max(1, Math.ceil(gradeQuests.length / 3))));
-  const missionTitle = screen === "diagnostic" ? grade <= 7 ? "Nova's signal is fading" : "Set your starting signal" : questIndex === 0 ? "Restore the first beacon" : questIndex === 1 ? "Clear the mist trail" : "Open the starlight bridge";
-  const missionMoment = screen === "diagnostic" ? grade <= 7 ? "Your choices help Nova find the trail that feels right for you." : "Three short grade-level ideas help set a useful starting point—this is not a score." : `One idea at a time. Each discovery brings Lumina back to life.`;
+  const missionTitle = isScienceMission ? questIndex === 0 ? "Wake the garden sensors" : questIndex === 1 ? "Follow the food trail" : "Protect the pond habitat" : screen === "diagnostic" ? grade <= 7 ? "Nova's signal is fading" : "Set your starting signal" : questIndex === 0 ? "Restore the first beacon" : questIndex === 1 ? "Clear the mist trail" : "Open the starlight bridge";
+  const missionMoment = isScienceMission ? "Observe closely, make a prediction, and use the evidence in front of you." : screen === "diagnostic" ? grade <= 7 ? "Your choices help Nova find the trail that feels right for you." : "Three short grade-level ideas help set a useful starting point—this is not a score." : `One idea at a time. Each discovery brings Lumina back to life.`;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -182,16 +193,16 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated || !name.trim()) return;
-    const progress: SavedProgress = { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate };
+    const progress: SavedProgress = { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate };
     window.localStorage.setItem(PILOT_PROGRESS_KEY, JSON.stringify(progress));
-  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [activeSubject, attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client || !hydrated || !authUser || !name.trim() || !guardianAcknowledged || cloudLoadStarted.current) return;
     cloudLoadStarted.current = true;
 
-    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate } })
+    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate } })
       .then((hosted) => {
         applySavedProgress(hosted.state as Partial<SavedProgress>);
         setHostedLearnerId(hosted.learnerId);
@@ -201,18 +212,18 @@ export default function Home() {
         cloudLoadStarted.current = false;
         setCloudMessage(error instanceof Error ? error.message : "Cloud saving could not start yet. Your progress remains on this device.");
       });
-  }, [attempts, authUser, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [activeSubject, attempts, authUser, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client || !hostedLearnerId || !hydrated) return;
     const timer = window.setTimeout(() => {
-      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate }).catch(() => {
+      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate }).catch(() => {
         setCloudMessage("Your latest progress is still safe on this device; cloud saving will retry next time.");
       });
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hostedLearnerId, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
+  }, [activeSubject, attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hostedLearnerId, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells]);
 
   async function sendMagicLink() {
     const client = getSupabaseBrowserClient();
@@ -272,6 +283,7 @@ export default function Home() {
     if (current.visual === "number-line") return "Place yourself at the starting number, then move one small step at a time. The direction matters.";
     if (current.visual === "formula") return "Keep the rule visible. Undo or apply one operation at a time, checking what stays balanced.";
     if (current.visual === "coordinate") return "Read the model before choosing. Look for position, structure, or the full set of possible outcomes.";
+    if (current.visual === "ecosystem") return "Look at the habitat clue again. Ask what a living thing needs, what a material does, or how the change affects the world around it.";
     return "Build one equal group first. When the group changes, make the matching group change in the same way.";
   }
 
@@ -288,12 +300,23 @@ export default function Home() {
     setStoryCells((cells) => cells.includes(cell) ? cells.filter((item) => item !== cell) : cells.length < 2 ? [...cells, cell] : cells);
   }
 
+  function startScienceMission() {
+    setActiveSubject("science");
+    setQuestIndex(0);
+    setSelected(null);
+    setFeedback(null);
+    setShowHint(false);
+    setWrongAttemptsOnQuestion(0);
+    setScreen("chapter");
+  }
+
   function eraseLocalPilotData() {
     if (!window.confirm("Remove this learner's local pilot progress from this browser? This cannot be undone.")) return;
     window.localStorage.removeItem(PILOT_PROGRESS_KEY);
     setScreen("welcome");
     setName("");
     setGrade(4);
+    setActiveSubject("maths");
     setDiagnosticIndex(0);
     setDiagnosticCorrect(0);
     setStoryBeat(0);
@@ -379,7 +402,7 @@ export default function Home() {
     return <main className={`shell dashboard-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("quest")}>Back to quest</button></nav>
       <section className="dashboard-heading"><p className="eyebrow">WEEKLY PARENT SNAPSHOT</p><h1>{name}&apos;s learning, without the pressure.</h1><p>Week one · Number Sense Expedition</p></section>
       <section className="metric-grid"><article><span>Focused mission minutes</span><b>{Math.max(8, attempts * 5 + 8)}</b><small>Short, story-led learning moments</small></article><article><span>Concept confidence</span><b>{confidence}%</b><small>Based on attempts and completed ideas</small></article><article><span>Ideas explored</span><b>{completedQuestCount}/{gradeQuests.length}</b><small>{completedSkills.length ? completedSkills.map((skill) => skillNames[skill]).join(" · ") : "The first discovery is waiting"}</small></article></section>
-      <section className="concept-evidence"><p className="eyebrow">WHAT {name.toUpperCase()} HAS PRACTISED</p>{completedSkills.length ? <ul>{completedSkills.map((skill) => <li key={skill}><span>✓</span><div><b>{skillNames[skill]}</b><small>{skill === "fractions" ? "Saw a whole, made equal parts, and connected 1/2 with 2/4." : skill === "number-sense" ? "Used position and distance to reason about numbers." : "Built matching groups to keep a relationship fair."}</small></div></li>)}</ul> : <p>Nova is ready to begin with one clear, visual idea.</p>}<p className="support-evidence">Nova&apos;s clues requested: {hintRequests}. Asking for a clue is a healthy learning strategy, not a penalty.</p></section>
+      <section className="concept-evidence"><p className="eyebrow">WHAT {name.toUpperCase()} HAS PRACTISED</p>{completedSkills.length ? <ul>{completedSkills.map((skill) => <li key={skill}><span>✓</span><div><b>{skillNames[skill]}</b><small>{skill === "fractions" ? "Saw a whole, made equal parts, and connected 1/2 with 2/4." : skill === "number-sense" ? "Used position and distance to reason about numbers." : skill === "science-inquiry" ? "Observed habitats, materials, and changes in the world using evidence." : "Built matching groups to keep a relationship fair."}</small></div></li>)}</ul> : <p>Nova is ready to begin with one clear, visual idea.</p>}<p className="support-evidence">Nova&apos;s clues requested: {hintRequests}. Asking for a clue is a healthy learning strategy, not a penalty.</p></section>
       <section className="parent-note"><div className="note-icon">✦</div><div><p className="eyebrow">A KIND NEXT STEP</p><h2>{recommendNextSkill(questCorrect, Math.max(0, attempts - gradeDiagnostic.length))}</h2><p>Explaining an idea aloud helps it stick. Keep it curious: there is no need to correct or test them.</p></div></section>
       <section className="pulse-card"><p className="eyebrow">ONE-MINUTE PARENT PULSE</p><h2>How did maths feel for {name} this week?</h2><div className="pulse-options"><button className={parentPulse === "lighter" ? "active" : ""} onClick={() => setParentPulse("lighter")}>✨ Lighter</button><button className={parentPulse === "steady" ? "active" : ""} onClick={() => setParentPulse("steady")}>🙂 Steady</button><button className={parentPulse === "hard" ? "active" : ""} onClick={() => setParentPulse("hard")}>🌧 Felt hard</button></div>{parentPulse && <p className="pulse-thanks">Thank you. This helps shape the next quest.</p>}</section>
       <section className="privacy-note"><strong>Private by design.</strong> LearnNnjoy stores a nickname, grade, and learning progress for this pilot. There are no public profiles, ads, or peer rankings. {authUser && <span> Cloud saving is active for {authUser.email}.</span>} <button className="delete-data" onClick={exportLocalPilotData}>Export local data</button><button className="delete-data" onClick={eraseLocalPilotData}>Remove local pilot data</button></section>
@@ -396,8 +419,8 @@ export default function Home() {
 
   if (screen === "map") {
     return <main className={`shell dashboard-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("quest")}>Back to mission</button></nav>
-      <section className="dashboard-heading"><p className="eyebrow">YOUR LEARNING ATLAS</p><h1>Every subject can become a world worth exploring.</h1><p>Grade {grade} · CBSE/NCERT competency roadmap · Maths is currently in the pilot.</p></section>
-      <section className="atlas-grid">{gradeRoadmap.map((subject) => <article key={subject.id} className={subject.pilotStatus === "live" ? "atlas-card live" : "atlas-card"}><div className="atlas-card-top"><span className="atlas-icon">{subject.icon}</span><span className={subject.pilotStatus === "live" ? "atlas-status live" : "atlas-status"}>{subject.pilotStatus === "live" ? "PILOT NOW" : "MAPPED NEXT"}</span></div><p className="eyebrow">{subject.questWorld}</p><h2>{subject.label}</h2><ul>{subject.topics.map((topic) => <li key={topic}>{topic}</li>)}</ul>{subject.pilotStatus === "live" ? <button className="primary" onClick={() => setScreen("quest")}>Continue Lumina mission</button> : <p className="atlas-note">This world is planned in the curriculum journey. It will unlock after the Maths pilot proves the learning loop.</p>}</article>)}</section>
+      <section className="dashboard-heading"><p className="eyebrow">YOUR LEARNING ATLAS</p><h1>Every subject can become a world worth exploring.</h1><p>Grade {grade} · CBSE/NCERT competency roadmap · Maths and Grade 4 EVS are now playable.</p></section>
+      <section className="atlas-grid">{gradeRoadmap.map((subject) => <article key={subject.id} className={subject.pilotStatus === "live" ? "atlas-card live" : "atlas-card"}><div className="atlas-card-top"><span className="atlas-icon">{subject.icon}</span><span className={subject.pilotStatus === "live" ? "atlas-status live" : "atlas-status"}>{subject.pilotStatus === "live" ? "PILOT NOW" : "MAPPED NEXT"}</span></div><p className="eyebrow">{subject.questWorld}</p><h2>{subject.label}</h2><ul>{subject.topics.map((topic) => <li key={topic}>{topic}</li>)}</ul>{subject.pilotStatus === "live" ? <button className="primary" onClick={() => subject.id === "science" ? startScienceMission() : (setActiveSubject("maths"), setScreen("quest"))}>{subject.id === "science" ? "Begin Earthkeepers mission" : "Continue Maths mission"}</button> : <p className="atlas-note">This world is planned in the curriculum journey. It will unlock after the current pilot proves the learning loop.</p>}</article>)}</section>
     </main>;
   }
 

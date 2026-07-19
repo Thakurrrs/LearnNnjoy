@@ -21,7 +21,7 @@ const entry = (id: SubjectId, label: string, icon: string, questWorld: string, t
 export const curriculumMap: Record<Grade, GradeRoadmap> = {
   4: {
     maths: entry("maths", "Mathematics", "✦", "Lumina Restoration", ["Numbers, place value and operations", "Fractions, measurement and time", "Shapes, patterns and data"], "live"),
-    science: entry("science", "EVS", "🌿", "Earthkeepers", ["Families, food and communities", "Plants, animals and habitats", "Water, travel and the local environment"], "mapped"),
+    science: entry("science", "EVS", "🌿", "Earthkeepers", ["Families, food and communities", "Plants, animals and habitats", "Water, travel and the local environment"], "live"),
     social: entry("social", "Our World", "🧭", "Mapmakers' Camp", ["Neighbourhoods and diversity", "Maps, directions and places", "Caring for people and resources"], "mapped"),
     english: entry("english", "English", "📚", "Story Studio", ["Reading for meaning", "Vocabulary and speaking", "Writing vivid stories"], "mapped"),
   },

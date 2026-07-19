@@ -95,6 +95,19 @@ function defaultStory(question: Question): LessonStory {
       videoCue: "A coordinate grid and its signal points illuminate one by one, revealing a clean route across the map.",
     };
   }
+  if (question.visual === "ecosystem") {
+    return {
+      learningObjective: "Careful observation helps us understand living things, materials, and environmental change.",
+      chapterTitle: "The Earthkeepers have found a clue in the habitat.",
+      chapterDialogue: "Nova's field notebook has a question, not an answer. Notice the living world closely before deciding what the evidence means.",
+      chapterAction: "Open the field notebook",
+      coachLine: "“Let’s observe first, then explain what the evidence shows.”",
+      outcomeTitle: "A field note helps protect the habitat.",
+      outcomeDetail: "Your observation gives the Earthkeepers one clear way to understand and care for this living world.",
+      outcomeIcon: "🌿",
+      videoCue: "A small habitat wakes gently: sunlight, water, a plant, and an animal appear as the field note records the observation.",
+    };
+  }
   return {
     learningObjective: "Matching groups preserve a proportional relationship.",
     chapterTitle: "The starlight bridge needs matching supplies.",
