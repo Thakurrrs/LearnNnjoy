@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { diagnostic, numberSenseSkills, recommendNextSkill } from "./learning";
+import { chooseLearningTrail, diagnostic, numberSenseSkills, recommendNextSkill } from "./learning";
 import { getQuestsForGrade } from "./grade-quests";
 
 describe("Number Sense curriculum", () => {
@@ -27,6 +27,12 @@ describe("Number Sense curriculum", () => {
 });
 
 describe("rules-based recommendation", () => {
+  it("chooses a supportive starter trail from diagnostic evidence", () => {
+    expect(chooseLearningTrail(0).id).toBe("visual");
+    expect(chooseLearningTrail(2).id).toBe("guided");
+    expect(chooseLearningTrail(3).id).toBe("stretch");
+  });
+
   it("recommends a refresher when a learner is struggling", () => {
     expect(recommendNextSkill(0, 3)).toContain("fraction refresher");
   });

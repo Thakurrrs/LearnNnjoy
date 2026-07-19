@@ -38,6 +38,19 @@ export const quests: Question[] = [
   { id: "q3", prompt: "A recipe needs 2 cups of flour for 4 people. How many cups are needed for 8 people?", choices: ["2 cups", "3 cups", "4 cups"], answer: "4 cups", hint: "The number of people doubles. What happens to the flour?", explanation: "If every person gets the same amount, doubling 4 people to 8 doubles 2 cups to 4 cups.", visual: "ratio", skill: "proportion" },
 ];
 
+export type LearningTrail = {
+  id: "visual" | "guided" | "stretch";
+  label: string;
+  message: string;
+  support: string;
+};
+
+export function chooseLearningTrail(diagnosticCorrect: number): LearningTrail {
+  if (diagnosticCorrect <= 1) return { id: "visual", label: "Visual Trail", message: "We will begin with pictures, touchable models, and one idea at a time.", support: "Nova will offer the first clue before you need to ask." };
+  if (diagnosticCorrect === 2) return { id: "guided", label: "Explorer Trail", message: "You are ready to connect pictures to number ideas, with Nova nearby when needed.", support: "Use a clue whenever you want one—there is no penalty." };
+  return { id: "stretch", label: "Pathfinder Trail", message: "You have a strong starting signal. Try explaining why your idea works as you explore.", support: "The main quest stays calm; optional stretch thinking appears after a success." };
+}
+
 export function recommendNextSkill(correctAnswers: number, attempts: number): string {
   if (correctAnswers === 0 || attempts > correctAnswers * 2) return "Take a visual fraction refresher next.";
   if (correctAnswers < 2) return "Try another number-line mission next.";
