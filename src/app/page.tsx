@@ -15,17 +15,9 @@ import { recordDailyQuest } from "@/lib/streak";
 import { loadOrCreateHostedLearner, saveHostedLearnerState } from "@/lib/hosted-progress";
 import { getSupabaseBrowserClient, isHostedPilotConfigured } from "@/lib/supabase";
 import { chooseAdaptiveNextStep } from "@/lib/adaptive";
+import { readSubjectProgress, snapshotSubjectMission, type ActiveSubject, type SubjectMissionProgress, type SubjectProgress } from "@/lib/subject-progress";
 
 type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "parent" | "world" | "map";
-type ActiveSubject = "maths" | "science" | "english" | "social";
-type SubjectMissionProgress = {
-  questIndex: number;
-  correct: number;
-  attempts: number;
-  hintRequests: number;
-  diagnosticCorrect: number;
-};
-type SubjectProgress = Partial<Record<ActiveSubject, SubjectMissionProgress>>;
 
 const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
 
@@ -54,20 +46,6 @@ type SavedProgress = {
   subjectProgress: SubjectProgress;
   nextSupportMode: "rebuild" | "steady" | "stretch";
 };
-
-function isSubjectMissionProgress(value: unknown): value is SubjectMissionProgress {
-  if (!value || typeof value !== "object") return false;
-  const progress = value as Record<string, unknown>;
-  return ["questIndex", "correct", "attempts", "hintRequests", "diagnosticCorrect"].every((key) => typeof progress[key] === "number" && Number.isFinite(progress[key]));
-}
-
-function readSubjectProgress(value: unknown): SubjectProgress {
-  if (!value || typeof value !== "object") return {};
-  return (Object.entries(value as Record<string, unknown>) as [ActiveSubject, unknown][]).reduce<SubjectProgress>((progress, [subject, mission]) => {
-    if ((subject === "maths" || subject === "science" || subject === "english" || subject === "social") && isSubjectMissionProgress(mission)) progress[subject] = mission;
-    return progress;
-  }, {});
-}
 
 const cosmetics = [
   { id: "trailblazer", label: "Trailblazer pack", emoji: "🎒", cost: 0, detail: "Your first expedition companion." },
@@ -391,7 +369,7 @@ export default function Home() {
   }
 
   function startSubjectMission(nextSubject: ActiveSubject) {
-    setSubjectProgress((progress) => ({ ...progress, [activeSubject]: currentMissionProgress() }));
+    setSubjectProgress((progress) => snapshotSubjectMission(progress, activeSubject, currentMissionProgress()));
     const savedMission = subjectProgress[nextSubject];
     setActiveSubject(nextSubject);
     setQuestIndex(savedMission?.questIndex ?? 0);
