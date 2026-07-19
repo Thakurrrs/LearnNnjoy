@@ -129,7 +129,7 @@ export default function Home() {
     if (saved.name) setName(saved.name);
     if (saved.grade && saved.grade >= 4 && saved.grade <= 12) setGrade(saved.grade as Grade);
     if (saved.activeSubject === "maths" || ((saved.activeSubject === "science" || saved.activeSubject === "english") && saved.grade === 4)) setActiveSubject(saved.activeSubject);
-    if (saved.screen && saved.screen !== "welcome") setScreen(saved.screen);
+    if (saved.screen && saved.screen !== "welcome") setScreen(saved.screen === "story" && saved.grade !== 4 ? "diagnostic" : saved.screen);
     if (typeof saved.diagnosticIndex === "number") setDiagnosticIndex(Math.min(saved.diagnosticIndex, 2));
     if (typeof saved.diagnosticCorrect === "number") setDiagnosticCorrect(Math.max(0, Math.min(3, saved.diagnosticCorrect)));
     if (typeof saved.storyBeat === "number") setStoryBeat(Math.max(0, Math.min(3, saved.storyBeat)));
@@ -315,6 +315,21 @@ export default function Home() {
     setStoryCells((cells) => cells.includes(cell) ? cells.filter((item) => item !== cell) : cells.length < 2 ? [...cells, cell] : cells);
   }
 
+  function chooseGrade(nextGrade: Grade) {
+    setGrade(nextGrade);
+    setActiveSubject("maths");
+    setDiagnosticIndex(0);
+    setDiagnosticCorrect(0);
+    setQuestIndex(0);
+    setSelected(null);
+    setFeedback(null);
+    setShowHint(false);
+    setWrongAttemptsOnQuestion(0);
+    setHintRequests(0);
+    setCorrect(0);
+    setAttempts(0);
+  }
+
   function startScienceMission() {
     setActiveSubject("science");
     setQuestIndex(0);
@@ -400,10 +415,10 @@ export default function Home() {
           <p className="lede">Short visual quests for Grades 4–12, designed to replace “I can’t do maths” with “let me try one more.”</p>
           <div className="welcome-card">
             <label>Explorer nickname<input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Aanya" maxLength={24} /></label>
-            <label>School grade<select value={grade} onChange={(event) => setGrade(Number(event.target.value) as Grade)}>{[4,5,6,7,8,9,10,11,12].map((item) => <option key={item} value={item}>Grade {item}</option>)}</select></label>
+            <label>School grade<select value={grade} onChange={(event) => chooseGrade(Number(event.target.value) as Grade)}>{[4,5,6,7,8,9,10,11,12].map((item) => <option key={item} value={item}>Grade {item}</option>)}</select></label>
             <label className="consent"><input type="checkbox" checked={guardianAcknowledged} onChange={(event) => setGuardianAcknowledged(event.target.checked)} /><span>I am this learner&apos;s parent or guardian and I agree to the pilot storing their nickname, grade, and progress.</span></label>
             {isHostedPilotConfigured && <div className="cloud-sign-in"><p className="eyebrow">SAVE ACROSS DEVICES</p>{authUser ? <p className="fine-print">Signed in as {authUser.email}. {cloudMessage || "Cloud saving will start when the learner begins."}</p> : <><label>Guardian email<input type="email" value={guardianEmail} onChange={(event) => setGuardianEmail(event.target.value)} placeholder="parent@example.com" /></label><button className="text-button" disabled={!guardianEmail.trim()} onClick={sendMagicLink}>Email me a secure sign-in link</button>{cloudMessage && <p className="fine-print">{cloudMessage}</p>}</>}</div>}
-            <button className="primary" disabled={!name.trim() || !guardianAcknowledged} onClick={() => setScreen(grade <= 7 ? "story" : "diagnostic")}>{grade <= 7 ? "Help Nova restore the first beacon" : "Start my maths calibration"} <span>→</span></button>
+            <button className="primary" disabled={!name.trim() || !guardianAcknowledged} onClick={() => setScreen(grade === 4 ? "story" : "diagnostic")}>{grade === 4 ? "Help Nova restore the first beacon" : `Start Grade ${grade} maths calibration`} <span>→</span></button>
             <p className="fine-print">A 10-minute, no-pressure rescue mission. No scores are shared with anyone; local pilot data can be removed in your browser at any time.</p>
           </div>
         </div>
