@@ -12,6 +12,7 @@ import { getLessonStory } from "@/lib/lesson-story";
 import { recordDailyQuest } from "@/lib/streak";
 import { loadOrCreateHostedLearner, saveHostedLearnerState } from "@/lib/hosted-progress";
 import { getSupabaseBrowserClient, isHostedPilotConfigured } from "@/lib/supabase";
+import { chooseAdaptiveNextStep } from "@/lib/adaptive";
 
 type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "parent" | "world" | "map";
 type ActiveSubject = "maths" | "science";
@@ -158,6 +159,11 @@ export default function Home() {
   const confidence = useMemo(() => Math.min(92, 58 + correct * 11), [correct]);
   const learningTrail = chooseLearningTrail(diagnosticCorrect);
   const questCorrect = Math.max(0, correct - diagnosticCorrect);
+  const adaptiveNextStep = chooseAdaptiveNextStep(current, {
+    wrongAttempts: wrongAttemptsOnQuestion,
+    hintUsed: showHint,
+    recentAccuracy: questCorrect / Math.max(1, attempts - diagnosticCorrect),
+  });
   const completedQuestCount = Math.min(gradeQuests.length, questIndex + (screen === "outcome" || completed ? 1 : 0));
   const completedSkills = [...new Set(gradeQuests.slice(0, completedQuestCount).map((quest) => quest.skill))];
   const skillNames = { fractions: "equal parts and fractions", "number-sense": "number sense and distance", proportion: "matching groups and proportion", algebra: "algebraic rules and relationships", geometry: "shape, position, and spatial reasoning", data: "data, chance, and interpretation", "science-inquiry": "living things, materials, and environmental care" } as const;
@@ -436,7 +442,7 @@ export default function Home() {
 
   if (screen === "outcome") {
     const sceneImage = current.visual === "number-line" ? "/images/lumina-mist-trail.png" : "/images/lumina-bridge.png";
-    return <main className={`outcome-shell ${gradeTheme}`}><Image src={sceneImage} alt="Lumina glows brighter after the learner helps Nova." fill priority sizes="100vw" className="outcome-art" /><div className="outcome-overlay" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>Lumina is brighter because of your idea</span></nav><section className="outcome-card"><div className="outcome-icon">{lessonStory.outcomeIcon}</div><p className="eyebrow">MISSION MOMENT COMPLETE</p><h1>{lessonStory.outcomeTitle}</h1><p>{lessonStory.outcomeDetail}</p><div className="outcome-explanation"><b>What you discovered</b><span>{current.explanation}</span></div>{learningTrail.id === "stretch" && <p className="outcome-reflection">Pathfinder thought: could you explain this to Nova in your own words?</p>}<div className="outcome-reward"><span>🪙</span><b>+25 Lumina coins</b><small>For thoughtful problem solving</small></div><button className="primary" onClick={continueLearning}>{questIndex < gradeQuests.length - 1 ? "See what Nova finds next →" : "Return to the restored beacon →"}</button></section></main>;
+    return <main className={`outcome-shell ${gradeTheme}`}><Image src={sceneImage} alt="Lumina glows brighter after the learner helps Nova." fill priority sizes="100vw" className="outcome-art" /><div className="outcome-overlay" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>Lumina is brighter because of your idea</span></nav><section className="outcome-card"><div className="outcome-icon">{lessonStory.outcomeIcon}</div><p className="eyebrow">MISSION MOMENT COMPLETE</p><h1>{lessonStory.outcomeTitle}</h1><p>{lessonStory.outcomeDetail}</p><div className="outcome-explanation"><b>What you discovered</b><span>{current.explanation}</span></div><div className="outcome-explanation adaptive-note"><b>{adaptiveNextStep.title}</b><span>{adaptiveNextStep.message}</span></div>{learningTrail.id === "stretch" && <p className="outcome-reflection">Pathfinder thought: could you explain this to Nova in your own words?</p>}<div className="outcome-reward"><span>🪙</span><b>+25 Lumina coins</b><small>For thoughtful problem solving</small></div><button className="primary" onClick={continueLearning}>{questIndex < gradeQuests.length - 1 ? "See what Nova finds next →" : "Return to the restored beacon →"}</button></section></main>;
   }
 
   if (completed) {
