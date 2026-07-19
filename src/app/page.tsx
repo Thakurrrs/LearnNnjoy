@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import "./world.css";
 import { diagnostic, recommendNextSkill, type Grade, type VisualKind } from "@/lib/learning";
 import { getQuestsForGrade } from "@/lib/grade-quests";
 
-type Screen = "welcome" | "diagnostic" | "quest" | "parent";
+type Screen = "welcome" | "diagnostic" | "quest" | "parent" | "world";
 
 const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
 
@@ -20,7 +21,15 @@ type SavedProgress = {
   attempts: number;
   guardianAcknowledged: boolean;
   parentPulse: "lighter" | "steady" | "hard" | null;
+  ownedCosmetics: string[];
+  equippedCosmetic: string;
 };
+
+const cosmetics = [
+  { id: "trailblazer", label: "Trailblazer pack", emoji: "🎒", cost: 0, detail: "Your first expedition companion." },
+  { id: "aurora", label: "Aurora cape", emoji: "🧥", cost: 50, detail: "A warm glow for brave problem-solvers." },
+  { id: "starglow", label: "Starglow companion", emoji: "🌟", cost: 75, detail: "A tiny light for the next trail." },
+] as const;
 
 function FractionVisual() {
   return <div className="pizza" aria-label="A pizza split into four equal slices"><span /><span /><span /><span /></div>;
@@ -56,6 +65,8 @@ export default function Home() {
   const [hydrated, setHydrated] = useState(false);
   const [guardianAcknowledged, setGuardianAcknowledged] = useState(false);
   const [parentPulse, setParentPulse] = useState<SavedProgress["parentPulse"]>(null);
+  const [ownedCosmetics, setOwnedCosmetics] = useState<string[]>(["trailblazer"]);
+  const [equippedCosmetic, setEquippedCosmetic] = useState("trailblazer");
 
   const gradeQuests = getQuestsForGrade(grade);
   const current = screen === "diagnostic" ? diagnostic[diagnosticIndex] : gradeQuests[questIndex];
@@ -78,6 +89,8 @@ export default function Home() {
           if (typeof saved.attempts === "number") setAttempts(saved.attempts);
           if (typeof saved.guardianAcknowledged === "boolean") setGuardianAcknowledged(saved.guardianAcknowledged);
           if (saved.parentPulse === "lighter" || saved.parentPulse === "steady" || saved.parentPulse === "hard") setParentPulse(saved.parentPulse);
+          if (Array.isArray(saved.ownedCosmetics) && saved.ownedCosmetics.every((item) => typeof item === "string")) setOwnedCosmetics(saved.ownedCosmetics);
+          if (typeof saved.equippedCosmetic === "string") setEquippedCosmetic(saved.equippedCosmetic);
         } catch {
           window.localStorage.removeItem(PILOT_PROGRESS_KEY);
         }
@@ -90,9 +103,9 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated || !name.trim()) return;
-    const progress: SavedProgress = { name, grade, screen, diagnosticIndex, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse };
+    const progress: SavedProgress = { name, grade, screen, diagnosticIndex, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic };
     window.localStorage.setItem(PILOT_PROGRESS_KEY, JSON.stringify(progress));
-  }, [attempts, coins, correct, diagnosticIndex, grade, guardianAcknowledged, hydrated, name, parentPulse, questIndex, screen]);
+  }, [attempts, coins, correct, diagnosticIndex, grade, guardianAcknowledged, hydrated, name, ownedCosmetics, parentPulse, questIndex, screen, equippedCosmetic]);
 
   function answer() {
     if (!selected || !current) return;
@@ -136,6 +149,16 @@ export default function Home() {
     setAttempts(0);
     setGuardianAcknowledged(false);
     setParentPulse(null);
+    setOwnedCosmetics(["trailblazer"]);
+    setEquippedCosmetic("trailblazer");
+  }
+
+  function chooseCosmetic(id: string, cost: number) {
+    if (ownedCosmetics.includes(id)) return setEquippedCosmetic(id);
+    if (coins < cost) return;
+    setCoins((value) => value - cost);
+    setOwnedCosmetics((items) => [...items, id]);
+    setEquippedCosmetic(id);
   }
 
   if (screen === "welcome") {
@@ -170,11 +193,19 @@ export default function Home() {
     </main>;
   }
 
+  if (screen === "world") {
+    return <main className="shell dashboard-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("quest")}>Back to quest</button></nav>
+      <section className="dashboard-heading"><p className="eyebrow">AVATAR WORLD</p><h1>Make your expedition feel like yours.</h1><p>Cosmetics are earned through learning. They never make a quest easier.</p></section>
+      <section className="world-balance"><span>🪙</span><div><b>{coins} Lumina coins</b><small>Earn 25 coins for each thoughtful quest answer.</small></div></section>
+      <section className="cosmetic-grid">{cosmetics.map((cosmetic) => { const owned = ownedCosmetics.includes(cosmetic.id); const equipped = equippedCosmetic === cosmetic.id; const affordable = coins >= cosmetic.cost; return <article key={cosmetic.id} className={equipped ? "cosmetic-card equipped" : "cosmetic-card"}><div className="cosmetic-icon">{cosmetic.emoji}</div><p className="eyebrow">{equipped ? "EQUIPPED" : owned ? "IN YOUR WORLD" : `${cosmetic.cost} COINS`}</p><h2>{cosmetic.label}</h2><p>{cosmetic.detail}</p><button className="primary" disabled={!owned && !affordable} onClick={() => chooseCosmetic(cosmetic.id, cosmetic.cost)}>{equipped ? "Equipped" : owned ? "Equip" : affordable ? `Unlock for ${cosmetic.cost}` : `Need ${cosmetic.cost - coins} more`}</button></article>; })}</section>
+    </main>;
+  }
+
   if (completed) {
     return <main className="shell completion-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("parent")}>View parent snapshot</button></nav><section className="completion-card"><div className="burst">✦</div><p className="eyebrow">EXPEDITION COMPLETE</p><h1>You found the fraction beacon, {name}!</h1><p>You used pictures, number lines, and proportional thinking to solve three real-world problems.</p><div className="reward"><span>🪙</span><div><b>+{correct * 25} Lumina coins</b><small>Use them to grow your explorer world.</small></div></div><button className="primary" onClick={() => setScreen("parent")}>See this week&apos;s progress →</button></section></main>;
   }
 
-  return <main className="shell quest-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>✨ {pet}</span><button className="text-button" onClick={() => setScreen("parent")}>Parent view</button></div></nav>
+  return <main className="shell quest-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>✨ {pet}</span><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button><button className="text-button" onClick={() => setScreen("parent")}>Parent view</button></div></nav>
     <section className="quest-layout"><aside className="quest-side"><p className="eyebrow">{screen === "diagnostic" ? "STARTING QUEST" : `GRADE ${grade} NUMBER SENSE EXPEDITION`}</p><h1>{screen === "diagnostic" ? "Find your starting trail" : "Restore Lumina’s fraction beacon"}</h1><p>{screen === "diagnostic" ? "There are no bad scores here. Your answers help us choose the right next challenge." : "Every answer helps map the path that fits you best."}</p><div className="progress"><span style={{ width: `${screen === "diagnostic" ? ((diagnosticIndex + 1) / diagnostic.length) * 100 : ((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><small>{screen === "diagnostic" ? diagnosticIndex + 1 : questIndex + 1} of {screen === "diagnostic" ? diagnostic.length : gradeQuests.length}</small></aside>
       <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Discover" : "Quest"}</span></div><Visual kind={current.visual} /><h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Try this:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Almost—take another look.</b><span>{current.explanation}</span></div>}{feedback === "correct" && <div className="feedback correct"><b>That’s it! +25 Lumina coins</b><span>{current.explanation}</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={() => setShowHint(true)}>I need a clue</button><button className="primary" disabled={!selected} onClick={answer}>Check my thinking →</button></>}{feedback && <button className="primary" onClick={continueLearning}>{feedback === "correct" ? "Continue expedition →" : "Try a new answer"}</button>}</div></section>
     </section></main>;
