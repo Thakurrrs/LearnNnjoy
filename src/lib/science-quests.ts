@@ -47,6 +47,15 @@ export const grade8ScienceQuestArc: Question[] = [
   item("s8-6", "A student wants to test whether light affects plant growth. What should stay the same between two groups?", ["Water, soil, and plant type", "The question being tested", "Only the colour of the labels"], "Water, soil, and plant type", "A fair test changes one main factor and controls the others.", "Keeping other conditions the same makes it more likely that light explains any difference."),
 ];
 
+export const grade9ScienceQuestArc: Question[] = [
+  item("s9-1", "Which statement best describes a physical change?", ["No new substance is formed", "Atoms disappear", "A new element is always made"], "No new substance is formed", "Think about whether the material’s chemical identity changes.", "In a physical change, the substance may change state or shape but no new substance is formed."),
+  item("s9-2", "What is the SI unit of force?", ["Newton", "Joule", "Metre per second"], "Newton", "This unit is named after a scientist associated with laws of motion.", "Force is measured in newtons (N)."),
+  item("s9-3", "If an object moves at constant velocity, what is its acceleration?", ["Zero", "Always increasing", "Equal to its mass"], "Zero", "Acceleration measures change in velocity.", "Constant velocity means velocity is not changing, so acceleration is zero."),
+  item("s9-4", "Why does an atom have no overall charge when it is neutral?", ["It has equal numbers of protons and electrons", "It has no particles", "All neutrons are positive"], "It has equal numbers of protons and electrons", "Positive proton charge is balanced by negative electron charge.", "Equal positive and negative charges give a neutral atom no net charge."),
+  item("s9-5", "Which cell organelle releases energy from food during respiration?", ["Mitochondrion", "Cell wall", "Chloroplast only"], "Mitochondrion", "This organelle is often described as the cell’s energy-release site.", "Mitochondria release usable energy from food during cellular respiration."),
+  item("s9-6", "Why do scientists repeat measurements in an investigation?", ["To improve reliability and spot unusual results", "To change the hypothesis each time", "To avoid recording data"], "To improve reliability and spot unusual results", "Repeated data can reveal whether one reading was unusual.", "Repeating measurements makes evidence more reliable and helps identify anomalies."),
+];
+
 export function getScienceQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4ScienceQuestArc : grade === 5 ? grade5ScienceQuestArc : grade === 6 ? grade6ScienceQuestArc : grade === 7 ? grade7ScienceQuestArc : grade === 8 ? grade8ScienceQuestArc : [];
+  return grade === 4 ? grade4ScienceQuestArc : grade === 5 ? grade5ScienceQuestArc : grade === 6 ? grade6ScienceQuestArc : grade === 7 ? grade7ScienceQuestArc : grade === 8 ? grade8ScienceQuestArc : grade === 9 ? grade9ScienceQuestArc : [];
 }

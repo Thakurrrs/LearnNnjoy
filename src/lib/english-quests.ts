@@ -47,6 +47,15 @@ export const grade8EnglishQuestArc: Question[] = [
   item("e8-6", "What does a strong revision usually improve first?", ["Clarity, evidence, and organisation", "Only the font size", "The number of unrelated ideas"], "Clarity, evidence, and organisation", "Revision is about making meaning stronger for the reader.", "Strong revision improves how clearly ideas are arranged and supported."),
 ];
 
+export const grade9EnglishQuestArc: Question[] = [
+  item("e9-1", "What is the effect of a first-person narrator?", ["It gives readers one character’s perspective", "It shows every mind equally", "It removes all viewpoint"], "It gives readers one character’s perspective", "Notice the use of ‘I’ and the limits of what that person knows.", "A first-person narrator lets readers experience events through one character’s perspective."),
+  item("e9-2", "Which evidence best supports an argument about reducing food waste?", ["Data showing how much edible food is discarded", "A random slogan", "A description of a holiday"], "Data showing how much edible food is discarded", "Strong evidence directly measures the issue in the claim.", "Data about discarded edible food directly supports an argument about food waste."),
+  item("e9-3", "Which sentence avoids a dangling modifier?", ["After reading the report, Maya wrote a response.", "After reading the report, a response was written.", "After reading, the report was response."], "After reading the report, Maya wrote a response.", "The person who read the report should appear directly after the opening phrase.", "Maya is clearly the person who read the report and wrote the response."),
+  item("e9-4", "What should a thesis statement do in an analytical essay?", ["State the central argument or interpretation", "List every quotation", "Avoid taking a position"], "State the central argument or interpretation", "A thesis guides the reader through the essay’s main claim.", "A thesis presents the central argument that the essay will develop with evidence."),
+  item("e9-5", "Which phrase signals a qualification to a claim?", ["In many cases", "Without any doubt ever", "For no reason"], "In many cases", "A qualification limits a claim so it stays accurate.", "‘In many cases’ acknowledges that a claim may not apply in every situation."),
+  item("e9-6", "Why should a writer distinguish fact from opinion in a report?", ["Readers need to know what can be verified", "Opinions are always illegal", "Facts never need evidence"], "Readers need to know what can be verified", "Reports should make evidence and viewpoint clear.", "Distinguishing fact from opinion helps readers judge what is supported and what is a viewpoint."),
+];
+
 export function getEnglishQuestsForGrade(grade: 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): Question[] {
-  return grade === 4 ? grade4EnglishQuestArc : grade === 5 ? grade5EnglishQuestArc : grade === 6 ? grade6EnglishQuestArc : grade === 7 ? grade7EnglishQuestArc : grade === 8 ? grade8EnglishQuestArc : [];
+  return grade === 4 ? grade4EnglishQuestArc : grade === 5 ? grade5EnglishQuestArc : grade === 6 ? grade6EnglishQuestArc : grade === 7 ? grade7EnglishQuestArc : grade === 8 ? grade8EnglishQuestArc : grade === 9 ? grade9EnglishQuestArc : [];
 }
