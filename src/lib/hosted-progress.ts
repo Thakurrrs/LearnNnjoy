@@ -11,6 +11,10 @@ export type HostedLearnerState = {
   state: Record<string, unknown>;
 };
 
+export function shouldResetHostedState(existingGrade: number | undefined, selectedGrade: number) {
+  return typeof existingGrade === "number" && existingGrade !== selectedGrade;
+}
+
 async function ensureGuardian(client: SupabaseClient, user: User) {
   const { error } = await client.from("guardians").upsert(
     { id: user.id, email: user.email ?? "guardian@learnnjoy.local" },
@@ -29,7 +33,7 @@ export async function loadOrCreateHostedLearner(
 
   const { data: existingLearner, error: learnerReadError } = await client
     .from("learners")
-    .select("id")
+    .select("id, grade")
     .eq("guardian_id", user.id)
     .eq("nickname", progress.name || "Explorer")
     .maybeSingle();
@@ -46,6 +50,18 @@ export async function loadOrCreateHostedLearner(
 
   if (!learnerId) throw new Error("We could not create this learner profile yet.");
 
+  // A nickname is intentionally unique within a guardian account. When a
+  // guardian changes that learner's grade, their previous grade's saved route
+  // must never pull the child back into an old mission.
+  const gradeChanged = shouldResetHostedState(existingLearner?.grade, progress.grade);
+  if (gradeChanged) {
+    const { error: gradeUpdateError } = await client
+      .from("learners")
+      .update({ grade: progress.grade })
+      .eq("id", learnerId);
+    if (gradeUpdateError) throw gradeUpdateError;
+  }
+
   const { data: hostedState, error: stateError } = await client
     .from("learner_states")
     .select("state")
@@ -54,14 +70,14 @@ export async function loadOrCreateHostedLearner(
 
   if (stateError) throw stateError;
 
-  if (!hostedState) {
+  if (!hostedState || gradeChanged) {
     const { error: insertError } = await client
       .from("learner_states")
-      .insert({ learner_id: learnerId, state: progress.state });
+      .upsert({ learner_id: learnerId, state: progress.state, updated_at: new Date().toISOString() }, { onConflict: "learner_id" });
     if (insertError) throw insertError;
   }
 
-  return { learnerId, state: (hostedState?.state as Record<string, unknown> | undefined) ?? progress.state };
+  return { learnerId, state: gradeChanged ? progress.state : (hostedState?.state as Record<string, unknown> | undefined) ?? progress.state };
 }
 
 export async function saveHostedLearnerState(
