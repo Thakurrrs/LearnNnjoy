@@ -11,7 +11,7 @@ import { recordDailyQuest } from "@/lib/streak";
 import { loadOrCreateHostedLearner, saveHostedLearnerState } from "@/lib/hosted-progress";
 import { getSupabaseBrowserClient, isHostedPilotConfigured } from "@/lib/supabase";
 
-type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "parent" | "world" | "map";
+type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "parent" | "world" | "map";
 
 const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
 
@@ -203,6 +203,7 @@ export default function Home() {
       const streak = recordDailyQuest({ dailyStreak, lastCompletedDate }, new Date().toISOString().slice(0, 10));
       setDailyStreak(streak.dailyStreak);
       setLastCompletedDate(streak.lastCompletedDate);
+      if (screen === "quest") setScreen("outcome");
       return;
     }
     setWrongAttemptsOnQuestion((value) => value + 1);
@@ -367,6 +368,15 @@ export default function Home() {
         ? { title: "The mist trail has lost its markers.", dialogue: "Nova can see the destination, but not the path. Trace the steps carefully before choosing where to go.", action: "Follow the glowing trail" }
         : { title: "The starlight bridge needs matching supplies.", dialogue: "Every explorer needs a fair share. Help Nova build equal groups so the bridge can hold everyone.", action: "Open the supply satchel" };
     return <main className={`chapter-shell chapter-${current.visual}`}><Image src="/images/lumina-bridge.png" alt="A chapter of Nova's Lumina adventure begins." fill priority sizes="100vw" className="chapter-art" /><div className="chapter-overlay" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>Lumina restoration · discovery {questIndex + 1} of {gradeQuests.length}</span></nav><section className="chapter-dialogue"><p className="eyebrow">NOVA&apos;S STORY</p><h1>{chapter.title}</h1><p>{chapter.dialogue}</p><div className="chapter-progress"><span style={{ width: `${((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><button className="primary" onClick={() => setScreen("quest")}>{chapter.action} →</button></section></main>;
+  }
+
+  if (screen === "outcome") {
+    const outcome = current.visual === "fraction"
+      ? { title: "The beacon doors glow in balance.", detail: "The bridge has found its equal share of energy.", icon: "◐" }
+      : current.visual === "number-line"
+        ? { title: "The mist trail lights up ahead.", detail: "Nova can see exactly where the next step belongs.", icon: "⟶" }
+        : { title: "The bridge supplies click into place.", detail: "Every explorer has the matching amount they need.", icon: "✦" };
+    return <main className="outcome-shell"><Image src="/images/lumina-bridge.png" alt="Lumina glows brighter after the learner helps Nova." fill priority sizes="100vw" className="outcome-art" /><div className="outcome-overlay" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>Lumina is brighter because of your idea</span></nav><section className="outcome-card"><div className="outcome-icon">{outcome.icon}</div><p className="eyebrow">MISSION MOMENT COMPLETE</p><h1>{outcome.title}</h1><p>{outcome.detail}</p><div className="outcome-explanation"><b>What you discovered</b><span>{current.explanation}</span></div>{learningTrail.id === "stretch" && <p className="outcome-reflection">Pathfinder thought: could you explain this to Nova in your own words?</p>}<div className="outcome-reward"><span>🪙</span><b>+25 Lumina coins</b><small>For thoughtful problem solving</small></div><button className="primary" onClick={continueLearning}>{questIndex < gradeQuests.length - 1 ? "See what Nova finds next →" : "Return to the restored beacon →"}</button></section></main>;
   }
 
   if (completed) {
