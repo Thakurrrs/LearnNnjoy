@@ -5,6 +5,7 @@ import Image from "next/image";
 import "./world.css";
 import { diagnostic, recommendNextSkill, type Grade, type VisualKind } from "@/lib/learning";
 import { getQuestsForGrade } from "@/lib/grade-quests";
+import { recordDailyQuest } from "@/lib/streak";
 
 type Screen = "welcome" | "diagnostic" | "quest" | "parent" | "world";
 
@@ -23,6 +24,8 @@ type SavedProgress = {
   parentPulse: "lighter" | "steady" | "hard" | null;
   ownedCosmetics: string[];
   equippedCosmetic: string;
+  dailyStreak: number;
+  lastCompletedDate: string | null;
 };
 
 const cosmetics = [
@@ -67,6 +70,8 @@ export default function Home() {
   const [parentPulse, setParentPulse] = useState<SavedProgress["parentPulse"]>(null);
   const [ownedCosmetics, setOwnedCosmetics] = useState<string[]>(["trailblazer"]);
   const [equippedCosmetic, setEquippedCosmetic] = useState("trailblazer");
+  const [dailyStreak, setDailyStreak] = useState(0);
+  const [lastCompletedDate, setLastCompletedDate] = useState<string | null>(null);
 
   const gradeQuests = getQuestsForGrade(grade);
   const current = screen === "diagnostic" ? diagnostic[diagnosticIndex] : gradeQuests[questIndex];
@@ -91,6 +96,8 @@ export default function Home() {
           if (saved.parentPulse === "lighter" || saved.parentPulse === "steady" || saved.parentPulse === "hard") setParentPulse(saved.parentPulse);
           if (Array.isArray(saved.ownedCosmetics) && saved.ownedCosmetics.every((item) => typeof item === "string")) setOwnedCosmetics(saved.ownedCosmetics);
           if (typeof saved.equippedCosmetic === "string") setEquippedCosmetic(saved.equippedCosmetic);
+          if (typeof saved.dailyStreak === "number") setDailyStreak(saved.dailyStreak);
+          if (typeof saved.lastCompletedDate === "string") setLastCompletedDate(saved.lastCompletedDate);
         } catch {
           window.localStorage.removeItem(PILOT_PROGRESS_KEY);
         }
@@ -103,9 +110,9 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated || !name.trim()) return;
-    const progress: SavedProgress = { name, grade, screen, diagnosticIndex, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic };
+    const progress: SavedProgress = { name, grade, screen, diagnosticIndex, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate };
     window.localStorage.setItem(PILOT_PROGRESS_KEY, JSON.stringify(progress));
-  }, [attempts, coins, correct, diagnosticIndex, grade, guardianAcknowledged, hydrated, name, ownedCosmetics, parentPulse, questIndex, screen, equippedCosmetic]);
+  }, [attempts, coins, correct, dailyStreak, diagnosticIndex, equippedCosmetic, grade, guardianAcknowledged, hydrated, lastCompletedDate, name, ownedCosmetics, parentPulse, questIndex, screen]);
 
   function answer() {
     if (!selected || !current) return;
@@ -114,6 +121,9 @@ export default function Home() {
       setFeedback("correct");
       setCorrect((value) => value + 1);
       setCoins((value) => value + 25);
+      const streak = recordDailyQuest({ dailyStreak, lastCompletedDate }, new Date().toISOString().slice(0, 10));
+      setDailyStreak(streak.dailyStreak);
+      setLastCompletedDate(streak.lastCompletedDate);
       return;
     }
     setFeedback("retry");
@@ -157,6 +167,8 @@ export default function Home() {
     setParentPulse(null);
     setOwnedCosmetics(["trailblazer"]);
     setEquippedCosmetic("trailblazer");
+    setDailyStreak(0);
+    setLastCompletedDate(null);
   }
 
   function chooseCosmetic(id: string, cost: number) {
@@ -211,7 +223,7 @@ export default function Home() {
     return <main className="shell completion-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("parent")}>View parent snapshot</button></nav><section className="completion-card"><div className="burst">✦</div><p className="eyebrow">EXPEDITION COMPLETE</p><h1>You found the fraction beacon, {name}!</h1><p>You used pictures, number lines, and proportional thinking to solve three real-world problems.</p><div className="reward"><span>🪙</span><div><b>+{correct * 25} Lumina coins</b><small>Use them to grow your explorer world.</small></div></div><button className="primary" onClick={() => setScreen("parent")}>See this week&apos;s progress →</button></section></main>;
   }
 
-  return <main className="shell quest-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>✨ {pet}</span><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button><button className="text-button" onClick={() => setScreen("parent")}>Parent view</button></div></nav>
+  return <main className="shell quest-shell"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>🔥 {dailyStreak}</span><span>✨ {pet}</span><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button><button className="text-button" onClick={() => setScreen("parent")}>Parent view</button></div></nav>
     <section className="quest-layout"><aside className="quest-side"><p className="eyebrow">{screen === "diagnostic" ? "STARTING QUEST" : `GRADE ${grade} NUMBER SENSE EXPEDITION`}</p><h1>{screen === "diagnostic" ? "Find your starting trail" : "Restore Lumina’s fraction beacon"}</h1><p>{screen === "diagnostic" ? "There are no bad scores here. Your answers help us choose the right next challenge." : "Every answer helps map the path that fits you best."}</p><div className="progress"><span style={{ width: `${screen === "diagnostic" ? ((diagnosticIndex + 1) / diagnostic.length) * 100 : ((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><small>{screen === "diagnostic" ? diagnosticIndex + 1 : questIndex + 1} of {screen === "diagnostic" ? diagnostic.length : gradeQuests.length}</small></aside>
       <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Discover" : "Quest"}</span></div><Visual kind={current.visual} /><h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Try this:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Almost—take another look.</b><span>{current.explanation}</span></div>}{feedback === "correct" && <div className="feedback correct"><b>That’s it! +25 Lumina coins</b><span>{current.explanation}</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={() => setShowHint(true)}>I need a clue</button><button className="primary" disabled={!selected} onClick={answer}>Check my thinking →</button></>}{feedback === "correct" && <button className="primary" onClick={continueLearning}>Continue expedition →</button>}{feedback === "retry" && <button className="primary" onClick={retryCurrentQuestion}>Try a new answer</button>}</div></section>
     </section></main>;
