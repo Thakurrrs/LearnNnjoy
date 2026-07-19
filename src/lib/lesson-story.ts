@@ -10,6 +10,7 @@ export type LessonStory = {
   outcomeDetail: string;
   outcomeIcon: string;
   videoCue: string;
+  reelFrames: [string, string, string, string];
 };
 
 const byQuestionId: Record<string, Partial<LessonStory>> = {
@@ -54,6 +55,7 @@ function defaultStory(question: Question): LessonStory {
       outcomeDetail: "The bridge has found its equal share of energy.",
       outcomeIcon: "◐",
       videoCue: "Equal glowing pieces join into a balanced beam of starlight.",
+      reelFrames: ["Nova notices the equal pieces.", "The pieces fit together as one balanced whole.", "Look for the relationship the picture is showing.", "Your turn: use that relationship in the mission."],
     };
   }
   if (question.visual === "number-line") {
@@ -67,6 +69,7 @@ function defaultStory(question: Question): LessonStory {
       outcomeDetail: "Nova can see exactly where the next step belongs.",
       outcomeIcon: "⟶",
       videoCue: "A sequence of stepping stones lights from the starting point to the chosen marker.",
+      reelFrames: ["Nova marks a clear starting point.", "Each step changes the position on the path.", "Look for direction and distance before choosing.", "Your turn: trace the next move in the mission."],
     };
   }
   if (question.visual === "formula") {
@@ -80,6 +83,7 @@ function defaultStory(question: Question): LessonStory {
       outcomeDetail: "The console now shows how each mathematical step leads to the result.",
       outcomeIcon: "ƒ",
       videoCue: "A clear formula assembles from glowing symbols; each operation lights in sequence until the route resolves.",
+      reelFrames: ["Nova records the input and the rule.", "One operation changes the value at a time.", "Keep the rule visible as you reason.", "Your turn: apply the rule in the mission."],
     };
   }
   if (question.visual === "coordinate") {
@@ -93,6 +97,7 @@ function defaultStory(question: Question): LessonStory {
       outcomeDetail: "The next route is visible because the model was read carefully.",
       outcomeIcon: "⌁",
       videoCue: "A coordinate grid and its signal points illuminate one by one, revealing a clean route across the map.",
+      reelFrames: ["Nova studies the model before deciding.", "The important positions and patterns become visible.", "Read the structure, not just one detail.", "Your turn: use the model in the mission."],
     };
   }
   if (question.visual === "ecosystem") {
@@ -106,6 +111,7 @@ function defaultStory(question: Question): LessonStory {
       outcomeDetail: "Your observation gives the Earthkeepers one clear way to understand and care for this living world.",
       outcomeIcon: "🌿",
       videoCue: "A small habitat wakes gently: sunlight, water, a plant, and an animal appear as the field note records the observation.",
+      reelFrames: ["Nova observes the habitat closely.", "A change in one part can affect the whole system.", "Look for evidence before explaining what happened.", "Your turn: use the field clue in the mission."],
     };
   }
   if (question.visual === "reading") {
@@ -119,6 +125,7 @@ function defaultStory(question: Question): LessonStory {
       outcomeDetail: "You used the words on the page to build a stronger meaning, one detail at a time.",
       outcomeIcon: "📚",
       videoCue: "A storybook opens; key words glow gently and connect into a small illustrated scene as the page turns.",
+      reelFrames: ["Nova opens the page and notices a clue.", "The key words reveal more than the page first shows.", "Connect the details to make meaning.", "Your turn: use the story clue in the mission."],
     };
   }
   if (question.visual === "map") {
@@ -132,6 +139,7 @@ function defaultStory(question: Question): LessonStory {
       outcomeDetail: "You used a map clue and a caring choice to understand how people share spaces together.",
       outcomeIcon: "🧭",
       videoCue: "A hand-drawn map unfolds; a compass turns north and gentle route markers connect homes, parks, and shared places.",
+      reelFrames: ["Nova unfolds a map of a shared place.", "Directions, symbols, and people’s needs form the route.", "Notice what the clue says about the community.", "Your turn: use the map clue in the mission."],
     };
   }
   return {
@@ -144,6 +152,7 @@ function defaultStory(question: Question): LessonStory {
     outcomeDetail: "Every explorer has the matching amount they need.",
     outcomeIcon: "✦",
     videoCue: "Supply groups multiply together and settle into balanced packs on the bridge.",
+    reelFrames: ["Nova gathers matching supplies.", "Each group changes in the same relationship.", "Look for what stays balanced.", "Your turn: use the relationship in the mission."],
   };
 }
 

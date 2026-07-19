@@ -10,6 +10,8 @@ describe("lesson stories", () => {
       expect(story.chapterTitle.length).toBeGreaterThan(5);
       expect(story.outcomeDetail.length).toBeGreaterThan(10);
       expect(story.videoCue.length).toBeGreaterThan(15);
+      expect(story.reelFrames).toHaveLength(4);
+      expect(story.reelFrames.every((frame) => frame.length > 10)).toBe(true);
     });
   });
 
