@@ -23,12 +23,9 @@ describe("Number Sense curriculum", () => {
     });
   });
 
-  it("ships six-discovery Maths missions for Grades 4 through 7", () => {
-    [4, 5, 6, 7].forEach((grade) => {
-      expect(getQuestsForGrade(grade as 4 | 5 | 6 | 7)).toHaveLength(6);
-    });
-    [8, 9, 10, 11, 12].forEach((grade) => {
-      expect(getQuestsForGrade(grade as 8 | 9 | 10 | 11 | 12)).toHaveLength(3);
+  it("ships six-discovery Maths missions for every pilot grade", () => {
+    [4, 5, 6, 7, 8, 9, 10, 11, 12].forEach((grade) => {
+      expect(getQuestsForGrade(grade as 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)).toHaveLength(6);
     });
   });
 

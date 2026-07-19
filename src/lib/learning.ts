@@ -1,6 +1,6 @@
 export type Grade = 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
-export type VisualKind = "fraction" | "number-line" | "ratio";
+export type VisualKind = "fraction" | "number-line" | "ratio" | "formula" | "coordinate";
 
 export type Question = {
   id: string;
@@ -10,7 +10,7 @@ export type Question = {
   hint: string;
   explanation: string;
   visual: VisualKind;
-  skill: "fractions" | "number-sense" | "proportion";
+  skill: "fractions" | "number-sense" | "proportion" | "algebra" | "geometry" | "data";
 };
 
 export type CurriculumSkill = {
@@ -24,6 +24,9 @@ export const numberSenseSkills: CurriculumSkill[] = [
   { id: "number-sense", label: "Number sense", grades: [4, 5, 6, 7, 8, 9, 10, 11, 12] },
   { id: "fractions", label: "Fractions as equal parts", grades: [4, 5, 6, 7], prerequisite: "number-sense" },
   { id: "proportion", label: "Proportional reasoning", grades: [6, 7, 8, 9, 10, 11, 12], prerequisite: "fractions" },
+  { id: "algebra", label: "Algebraic reasoning", grades: [7, 8, 9, 10, 11, 12], prerequisite: "number-sense" },
+  { id: "geometry", label: "Spatial and coordinate reasoning", grades: [8, 9, 10, 11, 12], prerequisite: "number-sense" },
+  { id: "data", label: "Data and probability", grades: [8, 9, 10, 11, 12], prerequisite: "number-sense" },
 ];
 
 export const diagnostic: Question[] = [

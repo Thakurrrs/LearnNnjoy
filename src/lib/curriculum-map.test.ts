@@ -10,9 +10,9 @@ describe("curriculum map", () => {
     }
   });
 
-  it("keeps the initial Maths pilot clearly scoped to Grades 4 through 7", () => {
-    expect(curriculumMap[4].maths.pilotStatus).toBe("live");
-    expect(curriculumMap[7].maths.pilotStatus).toBe("live");
-    expect(curriculumMap[8].maths.pilotStatus).toBe("mapped");
+  it("marks the six-discovery Maths mission live for every learner grade", () => {
+    ([4, 5, 6, 7, 8, 9, 10, 11, 12] as const).forEach((grade) => {
+      expect(curriculumMap[grade].maths.pilotStatus).toBe("live");
+    });
   });
 });

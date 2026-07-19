@@ -59,10 +59,20 @@ function RatioVisual({ groups, onExplore }: { groups: number; onExplore: () => v
   return <div className="visual-play"><div className="ratio-visual" aria-label="Equal groups that can be doubled"><div>🥣🥣<small>4 explorers</small></div><strong>→</strong><div>{doubled ? "🥣🥣🥣🥣" : "🥣🥣"}<small>{doubled ? "8 explorers" : "4 explorers"}</small></div></div><button className="visual-action" type="button" onClick={onExplore}>{doubled ? "Notice what doubled together" : "Double the explorer group"}</button><p>Keep matching groups in step.</p></div>;
 }
 
+function FormulaVisual({ onExplore }: { onExplore: () => void }) {
+  return <div className="visual-play"><div className="formula-visual" aria-label="A formula with an input, a rule, and an output"><span>input</span><b>→</b><strong>rule</strong><b>→</b><span>output</span></div><button className="visual-action" type="button" onClick={onExplore}>Trace the rule once</button><p>Keep each change visible as you reason.</p></div>;
+}
+
+function CoordinateVisual({ onExplore }: { onExplore: () => void }) {
+  return <div className="visual-play"><div className="coordinate-visual" aria-label="A small coordinate grid with a highlighted point"><i /><i /><i /><i /><b>✦</b></div><button className="visual-action" type="button" onClick={onExplore}>Inspect the grid</button><p>Use position, direction, and distance together.</p></div>;
+}
+
 function Visual({ kind, chargedPieces, onCharge }: { kind: VisualKind; chargedPieces: number; onCharge: () => void }) {
   if (kind === "fraction") return <FractionVisual chargedPieces={chargedPieces} onCharge={onCharge} />;
   if (kind === "number-line") return <NumberLineVisual steps={chargedPieces} onExplore={onCharge} />;
-  return <RatioVisual groups={chargedPieces} onExplore={onCharge} />;
+  if (kind === "ratio") return <RatioVisual groups={chargedPieces} onExplore={onCharge} />;
+  if (kind === "formula") return <FormulaVisual onExplore={onCharge} />;
+  return <CoordinateVisual onExplore={onCharge} />;
 }
 
 export default function Home() {
@@ -139,7 +149,7 @@ export default function Home() {
   const questCorrect = Math.max(0, correct - diagnosticCorrect);
   const completedQuestCount = Math.min(gradeQuests.length, questIndex + (screen === "outcome" || completed ? 1 : 0));
   const completedSkills = [...new Set(gradeQuests.slice(0, completedQuestCount).map((quest) => quest.skill))];
-  const skillNames = { fractions: "equal parts and fractions", "number-sense": "number sense and distance", proportion: "matching groups and proportion" } as const;
+  const skillNames = { fractions: "equal parts and fractions", "number-sense": "number sense and distance", proportion: "matching groups and proportion", algebra: "algebraic rules and relationships", geometry: "shape, position, and spatial reasoning", data: "data, chance, and interpretation" } as const;
   const beaconEnergy = Math.min(3, Math.ceil(questCorrect / Math.max(1, Math.ceil(gradeQuests.length / 3))));
   const missionTitle = screen === "diagnostic" ? grade <= 7 ? "Nova's signal is fading" : "Set your starting signal" : questIndex === 0 ? "Restore the first beacon" : questIndex === 1 ? "Clear the mist trail" : "Open the starlight bridge";
   const missionMoment = screen === "diagnostic" ? grade <= 7 ? "Your choices help Nova find the trail that feels right for you." : "Three short grade-level ideas help set a useful starting point—this is not a score." : `One idea at a time. Each discovery brings Lumina back to life.`;
@@ -260,6 +270,8 @@ export default function Home() {
   function recoveryPrompt() {
     if (current.visual === "fraction") return "Start with equal pieces. Count how many pieces are being used, then compare that with the whole.";
     if (current.visual === "number-line") return "Place yourself at the starting number, then move one small step at a time. The direction matters.";
+    if (current.visual === "formula") return "Keep the rule visible. Undo or apply one operation at a time, checking what stays balanced.";
+    if (current.visual === "coordinate") return "Read the model before choosing. Look for position, structure, or the full set of possible outcomes.";
     return "Build one equal group first. When the group changes, make the matching group change in the same way.";
   }
 

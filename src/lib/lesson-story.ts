@@ -69,6 +69,32 @@ function defaultStory(question: Question): LessonStory {
       videoCue: "A sequence of stepping stones lights from the starting point to the chosen marker.",
     };
   }
+  if (question.visual === "formula") {
+    return {
+      learningObjective: "A mathematical rule can be followed one visible step at a time.",
+      chapterTitle: "The navigation console needs a clean rule.",
+      chapterDialogue: "Nova has the inputs, but the console only responds when each operation is traced in the right order.",
+      chapterAction: "Run the rule check",
+      coachLine: "“Keep the rule visible; change only one thing at a time.”",
+      outcomeTitle: "The navigation rule resolves cleanly.",
+      outcomeDetail: "The console now shows how each mathematical step leads to the result.",
+      outcomeIcon: "ƒ",
+      videoCue: "A clear formula assembles from glowing symbols; each operation lights in sequence until the route resolves.",
+    };
+  }
+  if (question.visual === "coordinate") {
+    return {
+      learningObjective: "Position, structure, and evidence can be read from a mathematical model.",
+      chapterTitle: "The star map needs a precise reading.",
+      chapterDialogue: "Nova has found a grid of signals. The important part is not guessing—it is noticing what the model tells you.",
+      chapterAction: "Inspect the signal map",
+      coachLine: "“Read the structure first, then make your decision.”",
+      outcomeTitle: "The signal map becomes clear.",
+      outcomeDetail: "The next route is visible because the model was read carefully.",
+      outcomeIcon: "⌁",
+      videoCue: "A coordinate grid and its signal points illuminate one by one, revealing a clean route across the map.",
+    };
+  }
   return {
     learningObjective: "Matching groups preserve a proportional relationship.",
     chapterTitle: "The starlight bridge needs matching supplies.",
