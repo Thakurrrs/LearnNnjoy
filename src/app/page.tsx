@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import type { User } from "@supabase/supabase-js";
 import "./world.css";
-import { chooseLearningTrail, recommendNextSkill, type Grade, type VisualKind } from "@/lib/learning";
+import { chooseLearningTrail, type Grade, type VisualKind } from "@/lib/learning";
 import { getDiagnosticForGrade, getQuestsForGrade } from "@/lib/grade-quests";
 import { getScienceQuestsForGrade } from "@/lib/science-quests";
 import { getEnglishQuestsForGrade } from "@/lib/english-quests";
@@ -12,13 +11,12 @@ import { getSocialQuestsForGrade } from "@/lib/social-quests";
 import { getGradeRoadmap } from "@/lib/curriculum-map";
 import { getLessonStory, type LessonStory } from "@/lib/lesson-story";
 import { recordDailyQuest } from "@/lib/streak";
-import { loadOrCreateHostedLearner, saveHostedLearnerState } from "@/lib/hosted-progress";
-import { getSupabaseBrowserClient, isHostedPilotConfigured } from "@/lib/supabase";
 import { chooseAdaptiveNextStep } from "@/lib/adaptive";
 import { readSubjectProgress, snapshotSubjectMission, type ActiveSubject, type SubjectMissionProgress, type SubjectProgress } from "@/lib/subject-progress";
 import { getMissionChapter } from "@/lib/mission-chapters";
+import { GradeSevenActivity, gradeSevenAdventures, gradeSevenComingSoonChapters, type GradeSevenAdventureId } from "@/components/grade-seven-adventures";
 
-type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "parent" | "world" | "map";
+type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "world" | "map" | "adventures" | "activity";
 
 const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
 
@@ -37,8 +35,6 @@ type SavedProgress = {
   coins: number;
   correct: number;
   attempts: number;
-  guardianAcknowledged: boolean;
-  parentPulse: "lighter" | "steady" | "hard" | null;
   ownedCosmetics: string[];
   equippedCosmetic: string;
   dailyStreak: number;
@@ -46,6 +42,7 @@ type SavedProgress = {
   activeSubject: ActiveSubject;
   subjectProgress: SubjectProgress;
   nextSupportMode: "rebuild" | "steady" | "stretch";
+  completedAdventures: GradeSevenAdventureId[];
 };
 
 const cosmetics = [
@@ -141,21 +138,17 @@ export default function Home() {
   const [attempts, setAttempts] = useState(0);
   const pet = "Nova";
   const [hydrated, setHydrated] = useState(false);
-  const [guardianAcknowledged, setGuardianAcknowledged] = useState(false);
-  const [parentPulse, setParentPulse] = useState<SavedProgress["parentPulse"]>(null);
   const [ownedCosmetics, setOwnedCosmetics] = useState<string[]>(["trailblazer"]);
   const [equippedCosmetic, setEquippedCosmetic] = useState("trailblazer");
   const [dailyStreak, setDailyStreak] = useState(0);
   const [lastCompletedDate, setLastCompletedDate] = useState<string | null>(null);
-  const [guardianEmail, setGuardianEmail] = useState("");
-  const [authUser, setAuthUser] = useState<User | null>(null);
-  const [hostedLearnerId, setHostedLearnerId] = useState<string | null>(null);
-  const [cloudMessage, setCloudMessage] = useState("");
-  const cloudLoadStarted = useRef(false);
   const [chargedPieces, setChargedPieces] = useState(0);
   const [wrongAttemptsOnQuestion, setWrongAttemptsOnQuestion] = useState(0);
   const [subjectProgress, setSubjectProgress] = useState<SubjectProgress>({});
   const [nextSupportMode, setNextSupportMode] = useState<SavedProgress["nextSupportMode"]>("steady");
+  const [activeAdventure, setActiveAdventure] = useState<GradeSevenAdventureId>("mountain");
+  const [completedAdventures, setCompletedAdventures] = useState<GradeSevenAdventureId[]>([]);
+  const gradeSevenChapters = [...gradeSevenAdventures, ...gradeSevenComingSoonChapters];
 
   function applySavedProgress(saved: Partial<SavedProgress>) {
     if (saved.name) setName(saved.name);
@@ -173,14 +166,13 @@ export default function Home() {
     if (typeof saved.coins === "number") setCoins(saved.coins);
     if (typeof saved.correct === "number") setCorrect(saved.correct);
     if (typeof saved.attempts === "number") setAttempts(saved.attempts);
-    if (typeof saved.guardianAcknowledged === "boolean") setGuardianAcknowledged(saved.guardianAcknowledged);
-    if (saved.parentPulse === "lighter" || saved.parentPulse === "steady" || saved.parentPulse === "hard") setParentPulse(saved.parentPulse);
     if (Array.isArray(saved.ownedCosmetics) && saved.ownedCosmetics.every((item) => typeof item === "string")) setOwnedCosmetics(saved.ownedCosmetics);
     if (typeof saved.equippedCosmetic === "string") setEquippedCosmetic(saved.equippedCosmetic);
     if (typeof saved.dailyStreak === "number") setDailyStreak(saved.dailyStreak);
     if (typeof saved.lastCompletedDate === "string") setLastCompletedDate(saved.lastCompletedDate);
     if (saved.subjectProgress) setSubjectProgress(readSubjectProgress(saved.subjectProgress));
     if (saved.nextSupportMode === "rebuild" || saved.nextSupportMode === "steady" || saved.nextSupportMode === "stretch") setNextSupportMode(saved.nextSupportMode);
+    if (Array.isArray(saved.completedAdventures) && saved.completedAdventures.every((id) => ["mountain", "balance", "shop", "skatepark", "cricket"].includes(id))) setCompletedAdventures(saved.completedAdventures);
   }
 
   const isScienceMission = activeSubject === "science" && grade <= 12;
@@ -190,8 +182,6 @@ export default function Home() {
   const gradeQuests = isScienceMission ? getScienceQuestsForGrade(grade) : isEnglishMission ? getEnglishQuestsForGrade(grade) : isSocialMission ? getSocialQuestsForGrade(grade) : getQuestsForGrade(grade);
   const gradeDiagnostic = getDiagnosticForGrade(grade);
   const gradeRoadmap = getGradeRoadmap(grade);
-  const activeRoadmapSubject = gradeRoadmap.find((subject) => subject.id === activeSubject);
-  const activeSubjectLabel = activeRoadmapSubject?.label ?? "Mathematics";
   const gradeTheme = grade <= 6 ? "theme-explorer" : grade <= 9 ? "theme-pathfinder" : "theme-navigator";
   const ageFraming = grade <= 6
     ? { role: "Explorer", object: "moon-fruit", world: "Lumina rescue" }
@@ -205,7 +195,6 @@ export default function Home() {
     : gradeQuests[Math.min(questIndex, gradeQuests.length - 1)];
   const lessonStory = getLessonStory(current);
   const completed = questIndex >= gradeQuests.length;
-  const confidence = useMemo(() => Math.min(92, 58 + correct * 11), [correct]);
   const learningTrail = chooseLearningTrail(diagnosticCorrect);
   const questCorrect = Math.max(0, correct - diagnosticCorrect);
   const adaptiveNextStep = chooseAdaptiveNextStep(current, {
@@ -239,58 +228,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const client = getSupabaseBrowserClient();
-    if (!client) return;
-
-    void client.auth.getUser().then(({ data }) => setAuthUser(data.user));
-    const { data: listener } = client.auth.onAuthStateChange((_event, session) => setAuthUser(session?.user ?? null));
-    return () => listener.subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
     if (!hydrated || !name.trim()) return;
-    const progress: SavedProgress = { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, subjectProgress, nextSupportMode };
+    const progress: SavedProgress = { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, subjectProgress, nextSupportMode, completedAdventures };
     window.localStorage.setItem(PILOT_PROGRESS_KEY, JSON.stringify(progress));
-  }, [activeSubject, attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells, subjectProgress]);
-
-  useEffect(() => {
-    const client = getSupabaseBrowserClient();
-    if (!client || !hydrated || !authUser || !name.trim() || !guardianAcknowledged || cloudLoadStarted.current) return;
-    cloudLoadStarted.current = true;
-
-    void loadOrCreateHostedLearner(client, authUser, { name, grade, state: { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, subjectProgress, nextSupportMode } })
-      .then((hosted) => {
-        applySavedProgress(hosted.state as Partial<SavedProgress>);
-        setHostedLearnerId(hosted.learnerId);
-        setCloudMessage("Cloud saving is on for this guardian account.");
-      })
-      .catch((error: unknown) => {
-        cloudLoadStarted.current = false;
-        setCloudMessage(error instanceof Error ? error.message : "Cloud saving could not start yet. Your progress remains on this device.");
-      });
-  }, [activeSubject, attempts, authUser, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells, subjectProgress]);
-
-  useEffect(() => {
-    const client = getSupabaseBrowserClient();
-    if (!client || !hostedLearnerId || !hydrated) return;
-    const timer = window.setTimeout(() => {
-      void saveHostedLearnerState(client, hostedLearnerId, { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, guardianAcknowledged, parentPulse, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, subjectProgress, nextSupportMode }).catch(() => {
-        setCloudMessage("Your latest progress is still safe on this device; cloud saving will retry next time.");
-      });
-    }, 600);
-    return () => window.clearTimeout(timer);
-  }, [activeSubject, attempts, coins, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, guardianAcknowledged, hintRequests, hostedLearnerId, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, parentPulse, questIndex, screen, storyBeat, storyCells, subjectProgress]);
-
-  async function sendMagicLink() {
-    const client = getSupabaseBrowserClient();
-    if (!client || !guardianEmail.trim()) return;
-    setCloudMessage("Sending your secure sign-in link…");
-    const { error } = await client.auth.signInWithOtp({
-      email: guardianEmail.trim(),
-      options: { emailRedirectTo: window.location.origin },
-    });
-    setCloudMessage(error ? error.message : "Check the guardian inbox for the secure sign-in link.");
-  }
+  }, [activeSubject, attempts, coins, completedAdventures, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, hintRequests, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, questIndex, screen, storyBeat, storyCells, subjectProgress]);
 
   function answer() {
     if (!selected || !current) return;
@@ -420,55 +361,6 @@ export default function Home() {
     setScreen("welcome");
   }
 
-  function eraseLocalPilotData() {
-    if (!window.confirm("Remove this learner's local pilot progress from this browser? This cannot be undone.")) return;
-    window.localStorage.removeItem(PILOT_PROGRESS_KEY);
-    setScreen("welcome");
-    setName("");
-    setGrade(4);
-    setActiveSubject("maths");
-    setDiagnosticIndex(0);
-    setDiagnosticCorrect(0);
-    setStoryBeat(0);
-    setStoryCells([]);
-    setFruitSplit(false);
-    setFruitShared(false);
-    setHintRequests(0);
-    setQuestIndex(0);
-    setSelected(null);
-    setShowHint(false);
-    setFeedback(null);
-    setCoins(60);
-    setCorrect(0);
-    setAttempts(0);
-    setSubjectProgress({});
-    setGuardianAcknowledged(false);
-    setParentPulse(null);
-    setOwnedCosmetics(["trailblazer"]);
-    setEquippedCosmetic("trailblazer");
-    setDailyStreak(0);
-    setLastCompletedDate(null);
-    setNextSupportMode("steady");
-    setWrongAttemptsOnQuestion(0);
-  }
-
-  function exportLocalPilotData() {
-    const exportData = {
-      exportedAt: new Date().toISOString(),
-      learner: { nickname: name, grade },
-      progress: { diagnosticIndex, diagnosticCorrect, questIndex, correct, attempts, hintRequests, dailyStreak, lastCompletedDate },
-      rewards: { coins, ownedCosmetics, equippedCosmetic },
-      parentPulse,
-    };
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "learnnjoy-pilot-data.json";
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
   function chooseCosmetic(id: string, cost: number) {
     if (ownedCosmetics.includes(id)) return setEquippedCosmetic(id);
     if (coins < cost) return;
@@ -477,22 +369,33 @@ export default function Home() {
     setEquippedCosmetic(id);
   }
 
+  function openGradeSevenAdventure(id: GradeSevenAdventureId) {
+    setActiveAdventure(id);
+    setScreen("activity");
+  }
+
+  function finishGradeSevenAdventure() {
+    if (!completedAdventures.includes(activeAdventure)) {
+      setCompletedAdventures((items) => [...items, activeAdventure]);
+      setCoins((value) => value + 25);
+    }
+    setScreen("adventures");
+  }
+
   if (screen === "welcome") {
     return <main className={`shell welcome-shell ${gradeTheme}`}>
-      <nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="pill">Parent-supervised pilot</div></nav>
+      <nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="pill">Private learner adventure</div></nav>
       <section className="hero">
         <div className="hero-copy">
           <p className="eyebrow">THE NUMBER SENSE EXPEDITION</p>
-          <h1>Maths becomes a world your child wants to explore.</h1>
-          <p className="lede">Short visual quests for Grades 4–12, designed to replace “I can’t do maths” with “let me try one more.”</p>
+          <h1>Maths becomes a world you want to explore.</h1>
+          <p className="lede">Visual, interactive quests for Grades 4–12—designed to replace “I can’t do maths” with “let me try one more.”</p>
           <div className="welcome-card">
             <label>Explorer nickname<input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Aanya" maxLength={24} /></label>
             <label>School grade<select value={grade} onChange={(event) => chooseGrade(Number(event.target.value) as Grade)}>{[4,5,6,7,8,9,10,11,12].map((item) => <option key={item} value={item}>Grade {item}</option>)}</select></label>
             <div className="grade-preview"><p className="eyebrow">GRADE {grade} MATHS STARTER</p><b>{gradeRoadmap.find((subject) => subject.id === "maths")?.topics[0]}</b><span>First discovery: {getQuestsForGrade(grade)[0].prompt}</span></div>
-            <label className="consent"><input type="checkbox" checked={guardianAcknowledged} onChange={(event) => setGuardianAcknowledged(event.target.checked)} /><span>I am this learner&apos;s parent or guardian and I agree to the pilot storing their nickname, grade, and progress.</span></label>
-            {isHostedPilotConfigured && <div className="cloud-sign-in"><p className="eyebrow">SAVE ACROSS DEVICES</p>{authUser ? <p className="fine-print">Signed in as {authUser.email}. {cloudMessage || "Cloud saving will start when the learner begins."}</p> : <><label>Guardian email<input type="email" value={guardianEmail} onChange={(event) => setGuardianEmail(event.target.value)} placeholder="parent@example.com" /></label><button className="text-button" disabled={!guardianEmail.trim()} onClick={sendMagicLink}>Email me a secure sign-in link</button>{cloudMessage && <p className="fine-print">{cloudMessage}</p>}</>}</div>}
-            <button className="primary" disabled={!name.trim() || !guardianAcknowledged} onClick={() => setScreen(grade === 4 ? "story" : "diagnostic")}>{grade === 4 ? "Help Nova restore the first beacon" : `Start Grade ${grade} maths calibration`} <span>→</span></button>
-            <p className="fine-print">A 10-minute, no-pressure rescue mission. No scores are shared with anyone; local pilot data can be removed in your browser at any time.</p>
+            <button className="primary" disabled={!name.trim()} onClick={() => setScreen(grade === 7 ? "adventures" : grade === 4 ? "story" : "diagnostic")}>{grade === 7 ? "Enter the Grade 7 adventure map" : grade === 4 ? "Help Nova restore the first beacon" : `Start Grade ${grade} maths calibration`} <span>→</span></button>
+            <p className="fine-print">Your progress stays on this device. No rankings, public profiles, or peer pressure.</p>
           </div>
         </div>
         <div className="hero-world"><Image className="hero-art" src="/images/lumina-hero.png" alt="A young explorer and glowing star companion discover a fraction beacon on a floating island." fill priority sizes="(max-width: 760px) 100vw, 45vw" /></div>
@@ -511,15 +414,12 @@ export default function Home() {
     </section></main>;
   }
 
-  if (screen === "parent") {
-    return <main className={`shell dashboard-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div><button className="text-button" onClick={openGradePicker}>Switch grade</button><button className="text-button" onClick={() => setScreen("quest")}>Back to quest</button></div></nav>
-      <section className="dashboard-heading"><p className="eyebrow">WEEKLY PARENT SNAPSHOT</p><h1>{name}&apos;s learning, without the pressure.</h1><p>Week one · Grade {grade} {activeSubjectLabel} · {subjectMissionName}</p></section>
-      <section className="metric-grid"><article><span>Focused mission minutes</span><b>{Math.max(8, attempts * 5 + 8)}</b><small>Short, story-led learning moments</small></article><article><span>Concept confidence</span><b>{confidence}%</b><small>Based on attempts and completed ideas</small></article><article><span>Ideas explored</span><b>{completedQuestCount}/{gradeQuests.length}</b><small>{completedSkills.length ? completedSkills.map((skill) => skillNames[skill]).join(" · ") : "The first discovery is waiting"}</small></article></section>
-      <section className="concept-evidence"><p className="eyebrow">WHAT {name.toUpperCase()} HAS PRACTISED</p>{completedSkills.length ? <ul>{completedSkills.map((skill) => <li key={skill}><span>✓</span><div><b>{skillNames[skill]}</b><small>{skill === "fractions" ? "Saw a whole, made equal parts, and connected 1/2 with 2/4." : skill === "number-sense" ? "Used position and distance to reason about numbers." : skill === "science-inquiry" ? "Observed habitats, materials, and changes in the world using evidence." : skill === "social-inquiry" ? "Used map clues and caring choices to understand shared places and community." : "Built matching groups to keep a relationship fair."}</small></div></li>)}</ul> : <p>Nova is ready to begin with one clear, visual idea.</p>}<p className="support-evidence">Nova&apos;s clues requested: {hintRequests}. Asking for a clue is a healthy learning strategy, not a penalty.</p></section>
-      <section className="parent-note"><div className="note-icon">✦</div><div><p className="eyebrow">A KIND NEXT STEP</p><h2>{recommendNextSkill(questCorrect, Math.max(0, attempts - gradeDiagnostic.length))}</h2><p>Explaining an idea aloud helps it stick. Keep it curious: there is no need to correct or test them.</p></div></section>
-      <section className="pulse-card"><p className="eyebrow">ONE-MINUTE PARENT PULSE</p><h2>How did maths feel for {name} this week?</h2><div className="pulse-options"><button className={parentPulse === "lighter" ? "active" : ""} onClick={() => setParentPulse("lighter")}>✨ Lighter</button><button className={parentPulse === "steady" ? "active" : ""} onClick={() => setParentPulse("steady")}>🙂 Steady</button><button className={parentPulse === "hard" ? "active" : ""} onClick={() => setParentPulse("hard")}>🌧 Felt hard</button></div>{parentPulse && <p className="pulse-thanks">Thank you. This helps shape the next quest.</p>}</section>
-      <section className="privacy-note"><strong>Private by design.</strong> LearnNnjoy stores a nickname, grade, and learning progress for this pilot. There are no public profiles, ads, or peer rankings. {authUser && <span> Cloud saving is active for {authUser.email}.</span>} <button className="delete-data" onClick={exportLocalPilotData}>Export local data</button><button className="delete-data" onClick={eraseLocalPilotData}>Remove local pilot data</button></section>
-    </main>;
+  if (screen === "adventures") {
+    return <main className="shell adventure-shell theme-pathfinder"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={openGradePicker}>Switch grade</button></nav><section className="adventure-hero"><p className="eyebrow">GRADE 7 · MATHS ADVENTURE MAP</p><h1>Choose a topic. Make the maths move.</h1><p>Every Grade 7 topic has a world here. Playable chapters teach now; Nova is preparing the next worlds.</p><p className="adventure-progress">{completedAdventures.length}/5 playable discoveries completed · {gradeSevenChapters.length} Grade 7 topics mapped</p></section><section className="adventure-grid">{gradeSevenChapters.map((chapter) => { const comingSoon = "status" in chapter; const completedAdventure = !comingSoon && completedAdventures.includes(chapter.id); return <article key={chapter.id} className={comingSoon ? "adventure-card coming-soon" : completedAdventure ? "adventure-card completed" : "adventure-card"}><span>{chapter.icon}</span><p className="eyebrow">{comingSoon ? "NOVA IS PREPARING THIS WORLD" : completedAdventure ? "DISCOVERED" : "PLAY NOW"}</p><h2>{chapter.topic}</h2><p className="story-world">Story world · {chapter.title}</p><div className="subtopic-row">{chapter.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div><p>{chapter.intro}</p>{comingSoon ? <div className="coming-soon-note"><span>✦</span><b>Coming soon</b><small>This world will unlock after its interactive chapter is ready.</small></div> : <button className="primary" onClick={() => openGradeSevenAdventure(chapter.id)}>{completedAdventure ? "Explore again →" : `${chapter.action} →`}</button>}</article>; })}</section></main>;
+  }
+
+  if (screen === "activity") {
+    return <main className="shell activity-shell theme-pathfinder"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("adventures")}>Adventure map</button></nav><GradeSevenActivity id={activeAdventure} onFinish={finishGradeSevenAdventure} /></main>;
   }
 
   if (screen === "world") {
@@ -553,10 +453,10 @@ export default function Home() {
   }
 
   if (completed) {
-    return <main className={`shell completion-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("parent")}>View parent snapshot</button></nav><section className="completion-card"><div className="burst">✦</div><p className="eyebrow">MISSION COMPLETE</p><h1>{isScienceMission ? `You protected the habitat, ${name}!` : isEnglishMission ? `You unlocked the Story Studio, ${name}!` : isSocialMission ? `You mapped a kinder community, ${name}!` : `You completed Grade ${grade} maths, ${name}!`}</h1><p>You made {gradeQuests.length} connected discoveries about {completedSkills.map((skill) => skillNames[skill]).join(" and ")}.</p><div className="reward"><span>🪙</span><div><b>+{questCorrect * 25} Lumina coins</b><small>Earned by solving the mission ideas.</small></div></div><button className="primary" onClick={() => setScreen("parent")}>See this week&apos;s progress →</button></section></main>;
+    return <main className={`shell completion-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("map")}>Learning atlas</button></nav><section className="completion-card"><div className="burst">✦</div><p className="eyebrow">MISSION COMPLETE</p><h1>{isScienceMission ? `You protected the habitat, ${name}!` : isEnglishMission ? `You unlocked the Story Studio, ${name}!` : isSocialMission ? `You mapped a kinder community, ${name}!` : `You completed Grade ${grade} maths, ${name}!`}</h1><p>You made {gradeQuests.length} connected discoveries about {completedSkills.map((skill) => skillNames[skill]).join(" and ")}.</p><div className="reward"><span>🪙</span><div><b>+{questCorrect * 25} Lumina coins</b><small>Earned by solving the mission ideas.</small></div></div><button className="primary" onClick={() => setScreen("map")}>Choose another world →</button></section></main>;
   }
 
-  return <main className={`shell quest-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>🔥 {dailyStreak}</span><span>✨ {pet}</span><button className="text-button" onClick={openGradePicker}>Switch grade</button><button className="text-button" onClick={() => setScreen("map")}>Learning atlas</button><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button><button className="text-button" onClick={() => setScreen("parent")}>Parent view</button></div></nav>
+  return <main className={`shell quest-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>🔥 {dailyStreak}</span><span>✨ {pet}</span><button className="text-button" onClick={openGradePicker}>Switch grade</button><button className="text-button" onClick={() => setScreen("map")}>Learning atlas</button><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button></div></nav>
     <section className="quest-layout"><aside className="quest-side"><div className={`mission-scene stage-${beaconEnergy}`}><div className="scene-stars">✦ ✧ ✦</div><div className="beacon-core">✦</div><div className="beacon-pulse" /><div className="nova-orbit">✨</div><p>Beacon energy: {beaconEnergy}/3</p></div><p className="eyebrow">{screen === "diagnostic" ? grade <= 7 ? "NOVA'S RESCUE MISSION" : "MATHS CALIBRATION" : `GRADE ${grade} · LUMINA RESTORATION`}</p><h1>{missionTitle}</h1><p>{missionMoment}</p><div className="progress"><span style={{ width: `${screen === "diagnostic" ? ((diagnosticIndex + 1) / gradeDiagnostic.length) * 100 : ((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><small>{screen === "diagnostic" ? diagnosticIndex + 1 : questIndex + 1} of {screen === "diagnostic" ? gradeDiagnostic.length : gradeQuests.length} small discoveries</small></aside>
       <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Explore first" : "Use your discovery"}</span></div><Visual kind={current.visual} chargedPieces={chargedPieces} onCharge={chargePiece} /><div className="quest-story"><span>Nova says</span><p>{lessonStory.coachLine}</p></div>{screen === "quest" && learningTrail.id === "visual" && <p className="trail-nudge">Visual Trail · Start with the picture. The symbols can wait.</p>}<h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Nova&apos;s clue:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Not yet—and that&apos;s useful information.</b><span>Let&apos;s slow the picture down and try a new route.</span></div>}{wrongAttemptsOnQuestion >= 2 && feedback !== "correct" && <div className="recovery-card"><p className="eyebrow">NOVA&apos;S SLOW-DOWN PATH</p><h3>You don&apos;t have to get it quickly to get it.</h3><p>{recoveryPrompt()}</p><button className="text-button" onClick={() => { setShowHint(true); setFeedback(null); }}>I&apos;m ready to look again</button></div>}{feedback === "correct" && <div className="feedback correct"><b>Beacon energy restored! +25 Lumina coins</b><span>{current.explanation}</span></div>}{feedback === "correct" && screen === "quest" && learningTrail.id === "stretch" && <div className="stretch-prompt"><b>Pathfinder thought</b><span>Can you explain this answer to Nova without using the choices?</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={askNovaForClue}>Ask Nova for a clue</button><button className="primary" disabled={!selected} onClick={answer}>Send my idea →</button></>}{feedback === "correct" && <button className="primary" onClick={continueLearning}>See what changed in Lumina →</button>}{feedback === "retry" && <button className="primary" onClick={retryCurrentQuestion}>{wrongAttemptsOnQuestion >= 2 ? "Use the slow-down path" : "Try a different idea"}</button>}</div></section>
     </section></main>;
