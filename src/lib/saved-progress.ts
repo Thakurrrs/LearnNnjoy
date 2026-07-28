@@ -1,10 +1,15 @@
 import type { Grade } from "./learning";
 import { readSubjectProgress, type ActiveSubject, type SubjectProgress } from "./subject-progress";
-import type { GradeSevenAdventureId } from "@/components/grade-seven-adventures";
+import {
+  isGradeSevenAdventureId,
+  sanitizeGradeSevenProgress,
+  type GradeSevenAdventureId,
+  type GradeSevenProgress,
+} from "./grade-seven-progress";
 import { avatars } from "./avatars";
 import { pets } from "./pets";
 
-export type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "world" | "map" | "adventures" | "activity";
+export type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "world" | "map" | "adventures" | "activity" | "journal";
 
 export type SavedProgress = {
   name: string;
@@ -29,14 +34,14 @@ export type SavedProgress = {
   subjectProgress: SubjectProgress;
   nextSupportMode: "rebuild" | "steady" | "stretch";
   completedAdventures: GradeSevenAdventureId[];
+  gradeSevenProgress: GradeSevenProgress;
+  activeAdventure: GradeSevenAdventureId;
   avatar: string;
   pet: string | null;
   lifetimeDiscoveries: number;
 };
 
 export const LIFETIME_DISCOVERIES_CAP = 100000;
-
-const ADVENTURE_IDS = ["mountain", "balance", "shop", "skatepark", "cricket"];
 
 // Absent keys stay absent so the caller keeps its defaults; lifetimeDiscoveries
 // is always present because old saves must be seeded from earned progress.
@@ -47,7 +52,11 @@ export function sanitizeSavedProgress(saved: Partial<SavedProgress>): SanitizedP
   if (saved.name) out.name = saved.name;
   if (saved.grade && saved.grade >= 4 && saved.grade <= 12) out.grade = saved.grade as Grade;
   if (saved.activeSubject === "maths" || ((saved.activeSubject === "science" || saved.activeSubject === "english" || saved.activeSubject === "social") && typeof saved.grade === "number" && saved.grade >= 4 && saved.grade <= 12)) out.activeSubject = saved.activeSubject;
-  if (saved.screen && saved.screen !== "welcome") out.screen = saved.screen === "story" && saved.grade !== 4 ? "diagnostic" : saved.screen;
+  if (saved.screen && saved.screen !== "welcome") {
+    if (saved.screen === "story" && saved.grade !== 4) out.screen = "diagnostic";
+    else if ((saved.screen === "activity" || saved.screen === "journal") && saved.grade !== 7) out.screen = "adventures";
+    else out.screen = saved.screen;
+  }
   if (typeof saved.diagnosticIndex === "number") out.diagnosticIndex = Math.min(saved.diagnosticIndex, 2);
   if (typeof saved.diagnosticCorrect === "number") out.diagnosticCorrect = Math.max(0, Math.min(3, saved.diagnosticCorrect));
   if (typeof saved.storyBeat === "number") out.storyBeat = Math.max(0, Math.min(3, saved.storyBeat));
@@ -65,7 +74,11 @@ export function sanitizeSavedProgress(saved: Partial<SavedProgress>): SanitizedP
   if (typeof saved.lastCompletedDate === "string") out.lastCompletedDate = saved.lastCompletedDate;
   if (saved.subjectProgress) out.subjectProgress = readSubjectProgress(saved.subjectProgress);
   if (saved.nextSupportMode === "rebuild" || saved.nextSupportMode === "steady" || saved.nextSupportMode === "stretch") out.nextSupportMode = saved.nextSupportMode;
-  if (Array.isArray(saved.completedAdventures) && saved.completedAdventures.every((id) => ADVENTURE_IDS.includes(id))) out.completedAdventures = saved.completedAdventures;
+  if (Array.isArray(saved.completedAdventures) && saved.completedAdventures.every(isGradeSevenAdventureId)) out.completedAdventures = saved.completedAdventures;
+  const completedAdventures = out.completedAdventures ?? [];
+  if (saved.gradeSevenProgress || completedAdventures.length) out.gradeSevenProgress = sanitizeGradeSevenProgress(saved.gradeSevenProgress, completedAdventures);
+  if (isGradeSevenAdventureId(saved.activeAdventure)) out.activeAdventure = saved.activeAdventure;
+  else if (saved.screen === "activity") out.screen = "adventures";
   if (typeof saved.avatar === "string" && avatars.some((option) => option.id === saved.avatar)) out.avatar = saved.avatar;
   if (saved.pet === null || (typeof saved.pet === "string" && pets.some((option) => option.id === saved.pet))) out.pet = saved.pet ?? null;
   const lifetimeDiscoveries = typeof saved.lifetimeDiscoveries === "number" && saved.lifetimeDiscoveries >= 0

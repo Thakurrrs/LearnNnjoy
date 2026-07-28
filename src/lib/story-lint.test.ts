@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { finaleCopy, gradeSevenAdventures } from "@/components/grade-seven-adventures";
+import { conceptBeats, finaleCopy, gradeSevenAdventures } from "@/components/grade-seven-adventures";
 import { getLessonStory } from "./lesson-story";
 import { chooseAdaptiveNextStep, recoveryPrompt } from "./adaptive";
 import type { Question } from "./learning";
+import { mountainBriefing } from "./mountain-rescue";
 
 const BANNED = ["MISSION MOMENT COMPLETE", "Thoughtful stretch", "calibration", "This is not a score", "useful information", "initialise"];
 
@@ -20,6 +21,7 @@ function allStoryStrings(): string[] {
     strings.push(story.chapterTitle, story.chapterDialogue, story.coachLine, story.completeLabel, story.outcomeTitle, story.outcomeDetail);
   }
   for (const adventure of gradeSevenAdventures) strings.push(adventure.intro, finaleCopy[adventure.id].title, finaleCopy[adventure.id].detail);
+  strings.push(...mountainBriefing);
   const adaptiveInputs = [
     { wrongAttempts: 2, hintUsed: true, recentAccuracy: 0.4 },
     { wrongAttempts: 0, hintUsed: true, recentAccuracy: 0.9 },
@@ -56,5 +58,22 @@ describe("story copy lint", () => {
       expect(label.split(/\s+/).length).toBeLessThanOrEqual(4);
       expect(label).not.toMatch(/complete/i);
     }
+  });
+});
+
+describe("Grade 7 concept beats obey the Story Bible", () => {
+  const allLines = Object.values(conceptBeats).flat();
+
+  it("has five beat sets with at least three lines each", () => {
+    expect(Object.keys(conceptBeats)).toHaveLength(5);
+    Object.values(conceptBeats).forEach((lines) => expect(lines.length).toBeGreaterThanOrEqual(3));
+  });
+
+  it("keeps every sentence within 16 words", () => {
+    allLines.forEach((line) => expect(maxSentenceWords(line), line).toBeLessThanOrEqual(16));
+  });
+
+  it("never uses shaming words", () => {
+    allLines.forEach((line) => expect(line).not.toMatch(/wrong|incorrect|thoughtful stretch|you did it/i));
   });
 });

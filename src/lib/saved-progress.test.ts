@@ -51,6 +51,45 @@ describe("sanitizeSavedProgress", () => {
     expect(sanitizeSavedProgress({ screen: "welcome" }).screen).toBeUndefined();
   });
 
+  it("keeps a valid Grade 7 activity resume and rejects an unsafe one", () => {
+    const valid = sanitizeSavedProgress({
+      grade: 7,
+      screen: "activity",
+      activeAdventure: "mountain",
+      gradeSevenProgress: {
+        mountain: {
+          seenEvents: [0, 1],
+          lastEvent: 1,
+          completed: false,
+          interactionState: {
+            kind: "mountain",
+            step: 1,
+            showDemo: false,
+            successChoice: null,
+            position: -4,
+            returnPosition: -4,
+            briefingBeat: 3,
+            flightPath: [3, 2, 1, 0, -1, -2, -3, -4],
+            direction: null,
+            equation: null,
+          },
+        },
+      },
+    });
+    expect(valid.screen).toBe("activity");
+    expect(valid.activeAdventure).toBe("mountain");
+    expect(valid.gradeSevenProgress?.mountain?.interactionState).toMatchObject({ step: 1, position: -4 });
+
+    expect(sanitizeSavedProgress({ grade: 7, screen: "activity" }).screen).toBe("adventures");
+    expect(sanitizeSavedProgress({ grade: 6, screen: "journal" }).screen).toBe("adventures");
+  });
+
+  it("migrates old completed stars without inventing journal history", () => {
+    const clean = sanitizeSavedProgress({ completedAdventures: ["shop"] });
+    expect(clean.gradeSevenProgress?.shop?.completed).toBe(true);
+    expect(clean.gradeSevenProgress?.shop?.seenEvents).toEqual([]);
+  });
+
   it("clamps mission counters into their valid ranges", () => {
     const clean = sanitizeSavedProgress({ diagnosticIndex: 9, diagnosticCorrect: 8, storyBeat: -2, hintRequests: -4, questIndex: -1 });
     expect(clean.diagnosticIndex).toBe(2);
