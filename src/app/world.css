@@ -75,3 +75,16 @@
 .nova-lg { font-size: 3rem; }
 .nova-lg .nova-gear { font-size: 1.8rem; }
 .nova-lg small { font-size: 1rem; display: block; }
+
+/* Task 5: Nova preview + outcome placement */
+.nova-preview {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 1.1rem 1.4rem;
+  margin-bottom: 1rem;
+  border-radius: 18px;
+  background: rgba(124, 96, 232, 0.08);
+}
+.nova-preview p { margin: 0; opacity: 0.8; }
+.outcome-nova { margin: 0.4rem 0 0.2rem; }
