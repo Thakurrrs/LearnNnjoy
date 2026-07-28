@@ -214,3 +214,15 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
 .finale-shop { background: linear-gradient(180deg, #472418 0%, #7a4a22 100%); }
 .finale-skatepark { background: linear-gradient(180deg, #33124a 0%, #7a2a5c 100%); }
 .finale-cricket { background: linear-gradient(180deg, #0f3524 0%, #1e5c3c 100%); }
+/* Task 13: hand-control beta */
+.hand-control {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.7rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 14px;
+  background: rgba(25, 18, 56, 0.06);
+}
+.hand-control video { width: 120px; border-radius: 10px; transform: scaleX(-1); }
+.hand-control p { margin: 0; font-size: 0.85rem; opacity: 0.85; }
