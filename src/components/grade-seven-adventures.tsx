@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { sound } from "@/lib/sound";
 import { HandAngleControl, supportsHandControl } from "@/components/hand-angle-control";
+import { MountainRescueAdventure } from "@/components/mountain-rescue-adventure";
 import { NovaShows } from "@/components/nova-shows";
 import { SparkleBurst } from "@/components/sparkle-burst";
 import { personalize } from "@/lib/personalize";
@@ -12,7 +13,6 @@ import type {
   GradeSevenActivityMode,
   GradeSevenAdventureId,
   GradeSevenInteractionState,
-  MountainState,
   ShopState,
   SkateparkState,
 } from "@/lib/grade-seven-progress";
@@ -138,27 +138,6 @@ type ControlledProps<T extends GradeSevenInteractionState> = {
   onFinish: () => void;
 };
 
-const CLIFF_TOP = 8;
-const CLIFF_BOTTOM = -8;
-const LEVEL_H = 26;
-
-function MountainRescue({ state, onChange, firstTime, replay, heroName, onFinish }: ControlledProps<MountainState>) {
-  const set = (patch: Partial<MountainState>) => onChange({ ...state, ...patch });
-  const complete = state.position === -4;
-  const levels = Array.from({ length: CLIFF_TOP - CLIFF_BOTTOM + 1 }, (_, index) => CLIFF_TOP - index);
-  const fmt = (value: number) => value > 0 ? `+${value}` : `${value}`;
-  return <>
-    {state.step < 5 && <ChapterProgress chapter="Mountain Rescue" step={state.step} />}
-    {state.step === 0 && <section className="chapter-event"><p className="activity-prompt">{personalize("My rescue pod hung at +3. The storm knocked it 7 levels DOWN, {hero}! The cliff counts every level above and below base camp.", heroName)}</p><StoryScene world="mountain" /><button className="primary" onClick={() => set({ step: 1 })}>Open the cliff map →</button></section>}
-    {state.step === 1 && state.showDemo && <NovaShows lines={conceptBeats.mountain} onDone={() => set({ showDemo: false })} />}
-    {state.step === 1 && !state.showDemo && <section className="chapter-event"><p className="activity-prompt">Fly the pod DOWN seven levels from +3. Cross base camp on the way.</p><div className="cliff-lab" aria-label={`Nova's pod is at level ${fmt(state.position)}`}><div className="cliff-track" style={{ height: `${levels.length * LEVEL_H}px` }}>{levels.map((value) => <button key={value} className={`cliff-level${value === state.position ? " active" : ""}${value === 0 ? " base-camp" : ""}`} style={{ top: `${(CLIFF_TOP - value) * LEVEL_H}px` }} onClick={() => set({ position: value })} aria-label={`Move the pod to level ${fmt(value)}`}><span>{fmt(value)}</span>{value === 0 && <small>BASE CAMP</small>}</button>)}<span className="cliff-pod" style={{ top: `${(CLIFF_TOP - state.position) * LEVEL_H}px` }} aria-hidden>🚁</span></div><div className="cliff-readout"><b>Pod level: {fmt(state.position)}</b><small>{state.position > 0 ? `${state.position} above base camp` : state.position < 0 ? `${-state.position} below base camp` : "right at base camp"}</small><em className="cliff-goal">Trail: start +3 · drop 7</em>{complete && <div className="mini-discovery"><b>The pod rests at −4.</b><span>Seven levels down from +3 crosses zero.</span></div>}</div></div><div className="activity-controls"><button onClick={() => set({ position: Math.max(CLIFF_BOTTOM, state.position - 1) })}>↓ Drop one level</button><b>{fmt(state.position)}</b><button onClick={() => set({ position: Math.min(CLIFF_TOP, state.position + 1) })}>Climb one level ↑</button></div><button className="primary" disabled={!complete} onClick={() => set({ step: 2 })}>Read the rescue marker →</button></section>}
-    {state.step === 2 && <section className="chapter-event"><p className="activity-prompt">The marker says <b>−4</b>. What does the minus sign tell the team?</p><StoryScene world="mountain" /><div className="offer-grid"><button className={state.direction === "below" ? "selected" : ""} onClick={() => set({ direction: "below" })}><b>Below base camp</b><small>The pod sits under zero.</small></button><button className={state.direction === "above" ? "selected" : ""} onClick={() => set({ direction: "above" })}><b>Above base camp</b><small>The pod sits over zero.</small></button></div>{state.direction === "above" && <p className="try-again">Look again. Is −4 above or below the gold base-camp line?</p>}<button className="primary" disabled={state.direction !== "below"} onClick={() => set({ step: 3 })}>Write the trail move →</button></section>}
-    {state.step === 3 && <section className="chapter-event"><p className="activity-prompt">Nova opens her rescue logbook. Which line records the fall?</p><StoryScene world="mountain" /><div className="offer-grid">{["3 − 7 = −4", "3 + 7 = −4"].map((choice) => <button key={choice} className={state.equation === choice ? "selected" : ""} onClick={() => set({ equation: choice })}><b>{choice}</b></button>)}</div>{state.equation === "3 + 7 = −4" && <p className="try-again">Falling DOWN removes levels. Down means subtract.</p>}<button className="primary" disabled={state.equation !== "3 − 7 = −4"} onClick={() => set({ step: 4 })}>Save the rescue route →</button></section>}
-    {state.step === 4 && <Success title="Rescue pod found!" question="What does 3 − 7 mean on the cliff?" choices={["Start at +3 and drop 7 levels", "Start at +3 and climb 7 levels", "Start at −7 and climb 3 levels"]} answer="Start at +3 and drop 7 levels" selected={state.successChoice} onSelect={(successChoice) => set({ successChoice })} onFinish={() => set({ step: 5 })}>The pod fell from +3 to −4. Crossing base camp keeps counting into minus: <b>3 − 7 = −4</b>.</Success>}
-    {state.step === 5 && <FinaleScene id="mountain" firstTime={firstTime} replay={replay} heroName={heroName} onDone={onFinish} />}
-  </>;
-}
-
 function BalanceDemo({ state, onChange }: { state: BalanceState; onChange: (state: BalanceState) => void }) {
   return <div className="balance-demo"><div className={`demo-beam ${state.demoMode}`}><span>✦ ✦ ✦</span><i aria-hidden>⚖️</i><span>✦ ✦ ✦</span></div><p>{state.demoMode === "level" ? "Same from BOTH sides—still fair!" : "I took from ONE side. It tips!"}</p><div className="activity-controls"><button onClick={() => onChange({ ...state, demoMode: "tipped" })}>Take from one side</button><button onClick={() => onChange({ ...state, demoMode: "level" })}>Take from both sides</button></div></div>;
 }
@@ -245,8 +224,12 @@ export function GradeSevenActivity({ id, state, mode, firstTime, heroName, onCha
 }) {
   const adventure = gradeSevenAdventures.find((item) => item.id === id)!;
   const heading = <div className="activity-heading"><span>{adventure.icon}</span><div><p className="eyebrow">{mode === "replay" ? "STORY JOURNAL REPLAY" : `GRADE 7 · ${adventure.topic.toUpperCase()}`}</p><h1>{adventure.topic}</h1><p className="story-world">Story world · {adventure.title}</p><p>{personalize(adventure.intro, heroName)}</p><div className="subtopic-row">{adventure.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div></div></div>;
+  if (id === "mountain" && state.kind === "mountain") {
+    return <section className="activity-panel mountain-benchmark-panel">
+      <MountainRescueAdventure state={state} onChange={onChange} firstTime={firstTime} replay={mode === "replay"} heroName={heroName} onFinish={onFinish} />
+    </section>;
+  }
   return <section className="activity-panel">{heading}
-    {id === "mountain" && state.kind === "mountain" && <MountainRescue state={state} onChange={onChange} firstTime={firstTime} replay={mode === "replay"} heroName={heroName} onFinish={onFinish} />}
     {id === "balance" && state.kind === "balance" && <BalanceLab state={state} onChange={onChange} firstTime={firstTime} replay={mode === "replay"} heroName={heroName} onFinish={onFinish} />}
     {id === "shop" && state.kind === "shop" && <SmartShopper state={state} onChange={onChange} firstTime={firstTime} replay={mode === "replay"} heroName={heroName} onFinish={onFinish} />}
     {id === "skatepark" && state.kind === "skatepark" && <Skatepark state={state} onChange={onChange} firstTime={firstTime} replay={mode === "replay"} heroName={heroName} onFinish={onFinish} />}

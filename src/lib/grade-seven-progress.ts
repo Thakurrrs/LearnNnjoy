@@ -13,6 +13,9 @@ type SharedState = {
 export type MountainState = SharedState & {
   kind: "mountain";
   position: number;
+  returnPosition: number;
+  briefingBeat: number;
+  flightPath: number[];
   direction: string | null;
   equation: string | null;
 };
@@ -63,7 +66,7 @@ export type GradeSevenAdventureProgress = {
 export type GradeSevenProgress = Partial<Record<GradeSevenAdventureId, GradeSevenAdventureProgress>>;
 
 export const gradeSevenEventTitles: Record<GradeSevenAdventureId, readonly string[]> = {
-  mountain: ["The storm hits", "The cliff map", "The minus marker", "Nova’s logbook", "The rescue proof"],
+  mountain: ["The storm signal", "Zero base camp", "Below zero", "The flight log", "The climb home"],
   balance: ["The locked crate", "The fair scale", "The balance rule", "The hidden value", "The crate opens"],
   shop: ["Two shops", "One quarter", "The price bar", "The better deal", "The saving explained"],
   skatepark: ["The rooftop plan", "The turning ramp", "The triangle secret", "Builder language", "The course opens"],
@@ -80,9 +83,34 @@ const boolOr = (value: unknown, fallback: boolean) => typeof value === "boolean"
 const numberOr = (value: unknown, fallback: number, min: number, max: number) =>
   typeof value === "number" && Number.isFinite(value) ? clamp(value, min, max) : fallback;
 
+function integerTrail(from: number, to: number): number[] {
+  const direction = to >= from ? 1 : -1;
+  return Array.from({ length: Math.abs(to - from) + 1 }, (_, index) => from + index * direction);
+}
+
+function mountainTrail(value: unknown, position: number): number[] {
+  if (!Array.isArray(value)) return integerTrail(3, position);
+  const clean = value
+    .filter((item): item is number => typeof item === "number" && Number.isInteger(item) && item >= -8 && item <= 8)
+    .slice(-40);
+  return clean.length > 0 ? clean : integerTrail(3, position);
+}
+
 export function createGradeSevenState(id: GradeSevenAdventureId, step = 0): GradeSevenInteractionState {
   const shared = { step: clamp(step, 0, 5), showDemo: true, successChoice: null };
-  if (id === "mountain") return { ...shared, kind: "mountain", position: 3, direction: null, equation: null };
+  if (id === "mountain") {
+    const position = step >= 2 ? -4 : 3;
+    return {
+      ...shared,
+      kind: "mountain",
+      position,
+      returnPosition: -4,
+      briefingBeat: 0,
+      flightPath: integerTrail(3, position),
+      direction: null,
+      equation: null,
+    };
+  }
   if (id === "balance") return { ...shared, kind: "balance", removed: 0, rule: null, value: null, demoMode: "level" };
   if (id === "shop") return { ...shared, kind: "shop", quarterPick: null, discount: 0, offer: null };
   if (id === "skatepark") return { ...shared, kind: "skatepark", angle: 20, triangleAngle: null, meaning: null };
@@ -102,7 +130,10 @@ export function sanitizeGradeSevenState(id: GradeSevenAdventureId, value: unknow
   if (id === "mountain") return {
     ...shared,
     kind: "mountain",
-    position: numberOr(raw.position, 3, -8, 8),
+    position: numberOr(raw.position, shared.step >= 2 ? -4 : 3, -8, 8),
+    returnPosition: numberOr(raw.returnPosition, -4, -8, 8),
+    briefingBeat: numberOr(raw.briefingBeat, 0, 0, 3),
+    flightPath: mountainTrail(raw.flightPath, numberOr(raw.position, shared.step >= 2 ? -4 : 3, -8, 8)),
     direction: stringOrNull(raw.direction),
     equation: stringOrNull(raw.equation),
   };

@@ -18,9 +18,17 @@ describe("Grade 7 adventure progress", () => {
 
   it("preserves exact interaction state and unlocks an opened event", () => {
     const start = openGradeSevenAdventure({}, "mountain");
-    const state = { ...createGradeSevenState("mountain"), step: 2, position: -4, direction: "below" } as ReturnType<typeof createGradeSevenState>;
+    const state = {
+      ...createGradeSevenState("mountain"),
+      step: 2,
+      position: -4,
+      briefingBeat: 3,
+      flightPath: [3, 2, 1, 0, -1, -2, -3, -4],
+      direction: "below",
+    } as ReturnType<typeof createGradeSevenState>;
     const progress = updateGradeSevenAdventure(start, "mountain", state);
     expect(progress.mountain?.interactionState).toMatchObject({ step: 2, position: -4, direction: "below" });
+    expect(progress.mountain?.interactionState).toMatchObject({ briefingBeat: 3, flightPath: [3, 2, 1, 0, -1, -2, -3, -4] });
     expect(progress.mountain?.seenEvents).toEqual([0, 2]);
   });
 
@@ -47,6 +55,39 @@ describe("Grade 7 adventure progress", () => {
     expect(progress.mountain?.seenEvents).toEqual([0, 2]);
     expect(progress.mountain?.lastEvent).toBe(4);
     expect(progress.mountain?.interactionState).toMatchObject({ step: 5, position: -8, direction: "below" });
+  });
+
+  it("migrates an older Mountain save into the continuous rescue state", () => {
+    const progress = sanitizeGradeSevenProgress({
+      mountain: {
+        seenEvents: [0, 1],
+        lastEvent: 1,
+        completed: false,
+        interactionState: {
+          kind: "mountain",
+          step: 1,
+          showDemo: false,
+          successChoice: null,
+          position: -2,
+          direction: null,
+          equation: null,
+        },
+      },
+    });
+    expect(progress.mountain?.interactionState).toMatchObject({
+      returnPosition: -4,
+      briefingBeat: 0,
+      flightPath: [3, 2, 1, 0, -1, -2],
+    });
+  });
+
+  it("starts later Mountain replays with the beacon already located", () => {
+    expect(createGradeSevenState("mountain", 3)).toMatchObject({
+      step: 3,
+      position: -4,
+      returnPosition: -4,
+      flightPath: [3, 2, 1, 0, -1, -2, -3, -4],
+    });
   });
 
   it("unlocks only events that were opened", () => {

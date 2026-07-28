@@ -3,6 +3,7 @@ import { conceptBeats, finaleCopy, gradeSevenAdventures } from "@/components/gra
 import { getLessonStory } from "./lesson-story";
 import { chooseAdaptiveNextStep, recoveryPrompt } from "./adaptive";
 import type { Question } from "./learning";
+import { mountainBriefing } from "./mountain-rescue";
 
 const BANNED = ["MISSION MOMENT COMPLETE", "Thoughtful stretch", "calibration", "This is not a score", "useful information", "initialise"];
 
@@ -20,6 +21,7 @@ function allStoryStrings(): string[] {
     strings.push(story.chapterTitle, story.chapterDialogue, story.coachLine, story.completeLabel, story.outcomeTitle, story.outcomeDetail);
   }
   for (const adventure of gradeSevenAdventures) strings.push(adventure.intro, finaleCopy[adventure.id].title, finaleCopy[adventure.id].detail);
+  strings.push(...mountainBriefing);
   const adaptiveInputs = [
     { wrongAttempts: 2, hintUsed: true, recentAccuracy: 0.4 },
     { wrongAttempts: 0, hintUsed: true, recentAccuracy: 0.9 },
