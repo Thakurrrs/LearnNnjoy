@@ -16,10 +16,10 @@ export type AdaptiveNextStep = {
 // the next activity became more visual, stayed steady, or offered a stretch.
 export function chooseAdaptiveNextStep(question: Question, signal: AdaptiveSignal): AdaptiveNextStep {
   if (signal.wrongAttempts >= 2 || signal.recentAccuracy < 0.45) {
-    return { mode: "rebuild", title: "Next: rebuild the idea gently", message: `Nova will begin the next ${question.skill.replace("-", " ")} step with a visual clue and one smaller move.` };
+    return { mode: "rebuild", title: "Let's look again together", message: `Nova: "Picture first, answer second. Slow is smart."` };
   }
   if (signal.hintUsed || signal.recentAccuracy < 0.75) {
-    return { mode: "steady", title: "Next: keep the support nearby", message: "The next discovery stays at a comfortable level, with Nova’s clue ready whenever it helps." };
+    return { mode: "steady", title: "Right on track", message: `Nova: "Nice pace! Let's keep exploring together."` };
   }
-  return { mode: "stretch", title: "Next: try one thoughtful stretch", message: "You can choose an optional explain-why prompt after the next discovery. It never changes your reward." };
+  return { mode: "stretch", title: "Bonus star ahead", message: `Nova: "Want to tell me WHY it works? Only if you like!"` };
 }

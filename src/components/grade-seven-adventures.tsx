@@ -57,7 +57,7 @@ export function FinaleScene({ id, firstTime, heroName, onDone }: { id: GradeSeve
       <p className="eyebrow">YOU CAME THROUGH</p>
       <h2>{personalize(copy.title, heroName)}</h2>
       <p>{personalize(copy.detail, heroName)}</p>
-      {firstTime ? <div className="finale-reward"><span>🪙</span><b>+25 Lumina coins</b><small>banked for Nova&apos;s wardrobe</small></div> : <div className="finale-reward"><span>✨</span><b>Star already lit</b><small>played again for the joy of it</small></div>}
+      {firstTime ? <div className="finale-reward"><span>🪙</span><b>+25 Lumina coins</b><small>banked for your explorer gear</small></div> : <div className="finale-reward"><span>✨</span><b>Star already lit</b><small>played again for the joy of it</small></div>}
       <button className="primary" onClick={onDone}>Return to the star map →</button>
     </section>
   );

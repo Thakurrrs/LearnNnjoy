@@ -249,3 +249,8 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
 .pet-note-dismiss { cursor: pointer; }
 @keyframes egg-wiggle { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
 @media (prefers-reduced-motion: reduce) { .friend-face.egg-ready { animation: none; } }
+
+/* Final review fix: keep the hero's cosmetic, Nova, and pet visible on phones (globals.css hides .quest-stats span:nth-child(2)) */
+@media (max-width: 760px) {
+  .quest-stats .hero-gear, .quest-stats .duo-nova, .quest-stats .duo-pet { display: inline-block; }
+}

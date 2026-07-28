@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { finaleCopy, gradeSevenAdventures } from "@/components/grade-seven-adventures";
 import { getLessonStory } from "./lesson-story";
+import { chooseAdaptiveNextStep } from "./adaptive";
 import type { Question } from "./learning";
 
 const BANNED = ["MISSION MOMENT COMPLETE", "Thoughtful stretch", "calibration", "This is not a score", "useful information", "initialise"];
@@ -19,6 +20,15 @@ function allStoryStrings(): string[] {
     strings.push(story.chapterTitle, story.chapterDialogue, story.coachLine, story.completeLabel, story.outcomeTitle, story.outcomeDetail);
   }
   for (const adventure of gradeSevenAdventures) strings.push(adventure.intro, finaleCopy[adventure.id].title, finaleCopy[adventure.id].detail);
+  const adaptiveInputs = [
+    { wrongAttempts: 2, hintUsed: true, recentAccuracy: 0.4 },
+    { wrongAttempts: 0, hintUsed: true, recentAccuracy: 0.9 },
+    { wrongAttempts: 0, hintUsed: false, recentAccuracy: 0.9 },
+  ];
+  for (const signal of adaptiveInputs) {
+    const next = chooseAdaptiveNextStep(sampleQuestion("fraction"), signal);
+    strings.push(next.title, next.message);
+  }
   return strings;
 }
 
