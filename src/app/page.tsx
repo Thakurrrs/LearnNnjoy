@@ -14,9 +14,10 @@ import { recordDailyQuest } from "@/lib/streak";
 import { chooseAdaptiveNextStep } from "@/lib/adaptive";
 import { readSubjectProgress, snapshotSubjectMission, type ActiveSubject, type SubjectMissionProgress, type SubjectProgress } from "@/lib/subject-progress";
 import { getMissionChapter } from "@/lib/mission-chapters";
-import { GradeSevenActivity, gradeSevenAdventures, gradeSevenComingSoonChapters, type GradeSevenAdventureId } from "@/components/grade-seven-adventures";
+import { GradeSevenActivity, gradeSevenAdventures, gradeSevenComingSoonChapters, type GradeSevenAdventureId, type GradeSevenChapter } from "@/components/grade-seven-adventures";
 import { cosmetics } from "@/lib/cosmetics";
 import { NovaCompanion } from "@/components/nova-companion";
+import { ConstellationMap } from "@/components/constellation-map";
 
 type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "world" | "map" | "adventures" | "activity";
 
@@ -143,6 +144,7 @@ export default function Home() {
   const [nextSupportMode, setNextSupportMode] = useState<SavedProgress["nextSupportMode"]>("steady");
   const [activeAdventure, setActiveAdventure] = useState<GradeSevenAdventureId>("mountain");
   const [completedAdventures, setCompletedAdventures] = useState<GradeSevenAdventureId[]>([]);
+  const [selectedChapter, setSelectedChapter] = useState<string>("mountain");
   const gradeSevenChapters = [...gradeSevenAdventures, ...gradeSevenComingSoonChapters];
 
   function applySavedProgress(saved: Partial<SavedProgress>) {
@@ -410,7 +412,14 @@ export default function Home() {
   }
 
   if (screen === "adventures") {
-    return <main className="shell adventure-shell theme-pathfinder"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><NovaCompanion equippedCosmetic={equippedCosmetic} size="sm" showName /><button className="text-button" onClick={openGradePicker}>Switch grade</button></div></nav><section className="adventure-hero"><p className="eyebrow">GRADE 7 · MATHS ADVENTURE MAP</p><h1>Choose a topic. Make the maths move.</h1><p>Every Grade 7 topic has a world here. Playable chapters teach now; Nova is preparing the next worlds.</p><p className="adventure-progress">{completedAdventures.length}/5 playable discoveries completed · {gradeSevenChapters.length} Grade 7 topics mapped</p></section><section className="adventure-grid">{gradeSevenChapters.map((chapter) => { const comingSoon = "status" in chapter; const completedAdventure = !comingSoon && completedAdventures.includes(chapter.id); return <article key={chapter.id} className={comingSoon ? "adventure-card coming-soon" : completedAdventure ? "adventure-card completed" : "adventure-card"}><span>{chapter.icon}</span><p className="eyebrow">{comingSoon ? "NOVA IS PREPARING THIS WORLD" : completedAdventure ? "DISCOVERED" : "PLAY NOW"}</p><h2>{chapter.topic}</h2><p className="story-world">Story world · {chapter.title}</p><div className="subtopic-row">{chapter.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div><p>{chapter.intro}</p>{comingSoon ? <div className="coming-soon-note"><span>✦</span><b>Coming soon</b><small>This world will unlock after its interactive chapter is ready.</small></div> : <button className="primary" onClick={() => openGradeSevenAdventure(chapter.id)}>{completedAdventure ? "Explore again →" : `${chapter.action} →`}</button>}</article>; })}</section></main>;
+    const selected = gradeSevenChapters.find((chapter) => chapter.id === selectedChapter) ?? gradeSevenChapters[0];
+    const selectedComingSoon = "status" in selected;
+    const selectedCompleted = !selectedComingSoon && completedAdventures.includes(selected.id as GradeSevenAdventureId);
+    return <main className="shell adventure-shell theme-pathfinder"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><NovaCompanion equippedCosmetic={equippedCosmetic} size="sm" showName /><button className="text-button" onClick={openGradePicker}>Switch grade</button></div></nav>
+      <section className="adventure-hero"><p className="eyebrow">GRADE 7 · MATHS CONSTELLATION</p><h1>Light every star in the Lumina sky.</h1><p>Each Grade 7 topic is a star on Nova&apos;s trail. Bright stars are ready to play; dim stars wait on the horizon.</p><p className="adventure-progress">{completedAdventures.length}/{gradeSevenAdventures.length} stars lit · {gradeSevenChapters.length} topics mapped</p></section>
+      <ConstellationMap chapters={gradeSevenChapters} completedIds={completedAdventures} selectedId={selectedChapter} onSelect={setSelectedChapter} />
+      <section className="star-detail" aria-live="polite"><span className="star-detail-icon">{selected.icon}</span><div><p className="eyebrow">{selectedComingSoon ? "NOVA IS PREPARING THIS WORLD" : selectedCompleted ? "STAR LIT · PLAY AGAIN ANYTIME" : "READY TO PLAY"}</p><h2>{selected.topic}</h2><p className="story-world">Story world · {selected.title}</p><div className="subtopic-row">{selected.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div><p>{selected.intro}</p>{selectedComingSoon ? <div className="coming-soon-note"><span>✦</span><b>Coming soon</b><small>This star will brighten when its interactive chapter is ready.</small></div> : <button className="primary" onClick={() => openGradeSevenAdventure(selected.id as GradeSevenAdventureId)}>{selectedCompleted ? "Explore again →" : `${(selected as GradeSevenChapter).action} →`}</button>}</div></section>
+    </main>;
   }
 
   if (screen === "activity") {
