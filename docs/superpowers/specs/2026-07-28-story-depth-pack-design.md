@@ -97,12 +97,18 @@ explainMoment(question: Question, wrongAttempts: number): string
 
 ### 4.3 Grade-7 adventures — all five
 
-Mechanics untouched (sliders, shop, ramp, selectors). Each activity's script in `grade-seven-adventures.tsx` gains:
+Interaction *inputs* untouched (sliders, +/− buttons, tap-to-pick). Each activity's script in `grade-seven-adventures.tsx` gains:
 
 1. **Setup beats:** intro becomes 2–3 short lines with concrete stakes (replacing today's single line).
-2. **Concept beat** before the first interaction — Nova demonstrates the core idea once in-fiction (Mountain Rescue: "Base camp is ZERO. The pod fell 3 below — that's minus 3. Down means minus!"). Rendered as a dismissible "Nova shows you" panel.
+2. **Concept beat** before the first interaction — Nova demonstrates the core idea once in-fiction (Mountain Rescue: "Base camp is ZERO. The pod fell 3 below — that's minus 3. Down means minus!"). Rendered as a dismissible "Nova shows you" panel (`NovaShows` component, shared).
 3. **Teaching feedback:** wrong/settled moves get lines that explain the maths in-story ("You climbed UP 5 from −3… landed on 2! Minus, then plus!") instead of neutral retry text.
-4. Finales stay; light voice-consistency pass only.
+4. **Concept-accurate lab animations** (per decision — the animation must BE the explanation):
+   - **Mountain Rescue:** the pod currently moves *horizontally* while teaching altitude. Replace with a **vertical cliff track**: levels +8…−8 stacked top-to-bottom, a gold **BASE CAMP (0)** line, and the pod flying **up/down** with a smooth transition as `position` changes. The horizontal number-line strip is retired for this lab.
+   - **Skatepark:** the skater currently floats near the ramp via linear `left/bottom` approximations. Put the skater **inside the rotating ramp element** so it always sits ON the incline and tilts with it; when the angle steepens the skater **slides down** the plank (position along the plank is a function of angle, transitioned); on hitting 60° a **roll-down animation** plays — the ride proves the ramp works.
+   - **Balance Lab:** the concept beat gains an interactive mini-beam that **tips** when you take from one side only and stays **level** when you take from both — the tilt is the lesson. Main lab beam unchanged (it is always balanced by design).
+   - **Smart Shopper:** the discount step gains a **price bar** — ₹240 drawn as four ₹60 quarters; the shaded region grows with the dial and the first quarter visibly pops off at exactly 25%. Percentage becomes *area of the price*, not just a dial number.
+   - **Cricket Data:** bar chart is already concept-accurate; copy/concept-beat pass only.
+5. Finales stay; light voice-consistency pass only. Story fictions are retained (pod = altitude, ramp = angle are ideal fits); scripts around them are rewritten.
 
 ## 5. Data & save
 
