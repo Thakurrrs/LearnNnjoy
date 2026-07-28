@@ -14,5 +14,11 @@ package-provided dummy watermark fallback because the Perth neural watermarker
 is unavailable. The preview page explicitly identifies the clips as
 AI-generated.
 
+The three files under `mascot/` use one original Kokoro voice-style blend with
+three pitch levels. They use the same script and timing so the audition isolates
+the perceived size of the mascot voice rather than comparing different writing
+or performers. They target a general friendly creature-companion quality and
+do not imitate a named character or performer.
+
 The audition files are temporary product-development assets. Keep the selected
 voice direction and remove rejected auditions after approval.

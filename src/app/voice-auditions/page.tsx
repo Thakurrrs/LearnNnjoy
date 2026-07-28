@@ -8,31 +8,24 @@ export const metadata: Metadata = {
 const auditions = [
   {
     id: "A",
-    title: "Danger alert",
-    role: "Nova",
-    description: "A rescue pod is falling. Nova needs the learner to act now.",
-    src: "/audio/voice-auditions/emotion/a-danger-alert.mp3",
+    title: "Mascot voice A",
+    role: "Nova identity test",
+    description: "A gentle lift: youthful, but closest to a natural teaching voice.",
+    src: "/audio/voice-auditions/mascot/a-mascot-voice.mp3",
   },
   {
     id: "B",
-    title: "Calm reassurance",
-    role: "Nova",
-    description: "The learner feels stuck. Nova slows down and makes the next step feel safe.",
-    src: "/audio/voice-auditions/emotion/b-calm-reassurance.mp3",
+    title: "Mascot voice B",
+    role: "Nova identity test",
+    description: "A clearer little-companion pitch, balanced for stories and explanations.",
+    src: "/audio/voice-auditions/mascot/b-mascot-voice.mp3",
   },
   {
     id: "C",
-    title: "Gentle correction",
-    role: "Nova",
-    description: "The answer is close. Nova sounds curious and guides without judging.",
-    src: "/audio/voice-auditions/emotion/c-gentle-correction.mp3",
-  },
-  {
-    id: "D",
-    title: "Big celebration",
-    role: "Nova",
-    description: "The learner solves the rescue. Nova shares the excitement and victory.",
-    src: "/audio/voice-auditions/emotion/d-big-celebration.mp3",
+    title: "Mascot voice C",
+    role: "Nova identity test",
+    description: "The smallest creature pitch—the strongest rabbit-sidekick direction.",
+    src: "/audio/voice-auditions/mascot/c-mascot-voice.mp3",
   },
 ] as const;
 
@@ -40,8 +33,8 @@ export default function VoiceAuditionsPage() {
   return <main className={styles.page}>
     <section className={styles.hero}>
       <p>LEARNNJOY · PRIVATE PRODUCT PREVIEW</p>
-      <h1>Can you hear Nova&apos;s emotion?</h1>
-      <span>One consistent Nova voice, acting four different story moments. The earlier “playful, warm, mischievous” pack was rejected because its differences were too small.</span>
+      <h1>Which voice feels like little Nova?</h1>
+      <span>The adult-sounding direction is rejected. These three original mascot auditions use the exact same words, so judge only the voice: small, bright, friendly, expressive, and comfortable for children to hear.</span>
     </section>
 
     <section className={styles.grid} aria-label="Nova voice auditions">
@@ -60,8 +53,8 @@ export default function VoiceAuditionsPage() {
     </section>
 
     <aside className={styles.note}>
-      <b>The eyes-closed test</b>
-      <span>Ignore the words for a moment. Does the performance itself make danger urgent, reassurance gentle, correction supportive, and celebration joyful? These are AI-generated auditions—not final story audio.</span>
+      <b>This test is only for Nova&apos;s identity</b>
+      <span>Choose the voice that feels like a friendly little adventure companion—not the cutest voice for five seconds. After choosing it, we will make that same voice perform danger, reassurance, correction, and celebration. These are original AI-generated auditions, not an imitation of an anime performer.</span>
     </aside>
   </main>;
 }
