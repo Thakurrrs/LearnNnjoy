@@ -24,11 +24,11 @@ Six arcs in v1, each a complete adventure written in Story-Bible voice:
 | `sky-whale` | The Sky-Whale of Cloud Island | maths | grades where `grade % 3 === 0` |
 | `comet-cup` | The Comet Cup Race | maths | `grade % 3 === 1` |
 | `lighthouse` | The Lost Lighthouse of Star Harbor | maths | `grade % 3 === 2` |
-| `sleeping-garden` | The Sleeping Garden | science | all science missions |
-| `runaway-book` | The Runaway Storybook | english | all english missions |
-| `lost-festival` | The Festival That Lost Its Way | social | all social missions |
+| `sleeping-garden` | The Sleeping Garden | science | all science missions *(phase 6, cuttable)* |
+| `runaway-book` | The Runaway Storybook | english | all english missions *(phase 6, cuttable)* |
+| `lost-festival` | The Festival That Lost Its Way | social | all social missions *(phase 6, cuttable)* |
 
-`getArcFor(subject, grade)` → deterministic pick per the table. A kid switching grades in maths gets a *different* adventure; science/english/social each have one arc (their missions are shorter and single-skill).
+`getArcFor(subject, grade)` → deterministic pick per the table, returning `null` for subjects without an arc yet — the engine then falls back to that subject's existing template story. A kid switching grades in maths gets a *different* adventure; science/english/social each get one arc in the cuttable tail phase (their missions are shorter and single-skill).
 
 ### 3.2 Arc shape
 
@@ -124,8 +124,11 @@ Voice narration/TTS; journey-map animation; per-question word-problem fusion (re
 
 **Pre-condition:** merge the current `feature/kid-interest-pack` PR and land the running polish task (task_e1288637 touches `adaptive.ts` recoveryPrompt and saved-progress extraction) **before** this work starts, on a fresh branch `feature/story-depth-pack`. This avoids collisions on `page.tsx`/`adaptive.ts`.
 
-1. `story-arcs.ts` types + six arcs + arc lint tests
-2. `worked-examples.ts` + `explain-moments.ts` + tests
-3. `arc-scene.ts` engine; swap into `page.tsx`; retire `lesson-story.ts`; migrate its tests; wire worked-example panel + stuck flow
-4. G7 rewrite: five activities (setup beats, concept beat panel, teaching feedback)
+**Priority (per decision): Grade 7 first.** G7's whole experience is the five maths adventures; it ships before any quest-arc work so the kid sees the teaching upgrade soonest.
+
+1. **G7 rewrite: five activities** (setup beats, concept beat panel, teaching feedback) — deliverable on its own
+2. `worked-examples.ts` + `explain-moments.ts` + tests (skill-keyed → covers every subject's quest flow)
+3. `story-arcs.ts` types + the three **maths** arcs + arc lint tests
+4. `arc-scene.ts` engine; swap into `page.tsx`; retire the maths template stories in `lesson-story.ts` (non-maths subjects keep their current stories as the engine's fallback); migrate affected tests; wire worked-example panel + stuck flow
 5. Copy-lint extension + in-browser integration verify (desktop + mobile)
+6. *(Cuttable tail)* the three non-maths arcs — Sleeping Garden, Runaway Storybook, Lost Festival — added only after 1–5 are verified; skip or defer freely if energy is better spent shipping.
