@@ -11,8 +11,8 @@ import { getSocialQuestsForGrade } from "@/lib/social-quests";
 import { getGradeRoadmap } from "@/lib/curriculum-map";
 import { getLessonStory, type LessonStory } from "@/lib/lesson-story";
 import { recordDailyQuest } from "@/lib/streak";
-import { chooseAdaptiveNextStep } from "@/lib/adaptive";
-import { readSubjectProgress, snapshotSubjectMission, type ActiveSubject, type SubjectMissionProgress, type SubjectProgress } from "@/lib/subject-progress";
+import { chooseAdaptiveNextStep, recoveryPrompt } from "@/lib/adaptive";
+import { snapshotSubjectMission, type ActiveSubject, type SubjectMissionProgress, type SubjectProgress } from "@/lib/subject-progress";
 import { getMissionChapter } from "@/lib/mission-chapters";
 import { GradeSevenActivity, gradeSevenAdventures, gradeSevenComingSoonChapters, type GradeSevenAdventureId, type GradeSevenChapter } from "@/components/grade-seven-adventures";
 import { cosmetics } from "@/lib/cosmetics";
@@ -23,38 +23,9 @@ import { getExplorerLevel } from "@/lib/levels";
 import { personalize } from "@/lib/personalize";
 import { getPet, getPetStage, PET_CHOICE_LEVEL, PET_STAGE_LEVELS, PET_STAGE_TITLES, petMoment, pets } from "@/lib/pets";
 import { HeroBadge, HeroDuo } from "@/components/hero-badge";
-
-type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "world" | "map" | "adventures" | "activity";
+import { sanitizeSavedProgress, type SavedProgress, type Screen } from "@/lib/saved-progress";
 
 const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
-
-type SavedProgress = {
-  name: string;
-  grade: Grade;
-  screen: Screen;
-  diagnosticIndex: number;
-  diagnosticCorrect: number;
-  storyBeat: number;
-  storyCells: number[];
-  fruitSplit: boolean;
-  fruitShared: boolean;
-  hintRequests: number;
-  questIndex: number;
-  coins: number;
-  correct: number;
-  attempts: number;
-  ownedCosmetics: string[];
-  equippedCosmetic: string;
-  dailyStreak: number;
-  lastCompletedDate: string | null;
-  activeSubject: ActiveSubject;
-  subjectProgress: SubjectProgress;
-  nextSupportMode: "rebuild" | "steady" | "stretch";
-  completedAdventures: GradeSevenAdventureId[];
-  avatar: string;
-  pet: string | null;
-  lifetimeDiscoveries: number;
-};
 
 function FractionVisual({ chargedPieces, onCharge }: { chargedPieces: number; onCharge: () => void }) {
   return <div className="visual-play"><div className="pizza interactive-pizza" aria-label="A four-part energy disc. Tap a piece to charge it.">{[0, 1, 2, 3].map((piece) => <button key={piece} type="button" className={piece < chargedPieces ? "charged" : ""} aria-label={`Charge piece ${piece + 1}`} onClick={onCharge} />)}</div><p>Tap the energy pieces to explore equal parts.</p></div>;
@@ -162,32 +133,32 @@ export default function Home() {
   const explorer = getExplorerLevel(lifetimeDiscoveries);
 
   function applySavedProgress(saved: Partial<SavedProgress>) {
-    if (saved.name) setName(saved.name);
-    if (saved.grade && saved.grade >= 4 && saved.grade <= 12) setGrade(saved.grade as Grade);
-    if (saved.activeSubject === "maths" || ((saved.activeSubject === "science" || saved.activeSubject === "english" || saved.activeSubject === "social") && (saved.grade === 4 || saved.grade === 5 || saved.grade === 6 || saved.grade === 7 || saved.grade === 8 || saved.grade === 9 || saved.grade === 10 || saved.grade === 11 || saved.grade === 12))) setActiveSubject(saved.activeSubject);
-    if (saved.screen && saved.screen !== "welcome") setScreen(saved.screen === "story" && saved.grade !== 4 ? "diagnostic" : saved.screen);
-    if (typeof saved.diagnosticIndex === "number") setDiagnosticIndex(Math.min(saved.diagnosticIndex, 2));
-    if (typeof saved.diagnosticCorrect === "number") setDiagnosticCorrect(Math.max(0, Math.min(3, saved.diagnosticCorrect)));
-    if (typeof saved.storyBeat === "number") setStoryBeat(Math.max(0, Math.min(3, saved.storyBeat)));
-    if (Array.isArray(saved.storyCells) && saved.storyCells.every((cell) => typeof cell === "number" && cell >= 0 && cell < 4)) setStoryCells(saved.storyCells);
-    if (typeof saved.fruitSplit === "boolean") setFruitSplit(saved.fruitSplit);
-    if (typeof saved.fruitShared === "boolean") setFruitShared(saved.fruitShared);
-    if (typeof saved.hintRequests === "number") setHintRequests(Math.max(0, saved.hintRequests));
-    if (typeof saved.questIndex === "number") setQuestIndex(Math.max(0, saved.questIndex));
-    if (typeof saved.coins === "number") setCoins(saved.coins);
-    if (typeof saved.correct === "number") setCorrect(saved.correct);
-    if (typeof saved.attempts === "number") setAttempts(saved.attempts);
-    if (Array.isArray(saved.ownedCosmetics) && saved.ownedCosmetics.every((item) => typeof item === "string")) setOwnedCosmetics(saved.ownedCosmetics);
-    if (typeof saved.equippedCosmetic === "string") setEquippedCosmetic(saved.equippedCosmetic);
-    if (typeof saved.dailyStreak === "number") setDailyStreak(saved.dailyStreak);
-    if (typeof saved.lastCompletedDate === "string") setLastCompletedDate(saved.lastCompletedDate);
-    if (saved.subjectProgress) setSubjectProgress(readSubjectProgress(saved.subjectProgress));
-    if (saved.nextSupportMode === "rebuild" || saved.nextSupportMode === "steady" || saved.nextSupportMode === "stretch") setNextSupportMode(saved.nextSupportMode);
-    if (Array.isArray(saved.completedAdventures) && saved.completedAdventures.every((id) => ["mountain", "balance", "shop", "skatepark", "cricket"].includes(id))) setCompletedAdventures(saved.completedAdventures);
-    if (typeof saved.avatar === "string" && avatars.some((option) => option.id === saved.avatar)) setAvatar(saved.avatar);
-    if (saved.pet === null || (typeof saved.pet === "string" && pets.some((option) => option.id === saved.pet))) setPet(saved.pet ?? null);
-    if (typeof saved.lifetimeDiscoveries === "number" && saved.lifetimeDiscoveries >= 0) setLifetimeDiscoveries(Math.floor(saved.lifetimeDiscoveries));
-    else setLifetimeDiscoveries(Math.max(0, (saved.correct ?? 0) + (saved.completedAdventures?.length ?? 0)));
+    const clean = sanitizeSavedProgress(saved);
+    if (clean.name !== undefined) setName(clean.name);
+    if (clean.grade !== undefined) setGrade(clean.grade);
+    if (clean.activeSubject !== undefined) setActiveSubject(clean.activeSubject);
+    if (clean.screen !== undefined) setScreen(clean.screen);
+    if (clean.diagnosticIndex !== undefined) setDiagnosticIndex(clean.diagnosticIndex);
+    if (clean.diagnosticCorrect !== undefined) setDiagnosticCorrect(clean.diagnosticCorrect);
+    if (clean.storyBeat !== undefined) setStoryBeat(clean.storyBeat);
+    if (clean.storyCells !== undefined) setStoryCells(clean.storyCells);
+    if (clean.fruitSplit !== undefined) setFruitSplit(clean.fruitSplit);
+    if (clean.fruitShared !== undefined) setFruitShared(clean.fruitShared);
+    if (clean.hintRequests !== undefined) setHintRequests(clean.hintRequests);
+    if (clean.questIndex !== undefined) setQuestIndex(clean.questIndex);
+    if (clean.coins !== undefined) setCoins(clean.coins);
+    if (clean.correct !== undefined) setCorrect(clean.correct);
+    if (clean.attempts !== undefined) setAttempts(clean.attempts);
+    if (clean.ownedCosmetics !== undefined) setOwnedCosmetics(clean.ownedCosmetics);
+    if (clean.equippedCosmetic !== undefined) setEquippedCosmetic(clean.equippedCosmetic);
+    if (clean.dailyStreak !== undefined) setDailyStreak(clean.dailyStreak);
+    if (clean.lastCompletedDate !== undefined) setLastCompletedDate(clean.lastCompletedDate);
+    if (clean.subjectProgress !== undefined) setSubjectProgress(clean.subjectProgress);
+    if (clean.nextSupportMode !== undefined) setNextSupportMode(clean.nextSupportMode);
+    if (clean.completedAdventures !== undefined) setCompletedAdventures(clean.completedAdventures);
+    if (clean.avatar !== undefined) setAvatar(clean.avatar);
+    if (clean.pet !== undefined) setPet(clean.pet);
+    setLifetimeDiscoveries(clean.lifetimeDiscoveries);
   }
 
   const isScienceMission = activeSubject === "science" && grade <= 12;
@@ -304,17 +275,6 @@ export default function Home() {
     setSelected(null);
     setFeedback(null);
     setShowHint(true);
-  }
-
-  function recoveryPrompt() {
-    if (current.visual === "fraction") return "Start with equal pieces. Count how many pieces are being used, then compare that with the whole.";
-    if (current.visual === "number-line") return "Place yourself at the starting number, then move one small step at a time. The direction matters.";
-    if (current.visual === "formula") return "Keep the rule visible. Undo or apply one operation at a time, checking what stays balanced.";
-    if (current.visual === "coordinate") return "Read the model before choosing. Look for position, structure, or the full set of possible outcomes.";
-    if (current.visual === "ecosystem") return "Look at the habitat clue again. Ask what a living thing needs, what a material does, or how the change affects the world around it.";
-    if (current.visual === "reading") return "Return to the exact words in the sentence. Then ask what those details tell you together.";
-    if (current.visual === "map") return "Use the compass, symbols, or people clues one at a time. Ask what the map or situation is showing you.";
-    return "Build one equal group first. When the group changes, make the matching group change in the same way.";
   }
 
   function chargePiece() {
@@ -464,7 +424,7 @@ export default function Home() {
       <section className="dashboard-heading"><p className="eyebrow">AVATAR WORLD</p><h1>Make your expedition feel like yours.</h1><p>Cosmetics are earned through learning. They never make a quest easier.</p></section>
       <section className="nova-preview"><HeroBadge avatar={avatar} name={name} size="lg" level={explorer.level} equippedCosmetic={equippedCosmetic} /><p>Everything you wear was earned by your ideas. {explorer.toNext} more {explorer.toNext === 1 ? "discovery" : "discoveries"} to Level {explorer.level + 1}.</p></section><section className="world-balance"><span>🪙</span><div><b>{coins} Lumina coins</b><small>Earn 25 coins for each thoughtful quest answer.</small></div></section>
       <section className="cosmetic-grid">{cosmetics.map((cosmetic) => { const owned = ownedCosmetics.includes(cosmetic.id); const equipped = equippedCosmetic === cosmetic.id; const affordable = coins >= cosmetic.cost; return <article key={cosmetic.id} className={equipped ? "cosmetic-card equipped" : "cosmetic-card"}><div className="cosmetic-icon">{cosmetic.emoji}</div><p className="eyebrow">{equipped ? "EQUIPPED" : owned ? "IN YOUR WORLD" : `${cosmetic.cost} COINS`}</p><h2>{cosmetic.label}</h2><p>{cosmetic.detail}</p><button className="primary" disabled={!owned && !affordable} onClick={() => chooseCosmetic(cosmetic.id, cosmetic.cost)}>{equipped ? "Equipped" : owned ? "Equip" : affordable ? `Unlock for ${cosmetic.cost}` : `Need ${cosmetic.cost - coins} more`}</button></article>; })}</section>
-      <section className="star-friend">{pet ? (() => { const chosen = getPet(pet)!; const stage = getPetStage(explorer.level); const nextStageLevel = PET_STAGE_LEVELS.find((at) => at > explorer.level); return <><span className={`friend-face pet-stage-${Math.max(1, stage)}`}>{chosen.emoji}</span><div><p className="eyebrow">YOUR STAR FRIEND</p><b>{chosen.name} the {chosen.species} · {PET_STAGE_TITLES[Math.max(1, stage) - 1]}</b><small>{nextStageLevel ? `Grows again at Level ${nextStageLevel}` : "Fully grown — and very proud of you"}</small></div></>; })() : explorer.level >= PET_CHOICE_LEVEL ? <><span className="friend-face egg-ready">🥚</span><div><p className="eyebrow">A STAR-EGG IS HATCHING!</p><b>Choose your forever friend</b><div className="pet-choice-row">{pets.map((option) => <button key={option.id} type="button" className="pet-chip" onClick={() => { setPet(option.id); setPetNote(null); sound.play("finale"); }}><span>{option.emoji}</span><small>{option.name}</small><i>{option.species}</i></button>)}</div><small>Choose carefully — your friend stays with you forever.</small></div></> : <><span className="friend-face egg-dim">🥚</span><div><p className="eyebrow">STAR-EGG</p><b>Something is sleeping inside…</b><small>Hatches at Level {PET_CHOICE_LEVEL} · {explorer.toNext} more {explorer.toNext === 1 ? "discovery" : "discoveries"} to go</small></div></>}</section>
+      <section className="star-friend">{pet ? (() => { const chosen = getPet(pet)!; const stage = getPetStage(explorer.level); const nextStageLevel = PET_STAGE_LEVELS.find((at) => at > explorer.level); return <><span className={`friend-face pet-stage-${Math.max(1, stage)}`}>{chosen.emoji}</span><div><p className="eyebrow">YOUR STAR FRIEND</p><b>{chosen.name} the {chosen.species} · {PET_STAGE_TITLES[Math.max(1, stage) - 1]}</b><small>{nextStageLevel ? `Grows again at Level ${nextStageLevel}` : "Fully grown — and very proud of you"}</small>{petNote && <div className="pet-note" role="status">⭐ {petNote}</div>}</div></>; })() : explorer.level >= PET_CHOICE_LEVEL ? <><span className="friend-face egg-ready">🥚</span><div><p className="eyebrow">A STAR-EGG IS HATCHING!</p><b>Choose your forever friend</b><div className="pet-choice-row">{pets.map((option) => <button key={option.id} type="button" className="pet-chip" onClick={() => { setPet(option.id); setPetNote(option.stageLines[0]); sound.play("finale"); }}><span>{option.emoji}</span><small>{option.name}</small><i>{option.species}</i></button>)}</div><small>Choose carefully — your friend stays with you forever.</small></div></> : <><span className="friend-face egg-dim">🥚</span><div><p className="eyebrow">STAR-EGG</p><b>Something is sleeping inside…</b><small>Hatches at Level {PET_CHOICE_LEVEL} · {explorer.toNext} more {explorer.toNext === 1 ? "discovery" : "discoveries"} to go</small></div></>}</section>
     </main>;
   }
 
@@ -496,6 +456,6 @@ export default function Home() {
 
   return <main className={`shell quest-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>🔥 {dailyStreak}</span><HeroDuo avatar={avatar} name={name} equippedCosmetic={equippedCosmetic} level={explorer.level} pet={pet} size="sm" /><button className="text-button" aria-label={muted ? "Turn sounds on" : "Turn sounds off"} onClick={() => setMuted(sound.toggleMuted())}>{muted ? "🔇" : "🔊"}</button><button className="text-button" onClick={openGradePicker}>Switch grade</button><button className="text-button" onClick={() => setScreen("map")}>Learning atlas</button><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button></div></nav>
     <section className="quest-layout"><aside className="quest-side"><div className={`mission-scene stage-${beaconEnergy}`}><div className="scene-stars">✦ ✧ ✦</div><div className="beacon-core">✦</div><div className="beacon-pulse" /><div className="nova-orbit">✨</div><p>Beacon energy: {beaconEnergy}/3</p></div><p className="eyebrow">{screen === "diagnostic" ? "NOVA CHECKS YOUR TRAIL" : `GRADE ${grade} · LUMINA RESTORATION`}</p><h1>{missionTitle}</h1><p>{missionMoment}</p><div className="progress"><span style={{ width: `${screen === "diagnostic" ? ((diagnosticIndex + 1) / gradeDiagnostic.length) * 100 : ((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><small>{screen === "diagnostic" ? diagnosticIndex + 1 : questIndex + 1} of {screen === "diagnostic" ? gradeDiagnostic.length : gradeQuests.length} small discoveries</small></aside>
-      <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Explore first" : "Use your discovery"}</span></div><Visual kind={current.visual} chargedPieces={chargedPieces} onCharge={chargePiece} /><div className="quest-story"><span>Nova says</span><p>{personalize(lessonStory.coachLine, name)}</p></div>{screen === "quest" && learningTrail.id === "visual" && <p className="trail-nudge">Visual Trail · Start with the picture. The symbols can wait.</p>}<h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); sound.play("tap"); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Nova&apos;s clue:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Hmm, not that one.</b><span>Nova: &quot;Want to look at the picture again with me?&quot;</span></div>}{wrongAttemptsOnQuestion >= 2 && feedback !== "correct" && <div className="recovery-card"><p className="eyebrow">SLOW DOWN WITH NOVA</p><h3>You don&apos;t have to be fast to be right.</h3><p>{recoveryPrompt()}</p><button className="text-button" onClick={() => { setShowHint(true); setFeedback(null); }}>I&apos;m ready to look again</button></div>}{feedback === "correct" && <div className="feedback correct"><b>{lessonStory.completeLabel} +25 Lumina coins</b><span>{current.explanation}</span></div>}{feedback === "correct" && screen === "quest" && learningTrail.id === "stretch" && <div className="stretch-prompt"><b>Bonus star</b><span>Nova: &quot;Tell me WHY that works — in your own words!&quot;</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={askNovaForClue}>Ask Nova for a clue</button><button className="primary" disabled={!selected} onClick={answer}>Send my idea →</button></>}{feedback === "correct" && <button className="primary" onClick={continueLearning}>See what changed in Lumina →</button>}{feedback === "retry" && <button className="primary" onClick={retryCurrentQuestion}>{wrongAttemptsOnQuestion >= 2 ? "Use the slow-down path" : "Try a different idea"}</button>}</div></section>
+      <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Explore first" : "Use your discovery"}</span></div><Visual kind={current.visual} chargedPieces={chargedPieces} onCharge={chargePiece} /><div className="quest-story"><span>Nova says</span><p>{personalize(lessonStory.coachLine, name)}</p></div>{screen === "quest" && learningTrail.id === "visual" && <p className="trail-nudge">Visual Trail · Start with the picture. The symbols can wait.</p>}<h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); sound.play("tap"); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Nova&apos;s clue:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Hmm, not that one.</b><span>Nova: &quot;Want to look at the picture again with me?&quot;</span></div>}{wrongAttemptsOnQuestion >= 2 && feedback !== "correct" && <div className="recovery-card"><p className="eyebrow">SLOW DOWN WITH NOVA</p><h3>You don&apos;t have to be fast to be right.</h3><p>{recoveryPrompt(current.visual)}</p><button className="text-button" onClick={() => { setShowHint(true); setFeedback(null); }}>I&apos;m ready to look again</button></div>}{feedback === "correct" && <div className="feedback correct"><b>{lessonStory.completeLabel} +25 Lumina coins</b><span>{current.explanation}</span></div>}{feedback === "correct" && screen === "quest" && learningTrail.id === "stretch" && <div className="stretch-prompt"><b>Bonus star</b><span>Nova: &quot;Tell me WHY that works — in your own words!&quot;</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={askNovaForClue}>Ask Nova for a clue</button><button className="primary" disabled={!selected} onClick={answer}>Send my idea →</button></>}{feedback === "correct" && <button className="primary" onClick={continueLearning}>See what changed in Lumina →</button>}{feedback === "retry" && <button className="primary" onClick={retryCurrentQuestion}>{wrongAttemptsOnQuestion >= 2 ? "Use the slow-down path" : "Try a different idea"}</button>}</div></section>
     </section></main>;
 }

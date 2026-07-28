@@ -23,3 +23,14 @@ export function chooseAdaptiveNextStep(question: Question, signal: AdaptiveSigna
   }
   return { mode: "stretch", title: "Bonus star ahead", message: `Nova: "Want to tell me WHY it works? Only if you like!"` };
 }
+
+export function recoveryPrompt(visual: Question["visual"]): string {
+  if (visual === "fraction") return "Let's make equal pieces first. Count the pieces we're using. Then we compare them with the whole.";
+  if (visual === "number-line") return "Stand with me on the starting number. We'll take one small step at a time. Watch which way we're going.";
+  if (visual === "formula") return "I'll hold the rule where we can see it. Change one thing at a time. We'll check what stays balanced.";
+  if (visual === "coordinate") return "Let's read the picture together first. Look for position and pattern. Then we choose.";
+  if (visual === "ecosystem") return "Let's peek at the habitat clue again. What does the living thing need? What changed in its world?";
+  if (visual === "reading") return "Let's go back to the exact words. What do those details tell us together?";
+  if (visual === "map") return "We'll use one clue at a time. Compass, symbols, then people. What is the map showing us?";
+  return "Let's build one equal group first. When it changes, its matching group changes the same way.";
+}

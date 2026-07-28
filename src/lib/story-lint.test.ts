@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { finaleCopy, gradeSevenAdventures } from "@/components/grade-seven-adventures";
 import { getLessonStory } from "./lesson-story";
-import { chooseAdaptiveNextStep } from "./adaptive";
+import { chooseAdaptiveNextStep, recoveryPrompt } from "./adaptive";
 import type { Question } from "./learning";
 
 const BANNED = ["MISSION MOMENT COMPLETE", "Thoughtful stretch", "calibration", "This is not a score", "useful information", "initialise"];
@@ -29,6 +29,7 @@ function allStoryStrings(): string[] {
     const next = chooseAdaptiveNextStep(sampleQuestion("fraction"), signal);
     strings.push(next.title, next.message);
   }
+  for (const visual of visuals) strings.push(recoveryPrompt(visual));
   return strings;
 }
 
@@ -43,6 +44,10 @@ describe("story copy lint", () => {
 
   it("keeps sentences kid-short (max 16 words)", () => {
     for (const text of allStoryStrings()) expect(maxSentenceWords(text), text).toBeLessThanOrEqual(16);
+  });
+
+  it("recovery prompts stay in Nova's short voice (max 12 words per sentence)", () => {
+    for (const visual of visuals) expect(maxSentenceWords(recoveryPrompt(visual)), visual).toBeLessThanOrEqual(12);
   });
 
   it("completion labels are short and story-contextual", () => {
