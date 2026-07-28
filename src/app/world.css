@@ -226,3 +226,9 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
 }
 .hand-control video { width: 120px; border-radius: 10px; transform: scaleX(-1); }
 .hand-control p { margin: 0; font-size: 0.85rem; opacity: 0.85; }
+
+/* Final review fix: keep Nova's cosmetic visible on phones (globals.css hides .quest-stats span:nth-child(2)) */
+@media (max-width: 760px) {
+  .quest-stats .nova-companion .nova-gear { display: inline-block; }
+}
+@media (prefers-reduced-motion: reduce) { .star-node i { animation: none; } }

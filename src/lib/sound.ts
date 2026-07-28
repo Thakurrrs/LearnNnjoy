@@ -46,7 +46,12 @@ export function createSoundController(storage?: MiniStorage) {
       return muted;
     },
     play: (name: SoundName) => {
-      if (!muted) patterns[name]();
+      if (muted) return;
+      try {
+        patterns[name]();
+      } catch {
+        // audio must never break gameplay
+      }
     },
   };
 }

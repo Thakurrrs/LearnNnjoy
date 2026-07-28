@@ -31,4 +31,11 @@ describe("sound controller", () => {
     expect(() => controller.play("tap")).not.toThrow();
     expect(() => controller.play("finale")).not.toThrow();
   });
+
+  it("play() never throws for any sound name", () => {
+    const controller = createSoundController(fakeStorage());
+    for (const name of ["tap", "success", "coin", "finale"] as const) {
+      expect(() => controller.play(name)).not.toThrow();
+    }
+  });
 });
