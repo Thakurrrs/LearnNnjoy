@@ -50,3 +50,28 @@
   .mountain-route { min-height: 72px; }
   .mountain-route .route-mountain { font-size: 1.6rem; }
 }
+
+/* Task 4: Nova wears her cosmetics */
+.nova-companion {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  line-height: 1;
+}
+.nova-companion .nova-star { display: inline-block; }
+.nova-companion .nova-gear {
+  position: absolute;
+  bottom: -0.35em;
+  left: 0.72em;
+  transform: rotate(-12deg);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+}
+.nova-companion small { margin-left: 0.55em; font-weight: 600; opacity: 0.85; }
+.nova-sm { font-size: 1rem; }
+.nova-sm .nova-gear { font-size: 0.7rem; }
+.nova-md { font-size: 1.6rem; }
+.nova-md .nova-gear { font-size: 1rem; }
+.nova-lg { font-size: 3rem; }
+.nova-lg .nova-gear { font-size: 1.8rem; }
+.nova-lg small { font-size: 1rem; display: block; }
