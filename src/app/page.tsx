@@ -20,6 +20,7 @@ import { ConstellationMap } from "@/components/constellation-map";
 import { sound } from "@/lib/sound";
 import { avatars } from "@/lib/avatars";
 import { getExplorerLevel } from "@/lib/levels";
+import { personalize } from "@/lib/personalize";
 import { getPet, getPetStage, PET_CHOICE_LEVEL, PET_STAGE_LEVELS, PET_STAGE_TITLES, petMoment, pets } from "@/lib/pets";
 import { HeroBadge, HeroDuo } from "@/components/hero-badge";
 
@@ -447,12 +448,12 @@ export default function Home() {
       <section className="adventure-hero"><p className="eyebrow">GRADE 7 · MATHS CONSTELLATION</p><h1>Light every star in the Lumina sky.</h1><p>Each Grade 7 topic is a star on Nova&apos;s trail. Bright stars are ready to play; dim stars wait on the horizon.</p><p className="adventure-progress">{completedAdventures.length}/{gradeSevenAdventures.length} stars lit · {gradeSevenChapters.length} topics mapped</p></section>
       {petNote && <button type="button" className="pet-note pet-note-dismiss" onClick={() => setPetNote(null)}>⭐ {petNote} ✕</button>}
       <ConstellationMap chapters={gradeSevenChapters} completedIds={completedAdventures} selectedId={selectedChapter} onSelect={setSelectedChapter} />
-      <section className="star-detail" aria-live="polite"><span className="star-detail-icon">{selected.icon}</span><div><p className="eyebrow">{selectedComingSoon ? "NOVA IS PREPARING THIS WORLD" : selectedCompleted ? "STAR LIT · PLAY AGAIN ANYTIME" : "READY TO PLAY"}</p><h2>{selected.topic}</h2><p className="story-world">Story world · {selected.title}</p><div className="subtopic-row">{selected.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div><p>{selected.intro}</p>{selectedComingSoon ? <div className="coming-soon-note"><span>✦</span><b>Coming soon</b><small>This star will brighten when its interactive chapter is ready.</small></div> : <button className="primary" onClick={() => openGradeSevenAdventure(selected.id as GradeSevenAdventureId)}>{selectedCompleted ? "Explore again →" : `${(selected as GradeSevenChapter).action} →`}</button>}</div></section>
+      <section className="star-detail" aria-live="polite"><span className="star-detail-icon">{selected.icon}</span><div><p className="eyebrow">{selectedComingSoon ? "NOVA IS PREPARING THIS WORLD" : selectedCompleted ? "STAR LIT · PLAY AGAIN ANYTIME" : "READY TO PLAY"}</p><h2>{selected.topic}</h2><p className="story-world">Story world · {selected.title}</p><div className="subtopic-row">{selected.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div><p>{personalize(selected.intro, name)}</p>{selectedComingSoon ? <div className="coming-soon-note"><span>✦</span><b>Coming soon</b><small>This star will brighten when its interactive chapter is ready.</small></div> : <button className="primary" onClick={() => openGradeSevenAdventure(selected.id as GradeSevenAdventureId)}>{selectedCompleted ? "Explore again →" : `${(selected as GradeSevenChapter).action} →`}</button>}</div></section>
     </main>;
   }
 
   if (screen === "activity") {
-    return <main className={`shell activity-shell theme-pathfinder world-theme-${activeAdventure}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><HeroDuo avatar={avatar} equippedCosmetic={equippedCosmetic} level={explorer.level} pet={pet} size="sm" /><button className="text-button" aria-label={muted ? "Turn sounds on" : "Turn sounds off"} onClick={() => setMuted(sound.toggleMuted())}>{muted ? "🔇" : "🔊"}</button><button className="text-button" onClick={() => setScreen("adventures")}>Adventure map</button></div></nav><GradeSevenActivity id={activeAdventure} firstTime={!completedAdventures.includes(activeAdventure)} onFinish={finishGradeSevenAdventure} /></main>;
+    return <main className={`shell activity-shell theme-pathfinder world-theme-${activeAdventure}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><HeroDuo avatar={avatar} equippedCosmetic={equippedCosmetic} level={explorer.level} pet={pet} size="sm" /><button className="text-button" aria-label={muted ? "Turn sounds on" : "Turn sounds off"} onClick={() => setMuted(sound.toggleMuted())}>{muted ? "🔇" : "🔊"}</button><button className="text-button" onClick={() => setScreen("adventures")}>Adventure map</button></div></nav><GradeSevenActivity id={activeAdventure} firstTime={!completedAdventures.includes(activeAdventure)} heroName={name} onFinish={finishGradeSevenAdventure} /></main>;
   }
 
   if (screen === "world") {

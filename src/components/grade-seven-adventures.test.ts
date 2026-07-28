@@ -32,4 +32,10 @@ describe("finaleCopy", () => {
       expect(copy.art.length).toBeGreaterThan(0);
     }
   });
+
+  it("finale details speak to the hero by name token", () => {
+    for (const adventure of gradeSevenAdventures) {
+      expect(finaleCopy[adventure.id].detail).toContain("{hero}");
+    }
+  });
 });

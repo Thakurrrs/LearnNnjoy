@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { sound } from "@/lib/sound";
 import { HandAngleControl, supportsHandControl } from "@/components/hand-angle-control";
+import { personalize } from "@/lib/personalize";
 
 export type GradeSevenAdventureId = "mountain" | "balance" | "shop" | "skatepark" | "cricket";
 
@@ -17,11 +18,11 @@ export type GradeSevenChapter = {
 };
 
 export const gradeSevenAdventures: GradeSevenChapter[] = [
-  { id: "mountain", icon: "🏔️", title: "Mountain Rescue", topic: "Integers", subtopics: ["Positive and negative positions", "Number-line movement", "Addition and subtraction"], intro: "Nova is at +3 on the cliff path. A storm pushes the rescue pod 7 levels down.", action: "Explore integers" },
-  { id: "balance", icon: "⚖️", title: "Balance Lab", topic: "Simple Equations", subtopics: ["Equality", "Inverse operations", "Solving for an unknown"], intro: "A sealed crate and five energy blocks balance twelve blocks.", action: "Explore equations" },
-  { id: "shop", icon: "🛍️", title: "Smart Shopper", topic: "Comparing Quantities", subtopics: ["Percentages as fractions", "Discounts", "Comparing final prices"], intro: "A ₹240 expedition kit has a fair 25% trail discount.", action: "Explore percentages" },
-  { id: "skatepark", icon: "🛹", title: "Skatepark Architect", topic: "Lines, Angles and Triangles", subtopics: ["Measuring turns", "Angle pairs", "Triangle construction"], intro: "A safe ramp needs a 60° turn to join the triangle course.", action: "Explore angles" },
-  { id: "cricket", icon: "🏏", title: "Cricket Data Room", topic: "Data Handling", subtopics: ["Reading bar graphs", "Comparing values", "Making evidence-based choices"], intro: "Pick a three-player squad using the match-score data—not a hunch.", action: "Explore data" },
+  { id: "mountain", icon: "🏔️", title: "Mountain Rescue", topic: "Integers", subtopics: ["Positive and negative positions", "Number-line movement", "Addition and subtraction"], intro: "{hero}! A storm knocked my rescue pod off the cliff. Help me find it?", action: "Explore integers" },
+  { id: "balance", icon: "⚖️", title: "Balance Lab", topic: "Simple Equations", subtopics: ["Equality", "Inverse operations", "Solving for an unknown"], intro: "{hero}, this crate won't open until the scale balances. I can't do it alone!", action: "Explore equations" },
+  { id: "shop", icon: "🛍️", title: "Smart Shopper", topic: "Comparing Quantities", subtopics: ["Percentages as fractions", "Discounts", "Comparing final prices"], intro: "{hero}, I need the ₹240 kit before sunset. Is the discount really fair?", action: "Explore percentages" },
+  { id: "skatepark", icon: "🛹", title: "Skatepark Architect", topic: "Lines, Angles and Triangles", subtopics: ["Measuring turns", "Angle pairs", "Triangle construction"], intro: "{hero}, my skate ramp needs a perfect 60° turn. Build it with me?", action: "Explore angles" },
+  { id: "cricket", icon: "🏏", title: "Cricket Data Room", topic: "Data Handling", subtopics: ["Reading bar graphs", "Comparing values", "Making evidence-based choices"], intro: "{hero}, the final starts soon! Help me pick the squad — with real data.", action: "Explore data" },
 ];
 
 export type GradeSevenComingSoonChapter = Omit<GradeSevenChapter, "id" | "action"> & { id: string; status: "coming" };
@@ -40,22 +41,22 @@ export const gradeSevenComingSoonChapters: GradeSevenComingSoonChapter[] = [
 ];
 
 export const finaleCopy: Record<GradeSevenAdventureId, { title: string; detail: string; art: string }> = {
-  mountain: { title: "The storm clears — pod recovered!", detail: "Your number line guided the rescue team straight to −4. The cliff beacons relight one by one as the clouds roll away.", art: "🚁⛰️☀️" },
-  balance: { title: "The crate bursts open!", detail: "Seven glowing energy blocks float free, and the whole lab hums back to life — because you kept both sides fair.", art: "📦✨⚖️" },
-  shop: { title: "Kit packed, coins spared!", detail: "Nova buckles on the ₹180 expedition kit while the market lanterns flare to celebrate a truly fair deal.", art: "🎒🏮🪙" },
-  skatepark: { title: "The course locks in!", detail: "Skaters roll down your 60° ramp as the rooftop lights trace your triangle across the night sky.", art: "🛹🌆🔺" },
-  cricket: { title: "Squad takes the field!", detail: "Asha, Kabir and Noor jog out under the floodlights — picked by your data, cheered by the crowd.", art: "🏏🏟️🎉" },
+  mountain: { title: "Pod safe!", detail: "\"You found it, {hero}! Your number line led us right to −4. The beacons are lighting up!\"", art: "🚁⛰️☀️" },
+  balance: { title: "Crate open!", detail: "\"Seven glowing blocks, {hero}! It worked because you kept both sides fair!\"", art: "📦✨⚖️" },
+  shop: { title: "Deal done!", detail: "\"₹60 off, ₹180 paid — you saved us real coins, {hero}! Kit packed!\"", art: "🎒🏮🪙" },
+  skatepark: { title: "Ramp ready!", detail: "\"Sixty degrees, exactly right! Look, {hero} — they're skating YOUR ramp!\"", art: "🛹🌆🔺" },
+  cricket: { title: "Squad picked!", detail: "\"Asha, Kabir and Noor — chosen by your data, {hero}! Listen to that crowd!\"", art: "🏏🏟️🎉" },
 };
 
-export function FinaleScene({ id, firstTime, onDone }: { id: GradeSevenAdventureId; firstTime: boolean; onDone: () => void }) {
+export function FinaleScene({ id, firstTime, heroName, onDone }: { id: GradeSevenAdventureId; firstTime: boolean; heroName: string; onDone: () => void }) {
   const copy = finaleCopy[id];
   return (
     <section className={`finale-scene finale-${id}`} aria-live="polite">
       <div className="finale-sparks" aria-hidden><i>✦</i><i>✧</i><i>✦</i><i>✧</i><i>✦</i><i>✧</i></div>
       <div className="finale-art" aria-hidden>{copy.art}</div>
-      <p className="eyebrow">WORLD TRANSFORMED</p>
-      <h2>{copy.title}</h2>
-      <p>{copy.detail}</p>
+      <p className="eyebrow">YOU CAME THROUGH</p>
+      <h2>{personalize(copy.title, heroName)}</h2>
+      <p>{personalize(copy.detail, heroName)}</p>
       {firstTime ? <div className="finale-reward"><span>🪙</span><b>+25 Lumina coins</b><small>banked for Nova&apos;s wardrobe</small></div> : <div className="finale-reward"><span>✨</span><b>Star already lit</b><small>played again for the joy of it</small></div>}
       <button className="primary" onClick={onDone}>Return to the star map →</button>
     </section>
@@ -65,7 +66,7 @@ export function FinaleScene({ id, firstTime, onDone }: { id: GradeSevenAdventure
 function Success({ title, children, question, choices, answer, onFinish }: { title: string; children: React.ReactNode; question: string; choices: string[]; answer: string; onFinish: () => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const correct = selected === answer;
-  return <div className="activity-success" aria-live="polite"><span>✦</span><div><b>{title}</b><p>{children}</p><div className="discovery-check"><small>PUT YOUR DISCOVERY INTO WORDS</small><strong>{question}</strong><div>{choices.map((choice) => <button key={choice} className={selected === choice ? correct ? "correct" : "selected" : ""} onClick={() => { setSelected(choice); sound.play(choice === answer ? "success" : "tap"); }}>{choice}</button>)}</div>{selected && !correct && <p className="try-again">Look back at what changed in the activity, then choose again.</p>}{correct && <p className="check-complete">Exactly. You earned this discovery because you can explain it.</p>}</div></div>{correct && <button className="primary" onClick={onFinish}>Save my discovery →</button>}</div>;
+  return <div className="activity-success" aria-live="polite"><span>✦</span><div><b>{title}</b><p>{children}</p><div className="discovery-check"><small>TELL NOVA WHY IT WORKED</small><strong>{question}</strong><div>{choices.map((choice) => <button key={choice} className={selected === choice ? correct ? "correct" : "selected" : ""} onClick={() => { setSelected(choice); sound.play(choice === answer ? "success" : "tap"); }}>{choice}</button>)}</div>{selected && !correct && <p className="try-again">Look back at what changed in the activity, then choose again.</p>}{correct && <p className="check-complete">Exactly! Nova is taking notes from YOU now.</p>}</div></div>{correct && <button className="primary" onClick={onFinish}>Save my discovery →</button>}</div>;
 }
 
 function ChapterProgress({ chapter, step }: { chapter: string; step: number }) {
@@ -80,7 +81,7 @@ function StoryScene({ world }: { world: "mountain" | "balance" | "shop" | "skate
   return <div className="visual-story-scene cricket-scene" aria-label="A cricket ball arcs over a stadium score board"><span className="scene-stadium">⌒⌒⌒⌒⌒⌒⌒</span><span className="scene-ball">●</span><div className="scene-score-bars"><i /><i /><i /><i /></div><span className="scene-bat">🏏</span><b>Let the data choose</b></div>;
 }
 
-function MountainRescue({ firstTime, onFinish }: { firstTime: boolean; onFinish: () => void }) {
+function MountainRescue({ firstTime, heroName, onFinish }: { firstTime: boolean; heroName: string; onFinish: () => void }) {
   const [step, setStep] = useState(0);
   const [position, setPosition] = useState(3);
   const [direction, setDirection] = useState<string | null>(null);
@@ -97,11 +98,11 @@ function MountainRescue({ firstTime, onFinish }: { firstTime: boolean; onFinish:
     {step === 2 && <section className="chapter-event"><p className="activity-prompt">The marker says <b>−4</b>. Choose what the negative sign tells the rescue team.</p><div className="offer-grid"><button className={direction === "below" ? "selected" : ""} onClick={() => setDirection("below")}><b>Below zero</b><small>The pod is below the zero marker.</small></button><button className={direction === "above" ? "selected" : ""} onClick={() => setDirection("above")}><b>Above zero</b><small>The pod is still above the zero marker.</small></button></div>{direction === "above" && <p className="try-again">Look at where −4 sits compared with 0 on the map.</p>}<button className="primary" disabled={direction !== "below"} onClick={() => setStep(3)}>Write the trail move →</button></section>}
     {step === 3 && <section className="chapter-event"><p className="activity-prompt">Choose the equation that records Nova&apos;s journey from <b>+3</b> down <b>7</b> levels.</p><div className="offer-grid">{["3 − 7 = −4", "3 + 7 = −4"].map((choice) => <button key={choice} className={equation === choice ? "selected" : ""} onClick={() => setEquation(choice)}><b>{choice}</b></button>)}</div>{equation === "3 + 7 = −4" && <p className="try-again">Going down is subtraction, so the position should move left on the number line.</p>}<button className="primary" disabled={equation !== "3 − 7 = −4"} onClick={() => setStep(4)}>Save the rescue route →</button></section>}
     {step === 4 && <Success title="Rescue pod found!" question="What does 3 − 7 mean on this number line?" choices={["Start at +3 and move 7 steps left", "Start at +3 and move 7 steps right", "Start at −7 and move 3 steps right"]} answer="Start at +3 and move 7 steps left" onFinish={() => setStep(5)}>You moved from +3 to −4. Going down past zero keeps counting in the negative direction: <b>3 − 7 = −4</b>.</Success>}
-    {step === 5 && <FinaleScene id="mountain" firstTime={firstTime} onDone={onFinish} />}
+    {step === 5 && <FinaleScene id="mountain" firstTime={firstTime} heroName={heroName} onDone={onFinish} />}
   </>;
 }
 
-function BalanceLab({ firstTime, onFinish }: { firstTime: boolean; onFinish: () => void }) {
+function BalanceLab({ firstTime, heroName, onFinish }: { firstTime: boolean; heroName: string; onFinish: () => void }) {
   const [step, setStep] = useState(0);
   const [removed, setRemoved] = useState(0);
   const [rule, setRule] = useState<string | null>(null);
@@ -114,11 +115,11 @@ function BalanceLab({ firstTime, onFinish }: { firstTime: boolean; onFinish: () 
     {step === 2 && <section className="chapter-event"><p className="activity-prompt">Which repair keeps a balance scale fair?</p><div className="offer-grid">{["Do the same operation to both sides", "Change only the larger side"].map((choice) => <button key={choice} className={rule === choice ? "selected" : ""} onClick={() => setRule(choice)}><b>{choice}</b></button>)}</div>{rule === "Change only the larger side" && <p className="try-again">A balance tips if only one side changes.</p>}<button className="primary" disabled={rule !== "Do the same operation to both sides"} onClick={() => setStep(3)}>Open the crate code →</button></section>}
     {step === 3 && <section className="chapter-event"><p className="activity-prompt">The final lock asks for the mystery crate&apos;s value. What is <b>?</b> in <b>? + 5 = 12</b>?</p><div className="offer-grid">{["5", "7", "12"].map((choice) => <button key={choice} className={value === choice ? "selected" : ""} onClick={() => setValue(choice)}><b>{choice}</b></button>)}</div>{value && value !== "7" && <p className="try-again">Look at the value on the right after you removed five from both sides.</p>}<button className="primary" disabled={value !== "7"} onClick={() => setStep(4)}>Unlock Nova&apos;s crate →</button></section>}
     {step === 4 && <Success title="The crate is worth 7!" question="Which move keeps an equation balanced?" choices={["Do the same operation to both sides", "Change only the larger side", "Move a number across without changing it"]} answer="Do the same operation to both sides" onFinish={() => setStep(5)}>You kept the scale balanced by doing the same thing to both sides. <b>? + 5 = 12</b> becomes <b>? = 7</b>.</Success>}
-    {step === 5 && <FinaleScene id="balance" firstTime={firstTime} onDone={onFinish} />}
+    {step === 5 && <FinaleScene id="balance" firstTime={firstTime} heroName={heroName} onDone={onFinish} />}
   </>;
 }
 
-function SmartShopper({ firstTime, onFinish }: { firstTime: boolean; onFinish: () => void }) {
+function SmartShopper({ firstTime, heroName, onFinish }: { firstTime: boolean; heroName: string; onFinish: () => void }) {
   const [step, setStep] = useState(0);
   const [quarterChosen, setQuarterChosen] = useState(false);
   const [discount, setDiscount] = useState(0);
@@ -133,11 +134,11 @@ function SmartShopper({ firstTime, onFinish }: { firstTime: boolean; onFinish: (
     {step === 2 && <section className="chapter-event"><p className="activity-prompt">Now set the discount dial to the promise: <b>25%</b>. Watch both the saving and final price change together.</p><div className="shop-lab"><span className="market-nova" style={{ transform: `translateX(${discount * .72}px)` }}>✦</span><div className="shop-tag">₹240</div><div className="discount-ring" style={{ "--dial": `${discount * 3.6}deg` } as React.CSSProperties}><b>{discount}%</b><small>off</small></div><div><b>Saving: ₹{saving}</b><small>New price: ₹{240 - saving}</small></div></div><input className="discount-slider" aria-label="Discount percentage" type="range" min="0" max="50" step="5" value={discount} onChange={(event) => setDiscount(Number(event.target.value))} /><div className="activity-controls"><button onClick={() => setDiscount((value) => Math.max(0, value - 5))}>− 5%</button><b>{discount}%</b><button onClick={() => setDiscount((value) => Math.min(50, value + 5))}>+ 5%</button></div>{dialReady && <div className="mini-discovery"><b>₹60 is removed from ₹240.</b><span>₹240 − ₹60 = ₹180</span></div>}<button className="primary" disabled={!dialReady} onClick={() => setStep(3)}>Compare two real offers →</button></section>}
     {step === 3 && <section className="chapter-event"><p className="activity-prompt">Two shops sell the same kit. Choose the deal that leaves Nova with the <b>lower final price</b>.</p><div className="offer-grid"><button className={offer === "trail" ? "selected" : ""} onClick={() => setOffer("trail")}><b>Trail Shop</b><span>₹300</span><strong>20% off</strong><small>Final price: ₹240</small></button><button className={offer === "explorer" ? "selected" : ""} onClick={() => setOffer("explorer")}><b>Explorer Shop</b><span>₹240</span><strong>25% off</strong><small>Final price: ₹180</small></button></div>{offer === "trail" && <p className="try-again">Look at the final prices, not only the discount label. Which one costs less?</p>}{fairOffer && <div className="mini-discovery"><b>Good comparison.</b><span>A larger percentage is useful only when you also check the final price.</span></div>}<button className="primary" disabled={!fairOffer} onClick={() => setStep(4)}>Name the percentage idea →</button></section>}
     {step === 4 && <Success title="A fair deal, calculated!" question="What is 25% of ₹240?" choices={["₹60", "₹25", "₹180"]} answer="₹60" onFinish={() => setStep(5)}>You split ₹240 into four equal ₹60 parts, used the 25% discount, and compared final prices. <b>25% = 1/4 = ₹60</b>, so the kit costs <b>₹180</b>.</Success>}
-    {step === 5 && <FinaleScene id="shop" firstTime={firstTime} onDone={onFinish} />}
+    {step === 5 && <FinaleScene id="shop" firstTime={firstTime} heroName={heroName} onDone={onFinish} />}
   </>;
 }
 
-function Skatepark({ firstTime, onFinish }: { firstTime: boolean; onFinish: () => void }) {
+function Skatepark({ firstTime, heroName, onFinish }: { firstTime: boolean; heroName: string; onFinish: () => void }) {
   const [step, setStep] = useState(0);
   const [angle, setAngle] = useState(20);
   const [triangleAngle, setTriangleAngle] = useState<string | null>(null);
@@ -151,7 +152,7 @@ function Skatepark({ firstTime, onFinish }: { firstTime: boolean; onFinish: () =
     {step === 2 && <section className="chapter-event"><p className="activity-prompt">The other two turns in this balanced triangle are also <b>60°</b>. What is the missing third angle?</p><div className="offer-grid">{["30°", "60°", "120°"].map((choice) => <button key={choice} className={triangleAngle === choice ? "selected" : ""} onClick={() => setTriangleAngle(choice)}><b>{choice}</b></button>)}</div>{triangleAngle && triangleAngle !== "60°" && <p className="try-again">Three equal angles share the triangle evenly.</p>}<button className="primary" disabled={triangleAngle !== "60°"} onClick={() => setStep(3)}>Test the design language →</button></section>}
     {step === 3 && <section className="chapter-event"><p className="activity-prompt">Nova tells the builders that the ramp needs a <b>60° angle</b>. What information does that give them?</p><div className="offer-grid">{["The amount of turn between two lines", "The length of the ramp"].map((choice) => <button key={choice} className={meaning === choice ? "selected" : ""} onClick={() => setMeaning(choice)}><b>{choice}</b></button>)}</div>{meaning === "The length of the ramp" && <p className="try-again">The number has a ° sign, so it describes turning.</p>}<button className="primary" disabled={meaning !== "The amount of turn between two lines"} onClick={() => setStep(4)}>Open the skatepark →</button></section>}
     {step === 4 && <Success title="Course locked in!" question="An angle tells us the…" choices={["amount of turn between two lines", "length of the ramp", "number of wheels on the board"]} answer="amount of turn between two lines" onFinish={() => setStep(5)}>You built a 60° angle and used the triangle&apos;s equal turns. Angles describe the amount of turn between two lines—not the length of the ramp.</Success>}
-    {step === 5 && <FinaleScene id="skatepark" firstTime={firstTime} onDone={onFinish} />}
+    {step === 5 && <FinaleScene id="skatepark" firstTime={firstTime} heroName={heroName} onDone={onFinish} />}
   </>;
 }
 
@@ -159,7 +160,7 @@ const players = [
   { name: "Asha", score: 42 }, { name: "Kabir", score: 37 }, { name: "Noor", score: 35 }, { name: "Ira", score: 21 },
 ];
 
-function CricketData({ firstTime, onFinish }: { firstTime: boolean; onFinish: () => void }) {
+function CricketData({ firstTime, heroName, onFinish }: { firstTime: boolean; heroName: string; onFinish: () => void }) {
   const [step, setStep] = useState(0);
   const [picked, setPicked] = useState<string[]>([]);
   const [topPlayer, setTopPlayer] = useState<string | null>(null);
@@ -173,11 +174,11 @@ function CricketData({ firstTime, onFinish }: { firstTime: boolean; onFinish: ()
     {step === 2 && <section className="chapter-event"><p className="activity-prompt">The team needs the <b>three highest</b> match-score bars. Pick exactly three players using the chart.</p><div className="cricket-lab">{players.map((player) => <button key={player.name} className={picked.includes(player.name) ? "picked" : ""} onClick={() => toggle(player.name)} aria-pressed={picked.includes(player.name)}><span style={{ height: `${player.score * 2.5}px` }} /><b>{player.score}</b><small>{player.name}</small></button>)}</div><div className="squad-field" aria-live="polite"><span>🏟️</span>{picked.map((name) => <b key={name}>🏏<small>{name}</small></b>)}{Array.from({ length: Math.max(0, 3 - picked.length) }, (_, index) => <i key={index}>?</i>)}</div><p className="selection-note">Squad: {picked.length ? picked.join(", ") : "choose three players"}</p>{complete && <div className="mini-discovery"><b>Asha, Kabir and Noor have the three tallest bars.</b><span>Their scores are 42, 37 and 35.</span></div>}<button className="primary" disabled={!complete} onClick={() => setStep(3)}>Explain the selection →</button></section>}
     {step === 3 && <section className="chapter-event"><p className="activity-prompt">The coach asks why this squad was chosen. Pick the evidence-based answer.</p><div className="offer-grid">{["Their score bars are the three highest", "Their names are shortest"].map((choice) => <button key={choice} className={reason === choice ? "selected" : ""} onClick={() => setReason(choice)}><b>{choice}</b></button>)}</div>{reason === "Their names are shortest" && <p className="try-again">The graph shows scores, not name lengths.</p>}<button className="primary" disabled={reason !== "Their score bars are the three highest"} onClick={() => setStep(4)}>Send the final squad →</button></section>}
     {step === 4 && <Success title="Data-backed squad selected!" question="Why did those three players make the squad?" choices={["Their score bars are the three highest", "Their names are shortest", "They were chosen first"]} answer="Their score bars are the three highest" onFinish={() => setStep(5)}>The bars tell the story: Asha, Kabir, and Noor have the three highest scores. A graph helps you compare values quickly.</Success>}
-    {step === 5 && <FinaleScene id="cricket" firstTime={firstTime} onDone={onFinish} />}
+    {step === 5 && <FinaleScene id="cricket" firstTime={firstTime} heroName={heroName} onDone={onFinish} />}
   </>;
 }
 
-export function GradeSevenActivity({ id, firstTime, onFinish }: { id: GradeSevenAdventureId; firstTime: boolean; onFinish: () => void }) {
+export function GradeSevenActivity({ id, firstTime, heroName, onFinish }: { id: GradeSevenAdventureId; firstTime: boolean; heroName: string; onFinish: () => void }) {
   const adventure = gradeSevenAdventures.find((item) => item.id === id)!;
-  return <section className="activity-panel"><div className="activity-heading"><span>{adventure.icon}</span><div><p className="eyebrow">GRADE 7 · {adventure.topic.toUpperCase()}</p><h1>{adventure.topic}</h1><p className="story-world">Story world · {adventure.title}</p><p>{adventure.intro}</p><div className="subtopic-row">{adventure.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div></div></div>{id === "mountain" && <MountainRescue firstTime={firstTime} onFinish={onFinish} />}{id === "balance" && <BalanceLab firstTime={firstTime} onFinish={onFinish} />}{id === "shop" && <SmartShopper firstTime={firstTime} onFinish={onFinish} />}{id === "skatepark" && <Skatepark firstTime={firstTime} onFinish={onFinish} />}{id === "cricket" && <CricketData firstTime={firstTime} onFinish={onFinish} />}</section>;
+  return <section className="activity-panel"><div className="activity-heading"><span>{adventure.icon}</span><div><p className="eyebrow">GRADE 7 · {adventure.topic.toUpperCase()}</p><h1>{adventure.topic}</h1><p className="story-world">Story world · {adventure.title}</p><p>{personalize(adventure.intro, heroName)}</p><div className="subtopic-row">{adventure.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div></div></div>{id === "mountain" && <MountainRescue firstTime={firstTime} heroName={heroName} onFinish={onFinish} />}{id === "balance" && <BalanceLab firstTime={firstTime} heroName={heroName} onFinish={onFinish} />}{id === "shop" && <SmartShopper firstTime={firstTime} heroName={heroName} onFinish={onFinish} />}{id === "skatepark" && <Skatepark firstTime={firstTime} heroName={heroName} onFinish={onFinish} />}{id === "cricket" && <CricketData firstTime={firstTime} heroName={heroName} onFinish={onFinish} />}</section>;
 }
