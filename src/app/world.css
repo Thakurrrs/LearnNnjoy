@@ -196,11 +196,11 @@
 @media (prefers-reduced-motion: reduce) { .finale-art, .finale-sparks i, .finale-scene { animation: none; } }
 /* Task 15: per-world visual identities (see docs/design/LUMINA-DESIGN-SYSTEM.md) */
 main.activity-shell { background: linear-gradient(180deg, var(--world-sky-top, #f4f6ff) 0%, var(--world-sky-bottom, #e8ecfb) 100%); }
-main.activity-shell.world-mountain { --world-accent: #4f7fb8; --world-accent-dim: #b7c9dd; --world-sky-top: #eef4fb; --world-sky-bottom: #dbe7f4; }
-main.activity-shell.world-balance { --world-accent: #7c60e8; --world-accent-dim: #cfc4f5; --world-sky-top: #f3effd; --world-sky-bottom: #e6defa; }
-main.activity-shell.world-shop { --world-accent: #e8702a; --world-accent-dim: #f3c5a8; --world-sky-top: #fff4ea; --world-sky-bottom: #fde3cf; }
-main.activity-shell.world-skatepark { --world-accent: #d84f9a; --world-accent-dim: #f0b8d6; --world-sky-top: #fdeef7; --world-sky-bottom: #e8e0f7; }
-main.activity-shell.world-cricket { --world-accent: #2f9d5f; --world-accent-dim: #b5dcc5; --world-sky-top: #eefaf1; --world-sky-bottom: #d9f0e2; }
+main.activity-shell.world-theme-mountain { --world-accent: #4f7fb8; --world-accent-dim: #b7c9dd; --world-sky-top: #eef4fb; --world-sky-bottom: #dbe7f4; }
+main.activity-shell.world-theme-balance { --world-accent: #7c60e8; --world-accent-dim: #cfc4f5; --world-sky-top: #f3effd; --world-sky-bottom: #e6defa; }
+main.activity-shell.world-theme-shop { --world-accent: #e8702a; --world-accent-dim: #f3c5a8; --world-sky-top: #fff4ea; --world-sky-bottom: #fde3cf; }
+main.activity-shell.world-theme-skatepark { --world-accent: #d84f9a; --world-accent-dim: #f0b8d6; --world-sky-top: #fdeef7; --world-sky-bottom: #e8e0f7; }
+main.activity-shell.world-theme-cricket { --world-accent: #2f9d5f; --world-accent-dim: #b5dcc5; --world-sky-top: #eefaf1; --world-sky-bottom: #d9f0e2; }
 main.activity-shell .activity-panel { border-top: 5px solid var(--world-accent, #7c60e8); }
 main.activity-shell .chapter-event-progress span { background: var(--world-accent, #7c60e8); }
 main.activity-shell .primary { background: var(--world-accent, #7c60e8); }
