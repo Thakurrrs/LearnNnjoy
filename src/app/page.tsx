@@ -186,7 +186,7 @@ export default function Home() {
     if (Array.isArray(saved.completedAdventures) && saved.completedAdventures.every((id) => ["mountain", "balance", "shop", "skatepark", "cricket"].includes(id))) setCompletedAdventures(saved.completedAdventures);
     if (typeof saved.avatar === "string" && avatars.some((option) => option.id === saved.avatar)) setAvatar(saved.avatar);
     if (saved.pet === null || (typeof saved.pet === "string" && pets.some((option) => option.id === saved.pet))) setPet(saved.pet ?? null);
-    if (typeof saved.lifetimeDiscoveries === "number" && saved.lifetimeDiscoveries >= 0) setLifetimeDiscoveries(Math.floor(saved.lifetimeDiscoveries));
+    if (typeof saved.lifetimeDiscoveries === "number" && saved.lifetimeDiscoveries >= 0) setLifetimeDiscoveries(Math.min(100000, Math.floor(saved.lifetimeDiscoveries)));
     else setLifetimeDiscoveries(Math.max(0, (saved.correct ?? 0) + (saved.completedAdventures?.length ?? 0)));
   }
 
