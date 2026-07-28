@@ -233,3 +233,19 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
 .avatar-chip small { font-weight: 600; }
 .avatar-chip.selected { border-color: #7c60e8; background: rgba(124, 96, 232, 0.14); }
 .avatar-chip:focus-visible { outline: 2px solid #ffd66b; outline-offset: 2px; }
+
+/* Kid-hero: star friend + pet notes */
+.star-friend { display: flex; gap: 1.1rem; align-items: flex-start; width: min(1080px, calc(100% - 40px)); margin: 0 auto 60px; padding: 1.2rem 1.5rem; border-radius: 20px; background: rgba(124, 96, 232, 0.08); }
+.friend-face { font-size: 3rem; line-height: 1; }
+.friend-face.egg-dim { opacity: 0.45; filter: grayscale(0.4); }
+.friend-face.egg-ready { animation: egg-wiggle 1.2s ease-in-out infinite; }
+.pet-choice-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.6rem 0; }
+.pet-chip { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; padding: 0.6rem 0.9rem; border: 2px solid transparent; border-radius: 14px; background: #fff; cursor: pointer; }
+.pet-chip span { font-size: 1.8rem; }
+.pet-chip small { font-weight: 700; }
+.pet-chip i { font-style: normal; font-size: 0.7rem; opacity: 0.7; }
+.pet-chip:hover { border-color: #7c60e8; }
+.pet-note { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0.6rem 0; padding: 0.55rem 1rem; border-radius: 999px; background: rgba(255, 214, 107, 0.2); font-weight: 700; border: none; }
+.pet-note-dismiss { cursor: pointer; }
+@keyframes egg-wiggle { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@media (prefers-reduced-motion: reduce) { .friend-face.egg-ready { animation: none; } }
