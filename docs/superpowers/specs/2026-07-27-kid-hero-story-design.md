@@ -21,26 +21,37 @@ The learner becomes the protagonist. Nova the star stops being the main characte
 
 ## 4. Explorer Levels
 
-- **Computed, never stored.** `getExplorerLevel(progress)` in `src/lib/levels.ts` derives lifetime discoveries from data already saved: total correct answers across subject missions (`correct` + snapshots in `subjectProgress`) plus `completedAdventures.length`. Old saves get their earned level instantly.
-- **Thresholds, not XP.** `LEVEL_THRESHOLDS = [0, 3, 7, 12, 18, 25, 33, 42, 52, 63]` (discoveries needed for levels 1–10; +12 per level beyond). Helper returns `{ level, discoveries, toNext }` so UI can say "3 more discoveries to Level 4".
+- **A monotonic lifetime counter.** `SavedProgress.lifetimeDiscoveries: number` (default 0) increments by 1 on every correct quest discovery and every first-time adventure completion. It only ever goes up — grade switches and mission resets never touch it, so the level (and pet growth) can never regress. On first load of an old save without the field, it is seeded once from existing progress (`correct + completedAdventures.length`).
+- **Thresholds, not XP.** `src/lib/levels.ts`: `LEVEL_THRESHOLDS = [0, 3, 7, 12, 18, 25, 33, 42, 52, 63]` (discoveries needed for levels 1–10; +12 per level beyond). `getExplorerLevel(lifetimeDiscoveries)` returns `{ level, toNext }` so UI can say "3 more discoveries to Level 4".
 - **Display.** Small level star on the hero badge (`Lv 4`), and a progress line in Avatar World. No leaderboards, no comparison — the level is private, like everything else.
 
-## 5. Pets
+## 5. Pet — one companion, chosen once, grows forever
 
-- **Unlock: free at level milestones** (pure achievement — coins never involved). Catalog in `src/lib/pets.ts`:
+- **One pet per kid.** At **Level 2** a star-egg appears and hatches; the kid **chooses one pet** from the stack (permanent choice — "your forever friend"). No further pets are ever granted; all later levels grow the chosen pet. Coins never involved (pure achievement).
+- **The stack** (catalog in `src/lib/pets.ts`):
 
-| Level | Pet | Emoji |
-|---|---|---|
-| 2 | Comet the star-bunny | 🐰✨ |
-| 4 | Pip the moon-fox | 🦊🌙 |
-| 6 | Drift the cloud-turtle | 🐢☁️ |
-| 8 | Luma the star-whale | 🐋⭐ |
-| 10 | Ember the comet-dragon | 🐉🔥 |
+| Pet | Emoji |
+|---|---|
+| Splash the star-dolphin | 🐬 |
+| Comet the star-bunny | 🐰 |
+| Pip the moon-fox | 🦊 |
+| Drift the cloud-turtle | 🐢 |
+| Ember the comet-dragon | 🐉 |
 
-- **Hatch moment.** When a completed discovery crosses a threshold, the outcome/finale screen shows a star-egg hatch celebration ("A star-egg is hatching… Comet joined your crew, {name}!"). Unlocked pets are recorded in `SavedProgress.unlockedPets: string[]` (validated ids; default `[]`) with `activePet: string | null`.
-- **Display.** Active pet floats beside the hero badge in `HeroDuo` (emoji-rendered; illustrated versions later via the same art pipeline). Avatar World gains a "Star Friends" section: hatched pets selectable, next egg shown dim with "Hatches at Level 6". Pets are companions only — no gameplay effect.
-- **Pets are permanent.** `chooseGrade`/`openGradePicker` reset mission progress today — they must NOT touch `unlockedPets`/`activePet`. A hatched pet can never be lost, even though the computed level can dip after a grade switch (the level reflects current-grade progress; the pet collection reflects history). `levels.test.ts` and `pets.test.ts` cover this reset path explicitly.
-- Rationale: two clean motivation loops — **coins = spending** (cosmetics), **levels = achievement** (pets).
+- **Growth stages**, reached at levels and never lost:
+
+| Stage | At level | Title | Visual treatment |
+|---|---|---|---|
+| 1 | 2 | Hatchling | small emoji, soft glow |
+| 2 | 4 | Explorer | full-size emoji, gold sparkle |
+| 3 | 7 | Voyager | larger, starlight trail ring |
+| 4 | 10 | Radiant | largest, aurora glow ring |
+
+Each stage-up gets a celebration line in the pet's own flavor ("Splash learned to leap through starlight!") shown on the outcome/finale screen when the threshold is crossed.
+- **Save data.** `SavedProgress.pet: string | null` (chosen pet id, validated; default null). Growth stage is **computed** from the Explorer Level — never stored, never regresses (see §4's monotonic counter).
+- **The pet is permanent.** `chooseGrade`/`openGradePicker` reset mission progress today — they must NOT touch `pet` or `lifetimeDiscoveries`. `levels.test.ts` and `pets.test.ts` cover this reset path explicitly.
+- **Display.** The pet floats beside the hero badge in `HeroDuo` at its current stage size (emoji-rendered; illustrated versions later via the art pipeline). Avatar World gains a "Star Friend" section: before Level 2 it shows the dim egg ("Hatches at Level 2"); after choosing, it shows the pet, its stage, and "grows again at Level 7".
+- Rationale: two clean motivation loops — **coins = spending** (cosmetics), **levels = growing your friend** (attachment beats collection at this age).
 
 ## 6. Story reframing — the Story Bible
 
@@ -51,7 +62,7 @@ All kid-facing copy follows these rules (enforced in review + copy-lint test):
 3. **One metaphor per mission**, carried across chapter → quest → outcome. No prop churn.
 4. **Reading level ≈ 2 grades below the learner.** The story must be easier than the maths. Copy-lint test asserts max words/sentence per grade band (G4–6: ≤12; G7–9: ≤16; G10–12: ≤20).
 5. **No meta-reassurance on kid screens.** "This is not a score", "never changes your reward", caption notices → move to parent-facing surfaces or quiet corners. Kid screens carry story only.
-6. **Kid-native labels.** "MISSION MOMENT COMPLETE" → "YOU DID IT!"; "Thoughtful stretch" → "Bonus star"; "Maths calibration" → "Nova checks your trail".
+6. **Story-contextual labels.** Completion labels name the help just given, in the mission's own fiction — rescue mission → "Pod safe!", fair-share story → "Fair and square!", shop → "Deal done!", skatepark → "Ramp ready!", cricket → "Squad picked!". Generic celebration ("MISSION MOMENT COMPLETE", even "YOU DID IT!") and LMS labels ("Thoughtful stretch" → "Bonus star", "Maths calibration" → "Nova checks your trail") are replaced everywhere; the copy-lint test carries a banned-label list.
 7. **`learningObjective` never leaks into dialogue.** It stays in the data for parent/teacher surfaces; dialogue is written from the character's want, not the objective.
 
 - **Copy architecture.** Content strings use a `{hero}` token; `personalize(text, name)` in `src/lib/personalize.ts` fills it at render (and strips gracefully if name empty). Applies to: welcome CTA, Grade-4 story beats, `lesson-story.ts` dialogues/coach lines/outcomes, quest mission copy in `page.tsx`, all five Grade-7 activity scripts, `finaleCopy`, and pet-hatch copy.
