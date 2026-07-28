@@ -547,7 +547,14 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
 }
 .nova-radio small { color: #ffe6a5; font-size: .6rem; font-weight: 900; letter-spacing: .12em; }
 .nova-radio p { margin: 4px 0 8px; color: #fff; font-size: .92rem; line-height: 1.42; }
-.mountain-listen {
+.mountain-listen-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px 12px;
+}
+.mountain-listen,
+.mountain-voice-cycle {
   padding: 0;
   border: 0;
   background: transparent;
@@ -555,6 +562,12 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
   font-size: .7rem;
   font-weight: 800;
 }
+.mountain-voice-cycle {
+  color: #ffe6a5;
+  opacity: .82;
+}
+.mountain-voice-cycle:hover,
+.mountain-voice-cycle:focus-visible { opacity: 1; }
 .mountain-altitude-track {
   position: absolute;
   z-index: 14;

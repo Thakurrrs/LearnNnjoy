@@ -17,6 +17,12 @@ import {
   MOUNTAIN_START,
   MOUNTAIN_TOP,
 } from "@/lib/mountain-rescue";
+import {
+  novaVoiceDelivery,
+  prepareNovaSpeech,
+  rankNovaVoices,
+  type NovaVoiceTone,
+} from "@/lib/nova-voice";
 import { personalize } from "@/lib/personalize";
 import { sound } from "@/lib/sound";
 import type { MountainState } from "@/lib/grade-seven-progress";
@@ -34,34 +40,76 @@ const levels = Array.from(
   { length: MOUNTAIN_TOP - MOUNTAIN_BOTTOM + 1 },
   (_, index) => MOUNTAIN_TOP - index,
 );
+const NOVA_VOICE_KEY = "learnnjoy-nova-voice";
 
-function NarrationButton({ text }: { text: string }) {
+function NarrationButton({ text, tone }: { text: string; tone: NovaVoiceTone }) {
   const [speaking, setSpeaking] = useState(false);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [voiceName, setVoiceName] = useState("");
 
-  useEffect(() => () => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const synthesis = window.speechSynthesis;
+    const loadVoices = () => {
+      const ranked = rankNovaVoices(synthesis.getVoices());
+      setVoices(ranked);
+      setVoiceName((current) => {
+        if (ranked.some((voice) => voice.name === current)) return current;
+        try {
+          const saved = window.localStorage.getItem(NOVA_VOICE_KEY);
+          if (saved && ranked.some((voice) => voice.name === saved)) return saved;
+        } catch {}
+        return ranked[0]?.name ?? "";
+      });
+    };
+    loadVoices();
+    synthesis.addEventListener("voiceschanged", loadVoices);
+    return () => {
+      synthesis.removeEventListener("voiceschanged", loadVoices);
+      synthesis.cancel();
+    };
   }, []);
 
-  function speak() {
+  function speak(voiceOverride?: SpeechSynthesisVoice) {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
-    if (speaking) {
+    if (speaking && !voiceOverride) {
       setSpeaking(false);
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-IN";
-    utterance.rate = 0.94;
-    utterance.pitch = 1.06;
+    const selectedVoice = voiceOverride ?? voices.find((voice) => voice.name === voiceName) ?? voices[0];
+    const delivery = novaVoiceDelivery(tone);
+    const utterance = new SpeechSynthesisUtterance(prepareNovaSpeech(text));
+    utterance.voice = selectedVoice ?? null;
+    utterance.lang = selectedVoice?.lang ?? "en-IN";
+    utterance.rate = delivery.rate;
+    utterance.pitch = delivery.pitch;
+    utterance.volume = delivery.volume;
     utterance.onend = () => setSpeaking(false);
     utterance.onerror = () => setSpeaking(false);
     setSpeaking(true);
     window.speechSynthesis.speak(utterance);
   }
 
-  return <button className="mountain-listen" type="button" onClick={speak} aria-label="Hear Nova read this">
-    {speaking ? "◼ Stop" : "🔊 Hear Nova"}
-  </button>;
+  function tryAnotherVoice() {
+    if (voices.length < 2) return;
+    const currentIndex = Math.max(0, voices.findIndex((voice) => voice.name === voiceName));
+    const nextVoice = voices[(currentIndex + 1) % voices.length];
+    setVoiceName(nextVoice.name);
+    try {
+      window.localStorage.setItem(NOVA_VOICE_KEY, nextVoice.name);
+    } catch {}
+    speak(nextVoice);
+  }
+
+  return <div className="mountain-listen-row">
+    <button className="mountain-listen" type="button" onClick={() => speak()} aria-label="Hear Nova read this">
+      {speaking ? "◼ Stop" : "🔊 Hear Nova"}
+    </button>
+    {voices.length > 1 && <button className="mountain-voice-cycle" type="button" onClick={tryAnotherVoice} aria-label="Try another Nova voice">
+      ↻ Try another voice
+    </button>}
+  </div>;
 }
 
 function RescuePod() {
@@ -101,6 +149,19 @@ function dialogueFor(state: MountainState, heroName: string): string {
   return personalize("You turned the whole cliff into a number map, {hero}. Rescue complete!", heroName);
 }
 
+function dialogueToneFor(state: MountainState): NovaVoiceTone {
+  if (state.step === 0) return "alert";
+  if (state.direction === "above" || state.equation === "3 + 7 = −4" || state.successChoice === "−4 − 6 = +2") return "retry";
+  if (state.step === 5) return "celebrate";
+  if (
+    state.direction === "below"
+    || state.equation === "3 − 7 = −4"
+    || state.position === MOUNTAIN_BEACON
+    || state.returnPosition === MOUNTAIN_SAFE_LEDGE
+  ) return "success";
+  return "explain";
+}
+
 function MountainStage({
   state,
   heroName,
@@ -120,6 +181,7 @@ function MountainStage({
   const displayPosition = mountainDisplayPosition(state);
   const interactive = (state.step === 1 && !state.showDemo) || state.step === 4;
   const dialogue = dialogueFor(state, heroName);
+  const dialogueTone = dialogueToneFor(state);
   const visited = new Set(state.flightPath);
 
   function moveFromPointer(clientY: number) {
@@ -186,7 +248,7 @@ function MountainStage({
 
     <div className="nova-radio" aria-live="polite">
       <span className={state.direction === "above" || state.equation === "3 + 7 = −4" || state.successChoice === "−4 − 6 = +2" ? "nova-think" : ""}>✦</span>
-      <div><small>NOVA · RESCUE RADIO</small><p>{dialogue}</p><NarrationButton text={dialogue} /></div>
+      <div><small>NOVA · RESCUE RADIO</small><p>{dialogue}</p><NarrationButton text={dialogue} tone={dialogueTone} /></div>
     </div>
 
     <div className="base-camp" aria-label="Base camp is level zero">
