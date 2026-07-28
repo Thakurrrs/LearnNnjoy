@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { sound } from "@/lib/sound";
 
 export type GradeSevenAdventureId = "mountain" | "balance" | "shop" | "skatepark" | "cricket";
 
@@ -63,7 +64,7 @@ export function FinaleScene({ id, onDone }: { id: GradeSevenAdventureId; onDone:
 function Success({ title, children, question, choices, answer, onFinish }: { title: string; children: React.ReactNode; question: string; choices: string[]; answer: string; onFinish: () => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const correct = selected === answer;
-  return <div className="activity-success" aria-live="polite"><span>✦</span><div><b>{title}</b><p>{children}</p><div className="discovery-check"><small>PUT YOUR DISCOVERY INTO WORDS</small><strong>{question}</strong><div>{choices.map((choice) => <button key={choice} className={selected === choice ? correct ? "correct" : "selected" : ""} onClick={() => setSelected(choice)}>{choice}</button>)}</div>{selected && !correct && <p className="try-again">Look back at what changed in the activity, then choose again.</p>}{correct && <p className="check-complete">Exactly. You earned this discovery because you can explain it.</p>}</div></div>{correct && <button className="primary" onClick={onFinish}>Save my discovery →</button>}</div>;
+  return <div className="activity-success" aria-live="polite"><span>✦</span><div><b>{title}</b><p>{children}</p><div className="discovery-check"><small>PUT YOUR DISCOVERY INTO WORDS</small><strong>{question}</strong><div>{choices.map((choice) => <button key={choice} className={selected === choice ? correct ? "correct" : "selected" : ""} onClick={() => { setSelected(choice); sound.play(choice === answer ? "success" : "tap"); }}>{choice}</button>)}</div>{selected && !correct && <p className="try-again">Look back at what changed in the activity, then choose again.</p>}{correct && <p className="check-complete">Exactly. You earned this discovery because you can explain it.</p>}</div></div>{correct && <button className="primary" onClick={onFinish}>Save my discovery →</button>}</div>;
 }
 
 function ChapterProgress({ chapter, step }: { chapter: string; step: number }) {
