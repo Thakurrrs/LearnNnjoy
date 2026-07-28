@@ -88,3 +88,57 @@
 }
 .nova-preview p { margin: 0; opacity: 0.8; }
 .outcome-nova { margin: 0.4rem 0 0.2rem; }
+
+/* Task 7: the Lumina constellation */
+.constellation {
+  position: relative;
+  width: 100%;
+  min-height: 340px;
+  margin: 1.2rem 0;
+  border-radius: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(1px 1px at 12% 20%, rgba(255, 255, 255, 0.7) 50%, transparent 51%),
+    radial-gradient(1px 1px at 34% 68%, rgba(255, 255, 255, 0.5) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 58% 24%, rgba(255, 255, 255, 0.6) 50%, transparent 51%),
+    radial-gradient(1px 1px at 76% 74%, rgba(255, 255, 255, 0.5) 50%, transparent 51%),
+    radial-gradient(1px 1px at 90% 40%, rgba(255, 255, 255, 0.6) 50%, transparent 51%),
+    linear-gradient(180deg, #191238 0%, #2a1f5e 60%, #3b2a72 100%);
+}
+.constellation-trail { position: absolute; inset: 0; width: 100%; height: 100%; }
+.constellation-trail polyline {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 0.5;
+  stroke-dasharray: 2 2.4;
+  stroke-linecap: round;
+}
+.star-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  padding: 0.4rem;
+}
+.star-node i { font-style: normal; font-size: 1.35rem; transition: transform 0.2s ease, filter 0.2s ease; }
+.star-node small { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.02em; opacity: 0.85; max-width: 90px; text-align: center; }
+.star-node.ready i { color: #ffd66b; filter: drop-shadow(0 0 6px rgba(255, 214, 107, 0.9)); animation: star-twinkle 2.6s ease-in-out infinite; }
+.star-node.lit i { color: #9dffd8; filter: drop-shadow(0 0 10px rgba(157, 255, 216, 1)); animation: star-pulse 2s ease-in-out infinite; }
+.star-node.dim { opacity: 0.4; }
+.star-node.dim i { color: #b9b1e6; }
+.star-node.selected i { transform: scale(1.45); }
+.star-node.selected small { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
+.star-node:focus-visible { outline: 2px solid #ffd66b; outline-offset: 2px; border-radius: 10px; }
+@keyframes star-twinkle { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; transform: scale(1.12); } }
+@keyframes star-pulse { 0%, 100% { filter: drop-shadow(0 0 6px rgba(157, 255, 216, 0.7)); } 50% { filter: drop-shadow(0 0 14px rgba(157, 255, 216, 1)); } }
+@media (max-width: 640px) {
+  .constellation { min-height: 300px; }
+  .star-node small { display: none; }
+  .star-node.selected small { display: block; }
+}
