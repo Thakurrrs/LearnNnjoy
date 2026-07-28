@@ -34,3 +34,19 @@
   background: linear-gradient(135deg, #ffd66b, #ff9d47);
   box-shadow: inset 0 0 12px rgba(255, 214, 107, 0.8);
 }
+
+/* Task 2: number line fits phones */
+.number-line-lab {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  gap: 2px;
+  padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+.number-line-lab button { scroll-snap-align: center; flex: 0 0 auto; min-width: 34px; }
+@media (max-width: 640px) {
+  .number-line-lab button { min-width: 30px; font-size: 0.72rem; }
+  .mountain-route { min-height: 72px; }
+  .mountain-route .route-mountain { font-size: 1.6rem; }
+}
