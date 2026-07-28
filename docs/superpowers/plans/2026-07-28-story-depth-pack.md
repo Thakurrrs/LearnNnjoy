@@ -2,7 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Serialized story arcs for maths quest missions, concept-accurate animations + teaching moments for all five Grade-7 adventures, and Nova teaching moments (worked example + stuck help) across every subject.
+**Goal:** PHASE A (kid-test readiness): all five Grade-7 adventures fixed per the content-QA report with concept-accurate animations, a kid-attractive "juice" micro-animation layer, a rebuilt Grade-7 maths question bank, and a cleaned-up starting experience — ready for a real 7th-grade tester. PHASE B (after the kid test): serialized story arcs for maths quest missions + Nova teaching moments across every subject.
+
+**QA input:** `docs/qa/2026-07-28-content-qa-report.md` — its Grade-7 and UI findings are folded into Phase A tasks below.
 
 **Architecture:** Pure-function story libs (`story-arcs`, `arc-scene`, `worked-examples`, `explain-moments`, `visual-motifs`) compose a `LessonStory`-compatible scene per question; `page.tsx` swaps one call site. Grade-7 activities in `grade-seven-adventures.tsx` are rewritten in place with a shared `NovaShows` concept-beat panel and physics-honest CSS animations. No `SavedProgress` changes.
 
@@ -15,8 +17,9 @@
 - **No `SavedProgress` schema changes.** Arc choice and worked-example display are pure derivations.
 - **Interaction inputs unchanged:** sliders, +/− buttons, tap-to-pick stay; only visuals/copy/feedback change.
 - **All existing tests stay green** (70 at branch time). Run `npm run test` in `LearnNnjoy/` before every commit.
-- **Branch:** `feature/story-depth-pack`, created from `main` AFTER `feature/kid-interest-pack` PR and the polish task (task_e1288637) are merged. Working dir: `F:\AI Stuff\AntiGravity\Projects\Claude\LearnNnjoy`.
-- Grade-7 tasks (1–7) ship FIRST and are independently deliverable.
+- **Branch:** `feature/story-depth-pack`. Preconditions are ALREADY MET (PR #6 merged to main; polish task landed; main's "subject home" commit `9ef99fb` is merged into the working tree — it adds a ⌂ Home button to most navs and routes G7+maths to the adventures screen). Working dir: `F:\AI Stuff\AntiGravity\Projects\Claude\LearnNnjoy`.
+- **Animation constraint:** every new animation honors `@media (prefers-reduced-motion: reduce)` — the Phase A juice task ships the global kill-switch block; later tasks add class names to it if they add animations.
+- Phase A tasks (0–7D) ship FIRST — they are the kid-test scope. Phase B tasks (8–15) run only after the kid test.
 
 ---
 
@@ -24,16 +27,15 @@
 
 **Files:** none (git only)
 
-- [ ] **Step 1: Verify preconditions**
-
-Run: `git fetch origin && git log --oneline origin/main -5`
-Expected: kid-interest-pack merge commit AND polish-task commits present on `main`. If not, STOP — report BLOCKED (preconditions unmerged).
-
-- [ ] **Step 2: Create branch**
+- [ ] **Step 1: Sync and branch**
 
 ```bash
-git checkout main && git pull && git checkout -b feature/story-depth-pack
+git fetch origin && git checkout main && git pull && git checkout -b feature/story-depth-pack
 ```
+
+(If `feature/kid-interest-pack` holds unmerged docs commits, branch from it instead after merging `origin/main` into it — the tree must contain main's `9ef99fb` "subject home" commit.)
+
+- [ ] **Step 2: Baseline green**
 
 Run: `npm run test` — Expected: all tests pass (baseline green).
 
@@ -122,9 +124,9 @@ function MountainRescue({ firstTime, heroName, onFinish }: { firstTime: boolean;
     {step < 5 && <ChapterProgress chapter="Mountain Rescue" step={step} />}
     {step === 0 && <section className="chapter-event"><p className="activity-prompt">{personalize("My rescue pod hung at the +3 ledge. The storm knocked it 7 levels DOWN, {hero}! The mountain map counts levels above and below base camp.", heroName)}</p><StoryScene world="mountain" /><button className="primary" onClick={() => setStep(1)}>Open the cliff map →</button></section>}
     {step === 1 && showDemo && <NovaShows lines={["Watch me first!", "Base camp is ZERO.", "I fly UP one level. That is plus 1.", "I drop DOWN two. Past zero — minus 1!", "Down means MINUS. Up means PLUS."]} onDone={() => setShowDemo(false)} />}
-    {step === 1 && !showDemo && <section className="chapter-event"><p className="activity-prompt">Fly the pod DOWN seven levels from +3. Cross base camp if the trail goes there.</p><div className="cliff-lab" aria-label={`Nova's pod is at level ${fmt(position)}`}><div className="cliff-track" style={{ height: `${levels.length * LEVEL_H}px` }}>{levels.map((value) => <button key={value} className={`cliff-level${value === position ? " active" : ""}${value === 0 ? " base-camp" : ""}`} style={{ top: `${(CLIFF_TOP - value) * LEVEL_H}px` }} onClick={() => setPosition(value)} aria-label={`Move the pod to level ${fmt(value)}`}><span>{fmt(value)}</span>{value === 0 && <small>BASE CAMP</small>}</button>)}<span className="cliff-pod" style={{ top: `${(CLIFF_TOP - position) * LEVEL_H}px` }} aria-hidden>🚁</span></div><div className="cliff-readout"><b>Pod level: {fmt(position)}</b><small>{position > 0 ? `${position} above base camp` : position < 0 ? `${-position} below base camp` : "right at base camp"}</small>{complete && <div className="mini-discovery"><b>The pod rests at −4.</b><span>From +3, seven levels down crosses base camp.</span></div>}</div></div><div className="activity-controls"><button onClick={() => setPosition((v) => Math.max(CLIFF_BOTTOM, v - 1))}>↓ Drop one level</button><b>{fmt(position)}</b><button onClick={() => setPosition((v) => Math.min(CLIFF_TOP, v + 1))}>Climb one level ↑</button></div><button className="primary" disabled={!complete} onClick={() => setStep(2)}>Read the rescue marker →</button></section>}
+    {step === 1 && !showDemo && <section className="chapter-event"><p className="activity-prompt">Fly the pod DOWN seven levels from +3. Cross base camp if the trail goes there.</p><div className="cliff-lab" aria-label={`Nova's pod is at level ${fmt(position)}`}><div className="cliff-track" style={{ height: `${levels.length * LEVEL_H}px` }}>{levels.map((value) => <button key={value} className={`cliff-level${value === position ? " active" : ""}${value === 0 ? " base-camp" : ""}`} style={{ top: `${(CLIFF_TOP - value) * LEVEL_H}px` }} onClick={() => setPosition(value)} aria-label={`Move the pod to level ${fmt(value)}`}><span>{fmt(value)}</span>{value === 0 && <small>BASE CAMP</small>}</button>)}<span className="cliff-pod" style={{ top: `${(CLIFF_TOP - position) * LEVEL_H}px` }} aria-hidden>🚁</span></div><div className="cliff-readout"><b>Pod level: {fmt(position)}</b><small>{position > 0 ? `${position} above base camp` : position < 0 ? `${-position} below base camp` : "right at base camp"}</small><em className="cliff-goal">Trail: start +3 · drop 7</em>{complete && <div className="mini-discovery"><b>The pod rests at −4.</b><span>From +3, seven levels down crosses base camp.</span></div>}</div></div><div className="activity-controls"><button onClick={() => setPosition((v) => Math.max(CLIFF_BOTTOM, v - 1))}>↓ Drop one level</button><b>{fmt(position)}</b><button onClick={() => setPosition((v) => Math.min(CLIFF_TOP, v + 1))}>Climb one level ↑</button></div><button className="primary" disabled={!complete} onClick={() => setStep(2)}>Read the rescue marker →</button></section>}
     {step === 2 && <section className="chapter-event"><p className="activity-prompt">The marker says <b>−4</b>. What does the minus sign tell the rescue team?</p><div className="offer-grid"><button className={direction === "below" ? "selected" : ""} onClick={() => setDirection("below")}><b>Below base camp</b><small>The pod sits under the zero line.</small></button><button className={direction === "above" ? "selected" : ""} onClick={() => setDirection("above")}><b>Above base camp</b><small>The pod is still over the zero line.</small></button></div>{direction === "above" && <p className="try-again">Look at the pod on the cliff map. Is −4 over or under the gold base-camp line?</p>}<button className="primary" disabled={direction !== "below"} onClick={() => setStep(3)}>Write the trail move →</button></section>}
-    {step === 3 && <section className="chapter-event"><p className="activity-prompt">Choose the equation that records the fall from <b>+3</b> down <b>7</b> levels.</p><div className="offer-grid">{["3 − 7 = −4", "3 + 7 = −4"].map((choice) => <button key={choice} className={equation === choice ? "selected" : ""} onClick={() => setEquation(choice)}><b>{choice}</b></button>)}</div>{equation === "3 + 7 = −4" && <p className="try-again">Falling DOWN takes away levels. Down means minus — so we subtract.</p>}<button className="primary" disabled={equation !== "3 − 7 = −4"} onClick={() => setStep(4)}>Save the rescue route →</button></section>}
+    {step === 3 && <section className="chapter-event"><p className="activity-prompt">Nova opens her rescue logbook. Choose the line that records the fall from <b>+3</b> down <b>7</b> levels.</p><div className="offer-grid">{["3 − 7 = −4", "3 + 7 = −4"].map((choice) => <button key={choice} className={equation === choice ? "selected" : ""} onClick={() => setEquation(choice)}><b>{choice}</b></button>)}</div>{equation === "3 + 7 = −4" && <p className="try-again">Falling DOWN takes away levels. Down means minus — so we subtract.</p>}<button className="primary" disabled={equation !== "3 − 7 = −4"} onClick={() => setStep(4)}>Save the rescue route →</button></section>}
     {step === 4 && <Success title="Rescue pod found!" question="What does 3 − 7 mean on the cliff map?" choices={["Start at +3 and drop 7 levels down", "Start at +3 and climb 7 levels up", "Start at −7 and climb 3 levels"]} answer="Start at +3 and drop 7 levels down" onFinish={() => setStep(5)}>The pod fell from +3 to −4. Dropping past base camp keeps counting into minus: <b>3 − 7 = −4</b>.</Success>}
     {step === 5 && <FinaleScene id="mountain" firstTime={firstTime} heroName={heroName} onDone={onFinish} />}
   </>;
@@ -147,6 +149,7 @@ Note: the old `lineRef`/`useEffect`/`scrollIntoView` block and the horizontal `.
 .cliff-level.active span { color: #ffd166; font-weight: 700; }
 .cliff-pod { position: absolute; left: 96px; height: 26px; display: flex; align-items: center; font-size: 1.45rem; transition: top .55s cubic-bezier(.45, 0, .25, 1); filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .35)); pointer-events: none; }
 .cliff-readout { display: grid; gap: 6px; align-content: start; }
+.cliff-goal { font-style: normal; font-size: .74rem; color: #ffd166; letter-spacing: .06em; }
 @media (max-width: 760px) { .cliff-lab { gap: 10px; } .cliff-track { width: 128px; } .cliff-pod { left: 82px; } }
 ```
 
@@ -189,7 +192,7 @@ function Skatepark({ firstTime, heroName, onFinish }: { firstTime: boolean; hero
     {step === 0 && <section className="chapter-event"><p className="activity-prompt">{personalize("The rooftop skatepark opens tonight, {hero}! My first ramp must meet the course with a safe 60° turn. Too flat is boring. Too steep is a tumble!", heroName)}</p><StoryScene world="skate" /><button className="primary" onClick={() => setStep(1)}>Inspect the ramp plan →</button></section>}
     {step === 1 && showDemo && <NovaShows lines={["Watch the board!", "Flat ramp — the board barely moves.", "I tilt the ramp UP. The turn gets bigger.", "The board slides DOWN the steep slope!", "That turn between ramp and ground IS the angle."]} onDone={() => setShowDemo(false)} />}
     {step === 1 && !showDemo && <section className="chapter-event"><p className="activity-prompt">Turn the ramp until it meets the ground at exactly <b>60°</b>. Watch the board ride the slope as you turn it.</p><div className={`slope-lab${complete ? " locked" : ""}`} aria-label={`Ramp angle ${angle} degrees`}><div className="slope-ground" /><div className="slope-ramp" style={{ transform: `rotate(${-angle}deg)` }}><span className="slope-skater" style={{ left: `${skaterAlong}%` }} aria-hidden>🛹</span></div><span className="slope-wedge" style={{ ["--wedge" as string]: `${angle}deg` }} aria-hidden /><b className="slope-readout">{angle}°</b></div><input className="discount-slider" aria-label="Ramp angle" type="range" min="0" max="120" step="10" value={angle} onChange={(event) => setAngle(Number(event.target.value))} />{supportsHandControl() && !handMode && <button className="text-button" onClick={() => setHandMode(true)}>✋ Try hand control (beta) — ask your grown-up first, it uses the camera</button>}{handMode && <HandAngleControl onAngle={setAngle} onClose={() => setHandMode(false)} />}<div className="activity-controls"><button onClick={() => setAngle((value) => Math.max(0, value - 10))}>Rotate back</button><b>{angle}°</b><button onClick={() => setAngle((value) => Math.min(120, value + 10))}>Rotate forward</button></div>{complete && <div className="mini-discovery"><b>60° — the board rolls smooth and lands safe!</b><span>An angle measures the turn between two lines, not a length.</span></div>}<button className="primary" disabled={!complete} onClick={() => setStep(2)}>Complete the triangle →</button></section>}
-    {step === 2 && <section className="chapter-event"><p className="activity-prompt">The course triangle has three equal turns. Two are <b>60°</b>. What is the third?</p><div className="offer-grid">{["30°", "60°", "120°"].map((choice) => <button key={choice} className={triangleAngle === choice ? "selected" : ""} onClick={() => setTriangleAngle(choice)}><b>{choice}</b></button>)}</div>{triangleAngle && triangleAngle !== "60°" && <p className="try-again">Three EQUAL turns share the triangle. Equal means all three match.</p>}<button className="primary" disabled={triangleAngle !== "60°"} onClick={() => setStep(3)}>Test the design language →</button></section>}
+    {step === 2 && <section className="chapter-event"><div className="mini-discovery"><b>Nova's triangle secret!</b><span>The three turns of ANY triangle add up to 180°.</span></div><p className="activity-prompt">The course triangle has three equal turns. Two are <b>60°</b> each. All three together make <b>180°</b>. What is the third?</p><div className="offer-grid">{["30°", "60°", "120°"].map((choice) => <button key={choice} className={triangleAngle === choice ? "selected" : ""} onClick={() => setTriangleAngle(choice)}><b>{choice}</b></button>)}</div>{triangleAngle && triangleAngle !== "60°" && <p className="try-again">Add the two turns you know: 60° + 60° = 120°. How much is left to reach 180°?</p>}<button className="primary" disabled={triangleAngle !== "60°"} onClick={() => setStep(3)}>Test the design language →</button></section>}
     {step === 3 && <section className="chapter-event"><p className="activity-prompt">Nova tells the builders: &quot;the ramp needs a 60° angle.&quot; What does that tell them?</p><div className="offer-grid">{["The amount of turn between two lines", "The length of the ramp"].map((choice) => <button key={choice} className={meaning === choice ? "selected" : ""} onClick={() => setMeaning(choice)}><b>{choice}</b></button>)}</div>{meaning === "The length of the ramp" && <p className="try-again">The ° sign means turning. A long ramp and a short ramp can share one angle!</p>}<button className="primary" disabled={meaning !== "The amount of turn between two lines"} onClick={() => setStep(4)}>Open the skatepark →</button></section>}
     {step === 4 && <Success title="Course locked in!" question="An angle tells us the…" choices={["amount of turn between two lines", "length of the ramp", "number of wheels on the board"]} answer="amount of turn between two lines" onFinish={() => setStep(5)}>You built a 60° turn and the board proved it rides. Angles describe the turn between two lines — never the length.</Success>}
     {step === 5 && <FinaleScene id="skatepark" firstTime={firstTime} heroName={heroName} onDone={onFinish} />}
@@ -265,6 +268,12 @@ and change the existing step-1 section's condition from `step === 1` to `step ==
 
 Replace the step-1 try-path copy `"A balance tips if only one side changes."` (step 2 try-again) with `"Remember the demo — one-sided moves tip the scale."`
 
+Rewrite step 2 to concrete, in-story choices (QA: "repair"/"operation" are undefined adult words). Replace the step-2 section's prompt and choices:
+- Prompt: `Nova taps the stuck crate. Which move keeps its scale fair?`
+- Choices array: `["Remove blocks from both sides", "Remove blocks from only one side"]`
+- Gate/selected checks change from `"Do the same operation to both sides"` to `"Remove blocks from both sides"` (both the `rule !== ...` disabled check and the try-again condition, which keys on `"Remove blocks from only one side"`).
+The step-4 `Success` question keeps its abstract phrasing (post-lab abstraction is the point there), but its first choice becomes `"Do the same thing to both sides"` (answer) with the other two unchanged — update the `answer` prop to match.
+
 - [ ] **Step 3: Append CSS to `src/app/world.css`**
 
 ```css
@@ -292,6 +301,20 @@ git commit -m "feat: Balance Lab tipping demo concept beat"
 **Files:**
 - Modify: `src/components/grade-seven-adventures.tsx` (`SmartShopper` steps 0–2)
 - Modify: `src/app/world.css` (append)
+
+- [ ] **Step 0: QA story/coherence fixes (do these first)**
+
+1. **Two shops from the start, no verdict spoiler** (QA Critical: step 3's "Trail Shop" appears from nowhere; step 0 pre-announces the discount is "fair"). Replace the step-0 prompt with (wrapped in `personalize(..., heroName)`):
+   `Nova needs the expedition kit before sunset, {hero}! TWO shops sell it. Explorer Shop: ₹240 with 25% off. Trail Shop: ₹300 with 20% off. Which deal is truly better? Let's find out!`
+2. **Step 1 becomes a real choice** (QA: four identical "₹60" buttons make the task illusory). Replace the `quarterChosen` boolean state with `const [quarterPick, setQuarterPick] = useState<string | null>(null);` and the quarter-split block with:
+
+```tsx
+<div className="quarter-split" aria-label="Pick the piece that is one quarter of 240 rupees">{["₹40", "₹60", "₹80", "₹120"].map((piece) => <button key={piece} className={quarterPick === piece ? (piece === "₹60" ? "chosen" : "picked-wrong") : ""} onClick={() => setQuarterPick(piece)}><b>{piece}</b><small>is this one quarter?</small></button>)}</div>
+{quarterPick === "₹60" && <div className="mini-discovery"><b>₹60 four times makes ₹240.</b><span>25% = 1/4 = ₹60</span></div>}
+{quarterPick && quarterPick !== "₹60" && <p className="try-again">Four equal parts must add back to ₹240. Does yours, four times?</p>}
+```
+   Gate the step-1 continue button on `quarterPick === "₹60"`. Add CSS: `.quarter-split button.picked-wrong { outline: 2px solid rgba(255,120,120,.6); outline-offset: 2px; }`
+3. **Step 3 references the shops set up in step 0.** Replace its prompt with: `Time to choose, {hero}! Which shop leaves Nova with the LOWER final price?` (wrapped in `personalize`).
 
 - [ ] **Step 1: Add demo state + concept beat**
 
@@ -359,7 +382,11 @@ Insert before the existing step-1 section:
 ```
 and change the existing step-1 condition from `step === 1` to `step === 1 && !showDemo`.
 
-- [ ] **Step 2: Verify + commit**
+- [ ] **Step 2: Calibrate the joke distractors (QA: "names are shortest" is guessably silly)**
+
+Replace the distractor `"Their names are shortest"` with `"They practised the most this week"` in BOTH the step-3 offer-grid choices and the step-4 `Success` choices. Update the step-3 try-again condition to key on the new string, with message: `Practice matters — but the chart shows match scores. Trust its bars.`
+
+- [ ] **Step 3: Verify + commit**
 
 Run: `npm run lint && npm run test` — Expected: PASS.
 
@@ -431,9 +458,173 @@ git add src/components/grade-seven-adventures.tsx src/lib/story-lint.test.ts
 git commit -m "test: concept beats exported and linted"
 ```
 
-**Grade-7 milestone: Tasks 1–7 are a shippable increment. Verify in-browser (Task 15 steps 1–3) before continuing if shipping now.**
+---
+
+### Task 7A: Juice kit — micro-animations that make the app feel alive
+
+**Files:**
+- Create: `src/components/sparkle-burst.tsx`
+- Modify: `src/app/world.css` (append), `src/app/page.tsx`, `src/components/grade-seven-adventures.tsx`, `src/components/constellation-map.tsx` (CSS hook only)
+
+**Interfaces:**
+- Produces: `SparkleBurst({ playKey })` — fires a 6-spark burst whenever `playKey` changes; renders nothing when `playKey` is null.
+
+- [ ] **Step 1: Create the component**
+
+```tsx
+// src/components/sparkle-burst.tsx
+"use client";
+
+export function SparkleBurst({ playKey }: { playKey: string | number | null }) {
+  if (playKey === null) return null;
+  return <span key={String(playKey)} className="sparkle-burst" aria-hidden>{Array.from({ length: 6 }, (_, i) => <i key={i} style={{ ["--angle" as string]: `${i * 60}deg` }}>✦</i>)}</span>;
+}
+```
+
+- [ ] **Step 2: Append the juice CSS to `src/app/world.css`**
+
+```css
+/* ---- Juice: micro-animations ---- */
+.primary, .choice, .text-button, .offer-grid button, .cliff-level, .quarter-split button, .cricket-lab button { transition: transform .12s ease; }
+.primary:active, .choice:active, .offer-grid button:active, .quarter-split button:active, .cricket-lab button:active { transform: scale(.95); }
+.sparkle-burst { position: relative; display: inline-block; width: 0; height: 0; vertical-align: middle; }
+.sparkle-burst i { position: absolute; left: 0; top: 0; font-style: normal; color: #ffd166; animation: sparkle-fly .7s ease-out forwards; }
+@keyframes sparkle-fly { from { transform: rotate(var(--angle)) translateY(0); opacity: 1; } to { transform: rotate(var(--angle)) translateY(-34px); opacity: 0; } }
+.nova-hop { animation: nova-hop .5s ease; }
+@keyframes nova-hop { 30% { transform: translateY(-8px) scale(1.15); } 60% { transform: translateY(0) scale(1); } }
+.nova-think { animation: nova-think .8s ease; }
+@keyframes nova-think { 25% { transform: rotate(-12deg); } 75% { transform: rotate(9deg); } }
+.coin-pop { display: inline-block; animation: coin-pop .45s ease; }
+@keyframes coin-pop { 40% { transform: scale(1.3); color: #ffd166; } }
+@keyframes star-ignite { 45% { transform: scale(1.5); filter: drop-shadow(0 0 12px #ffd166); } }
+@media (prefers-reduced-motion: reduce) { .sparkle-burst i, .nova-hop, .nova-think, .coin-pop, .demo-beam, .cliff-pod, .slope-ramp, .slope-skater, .start-hint { animation: none !important; transition: none !important; } }
+```
+
+- [ ] **Step 3: Wire the reactions**
+
+In `src/app/page.tsx` (quest screen, bottom of the file):
+1. Correct-answer burst — the correct-feedback block gains a burst: `<div className="feedback correct"><SparkleBurst playKey={current.id} /><b>…` (import `SparkleBurst`).
+2. Nova reacts — replace `<div className="nova-orbit">✨</div>` with `<div className={`nova-orbit${feedback === "correct" ? " nova-hop" : feedback === "retry" ? " nova-think" : ""}`}>✨</div>`.
+3. Coin tick — replace `<span>🪙 {coins}</span>` (quest topbar) with `<span key={coins} className="coin-pop">🪙 {coins}</span>`.
+
+In `src/components/grade-seven-adventures.tsx` — the `Success` component's correct line becomes:
+`{correct && <p className="check-complete"><SparkleBurst playKey={question} />Exactly! Nova is taking notes from YOU now.</p>}` (import `SparkleBurst`).
+
+- [ ] **Step 4: Star ignition on the constellation map**
+
+Open `src/components/constellation-map.tsx` and find the className applied to COMPLETED star nodes (grep `completed`). Append to `world.css`: `.constellation-map .<that-class> { animation: star-ignite .9s ease; }` (substitute the real class name; if the map root uses a different container class, target that instead — verify with the browser in Task 7D).
+
+- [ ] **Step 5: Verify + commit**
+
+Run: `npm run lint && npm run test` — Expected: PASS.
+
+```bash
+git add src/components/sparkle-burst.tsx src/app/world.css src/app/page.tsx src/components/grade-seven-adventures.tsx
+git commit -m "feat: juice kit - sparkle bursts, Nova reactions, coin pop, star ignite"
+```
 
 ---
+
+### Task 7B: Grade-7 maths question bank rebuild
+
+**Files:**
+- Modify: `src/lib/grade-quests.ts` (the grade-7 entries only)
+
+**Context:** QA found g7-1…g7-4 are recycled Grade 4–6 content (fraction comparison, decimal conversion, integer addition) with zero Class-7 CBSE syllabus. g7-5 (scale model) and g7-6 (recipe ratio) are correctly pitched — KEEP THEM VERBATIM. This bank also feeds the G7 diagnostic (indices 0, 3, 5 via `getDiagnosticForGrade`).
+
+- [ ] **Step 1: Replace g7-1 through g7-4 with these exact questions** (keep each entry's original `skill` value so unlock logic is untouched; keep the id):
+
+```ts
+// g7-1 — integers crossing zero (Class 7: Integers)
+{ id: "g7-1", prompt: "Nova's mountain camp shows −3°C at dawn. The sun warms it by 8°C. What does it show now?", choices: ["5°C", "−5°C", "11°C"], answer: "5°C", hint: "Start at −3. Climb 8 steps up the scale. Where do you land?", explanation: "−3 + 8 = 5. Climbing 8 from −3 crosses zero and lands on 5.", visual: "number-line", skill: /* keep original g7-1 skill */ },
+// g7-2 — simple equation (Class 7: Simple Equations)
+{ id: "g7-2", prompt: "Nova's star-crate lock says: x + 5 = 12. What is x?", choices: ["7", "17", "5"], answer: "7", hint: "Take 5 away from BOTH sides. What stays with x?", explanation: "x + 5 = 12 means x = 12 − 5 = 7. Both sides stayed fair.", visual: "formula", skill: /* keep original g7-2 skill */ },
+// g7-3 — percentage of quantity (Class 7: Comparing Quantities)
+{ id: "g7-3", prompt: "The ₹240 expedition kit has 25% off. How many rupees does Nova save?", choices: ["₹60", "₹25", "₹180"], answer: "₹60", hint: "25% means one quarter. Split ₹240 into 4 equal parts.", explanation: "25% = 1/4. ₹240 ÷ 4 = ₹60 saved, so the kit costs ₹180.", visual: "fraction", skill: /* keep original g7-3 skill */ },
+// g7-4 — rational numbers on the line (Class 7: Rational Numbers intro)
+{ id: "g7-4", prompt: "Which number sits between −2 and −3 on Nova's trail?", choices: ["−2.5", "−1.5", "−3.5"], answer: "−2.5", hint: "Between −2 and −3 means past −2 but not past −3.", explanation: "−2.5 lies halfway between −2 and −3 on the number line.", visual: "number-line", skill: /* keep original g7-4 skill */ },
+```
+
+Match the file's exact object shape (check one existing entry first — field order/extra fields must match; the `/* keep original */` comments mean: copy the skill value from the entry being replaced, then delete the comment).
+
+- [ ] **Step 2: Run the suite; fix any assertion that referenced the old g7 text**
+
+Run: `npm run test` — Expected: PASS (if a test asserts old g7 prompts/answers, update the assertion to the new content — the new content governs).
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/lib/grade-quests.ts src/lib/*.test.ts
+git commit -m "feat: rebuild Grade-7 maths bank to Class 7 CBSE syllabus"
+```
+
+---
+
+### Task 7C: Starting-experience polish (kid register + jargon purge)
+
+**Files:**
+- Modify: `src/app/page.tsx`, `src/app/world.css` (append)
+
+**Context:** These strings are in the kid's first five minutes. All replacements below are exact old → new; find each with grep. (The Atlas is now "HOME BASE" after main's subject-home commit — these edits build on that.)
+
+- [ ] **Step 1: String replacements in `page.tsx`**
+
+1. `Grade {grade} · CBSE/NCERT competency roadmap · Maths, Science, English, and Social Science each have a playable mission.` → `Grade {grade} · Four worlds to explore. Pick where today's adventure happens.`
+2. `This world is planned in the curriculum journey. It will unlock after the current pilot proves the learning loop.` → `Nova is still building this world. It opens soon!`
+3. Atlas status labels: `"PILOT NOW"` → `"PLAY NOW"`, `"MAPPED NEXT"` → `"COMING SOON"`.
+4. Welcome pill `Private learner adventure` → `Just you and Nova`.
+5. Welcome privacy line `Your progress stays on this device. No rankings, public profiles, or peer pressure.` → `Your adventure stays on this device. No leaderboards — just you and Nova.`
+6. Avatar World line `Cosmetics are earned through learning. They never make a quest easier.` → `Everything here is earned by playing. Wear it your way!`
+7. Outcome coin small-print `For thoughtful problem solving` → `Nice thinking!`
+8. `LUMINA RESTORATION` (quest sidebar eyebrow) → `SAVE LUMINA`, and `subjectMissionName` value `"Lumina restoration"` → `"Save Lumina"`.
+9. Quest-top state label `"Use your discovery"` → `"Try it out"`.
+10. Adventures progress line: `· {gradeSevenChapters.length} topics mapped` → `· more stars on the horizon`.
+
+- [ ] **Step 2: "Start here" pulse for a first-time G7 kid**
+
+On the adventures screen, directly after `<ConstellationMap … />`, add:
+```tsx
+{completedAdventures.length === 0 && <p className="start-hint">▶ Tap a bright star to begin!</p>}
+```
+CSS append: `.start-hint { text-align: center; color: #ffd166; animation: start-pulse 1.6s ease infinite; } @keyframes start-pulse { 50% { opacity: .45; transform: scale(.97); } }`
+
+- [ ] **Step 3: Fresh-start button (for the kid-test session)**
+
+On the welcome screen, below the main start CTA, add:
+```tsx
+<button className="text-button" onClick={() => { try { localStorage.removeItem(PROGRESS_KEY); } catch {} window.location.reload(); }}>Start over from the very beginning</button>
+```
+`PROGRESS_KEY` = the exact storage-key constant the app already uses to save progress — find it in `src/lib/saved-progress.ts` (or where `localStorage.setItem` is called in `page.tsx`) and import/reference the same constant. Render it only when saved progress exists if a `hydrated`-plus-name check is available; otherwise render always (harmless on first run).
+
+- [ ] **Step 4: Verify + commit**
+
+Run: `npm run lint && npm run test` — Expected: PASS.
+
+```bash
+git add src/app/page.tsx src/app/world.css
+git commit -m "feat: kid-register starting experience, jargon purge, fresh-start button"
+```
+
+---
+
+### Task 7D: Kid-test readiness verify (controller task — browser)
+
+**Files:** none (verification only)
+
+- [ ] **Step 1:** Start the dev server. Fresh profile → welcome screen: check the new pill/privacy line, pick an avatar, enter a name, grade 7 → should land on the star map with the "Tap a bright star" pulse.
+- [ ] **Step 2:** Play Skatepark end-to-end: concept beat once → board rides the ramp and slides as the angle changes → 60° roll-down → triangle step shows the 180° discovery BEFORE the question → finale. Then Mountain: vertical pod, BASE CAMP line, "Trail: start +3 · drop 7" chip visible, logbook step.
+- [ ] **Step 3:** Balance (demo tips on one-sided move; concrete choices), Shopper (TWO shops in step 0; ₹40/₹60/₹80/₹120 real choice; price bar; step-3 shop pick), Cricket (concept beat; new distractor).
+- [ ] **Step 4:** Juice: button squash on press, sparkle burst + Nova hop on a correct answer, coin counter pop, star ignites on the map after a finale. Toggle OS reduced-motion and confirm animations stop.
+- [ ] **Step 5:** Atlas/Home: no "competency roadmap"/"pilot" jargon anywhere on screen; "Start over from the very beginning" resets to a clean welcome.
+- [ ] **Step 6:** Mobile viewport (375px) for all of the above; `npm run lint && npm run build && npm run test` all green. Commit any fixes as `fix:` commits.
+
+**PHASE A COMPLETE = READY FOR THE KID TEST. Stop here and hand over for the real-kid session. Everything below waits for that feedback.**
+
+---
+
+## PHASE B — after the kid test (quest-flow arcs + teaching moments)
+
+*Tasks 8–15 below are unchanged in content but DEFERRED: they serve the quest missions (mainly grades 4–6), which the 7th-grade tester barely touches. Run them only after the kid test, folding in whatever the test teaches. Task 15's Grade-7 checks are superseded by Task 7D.*
 
 ### Task 8: `worked-examples` lib
 
