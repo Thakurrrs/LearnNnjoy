@@ -8,31 +8,31 @@ export const metadata: Metadata = {
 const auditions = [
   {
     id: "A",
-    title: "Playful Spark",
+    title: "Danger alert",
     role: "Nova",
-    description: "Quick, bright and adventurous.",
-    src: "/audio/voice-auditions/a-playful-spark.mp3",
+    description: "A rescue pod is falling. Nova needs the learner to act now.",
+    src: "/audio/voice-auditions/emotion/a-danger-alert.mp3",
   },
   {
     id: "B",
-    title: "Warm Companion",
+    title: "Calm reassurance",
     role: "Nova",
-    description: "Gentle, reassuring and clear during teaching.",
-    src: "/audio/voice-auditions/b-warm-companion.mp3",
+    description: "The learner feels stuck. Nova slows down and makes the next step feel safe.",
+    src: "/audio/voice-auditions/emotion/b-calm-reassurance.mp3",
   },
   {
     id: "C",
-    title: "Mischievous Guide",
+    title: "Gentle correction",
     role: "Nova",
-    description: "Expressive, playful and a little cheeky.",
-    src: "/audio/voice-auditions/c-mischievous-guide.mp3",
+    description: "The answer is close. Nova sounds curious and guides without judging.",
+    src: "/audio/voice-auditions/emotion/c-gentle-correction.mp3",
   },
   {
     id: "D",
-    title: "Rescue Control",
-    role: "Supporting character",
-    description: "Calm and grounded—the contrast voice beside Nova.",
-    src: "/audio/voice-auditions/d-rescue-control.mp3",
+    title: "Big celebration",
+    role: "Nova",
+    description: "The learner solves the rescue. Nova shares the excitement and victory.",
+    src: "/audio/voice-auditions/emotion/d-big-celebration.mp3",
   },
 ] as const;
 
@@ -40,8 +40,8 @@ export default function VoiceAuditionsPage() {
   return <main className={styles.page}>
     <section className={styles.hero}>
       <p>LEARNNJOY · PRIVATE PRODUCT PREVIEW</p>
-      <h1>Choose Nova&apos;s voice direction.</h1>
-      <span>These are original AI-generated auditions, not imitations of an anime performer. Use the same speaker volume for every clip.</span>
+      <h1>Can you hear Nova&apos;s emotion?</h1>
+      <span>One consistent Nova voice, acting four different story moments. The earlier “playful, warm, mischievous” pack was rejected because its differences were too small.</span>
     </section>
 
     <section className={styles.grid} aria-label="Nova voice auditions">
@@ -60,8 +60,8 @@ export default function VoiceAuditionsPage() {
     </section>
 
     <aside className={styles.note}>
-      <b>What to listen for</b>
-      <span>Pick the voice that makes you want to keep listening—not merely the highest or cutest voice. We can adjust its speed, energy and warmth after you choose.</span>
+      <b>The eyes-closed test</b>
+      <span>Ignore the words for a moment. Does the performance itself make danger urgent, reassurance gentle, correction supportive, and celebration joyful? These are AI-generated auditions—not final story audio.</span>
     </aside>
   </main>;
 }
