@@ -257,3 +257,10 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
 @media (max-width: 760px) {
   .quest-stats .hero-badge .hero-gear, .quest-stats .hero-duo .duo-nova, .quest-stats .hero-duo .duo-pet { display: inline-block; }
 }
+
+/* A consistent, progress-safe exit from every learning screen. */
+.nav-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 0.6rem; }
+.home-button { white-space: nowrap; }
+.story-nav .home-button { padding: 0.45rem 0.7rem; border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 999px; background: rgba(255, 255, 255, 0.12); color: #fff; }
+.story-nav .home-button:hover { background: rgba(255, 255, 255, 0.22); }
+@media (max-width: 760px) { .nav-actions { gap: 0.35rem; } .home-button { font-size: 0.76rem; } }
