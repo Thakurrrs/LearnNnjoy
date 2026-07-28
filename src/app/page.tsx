@@ -12,7 +12,7 @@ import { getGradeRoadmap } from "@/lib/curriculum-map";
 import { getLessonStory, type LessonStory } from "@/lib/lesson-story";
 import { recordDailyQuest } from "@/lib/streak";
 import { chooseAdaptiveNextStep } from "@/lib/adaptive";
-import { readSubjectProgress, snapshotSubjectMission, type ActiveSubject, type SubjectMissionProgress, type SubjectProgress } from "@/lib/subject-progress";
+import { snapshotSubjectMission, type ActiveSubject, type SubjectMissionProgress, type SubjectProgress } from "@/lib/subject-progress";
 import { getMissionChapter } from "@/lib/mission-chapters";
 import { GradeSevenActivity, gradeSevenAdventures, gradeSevenComingSoonChapters, type GradeSevenAdventureId, type GradeSevenChapter } from "@/components/grade-seven-adventures";
 import { cosmetics } from "@/lib/cosmetics";
@@ -23,38 +23,9 @@ import { getExplorerLevel } from "@/lib/levels";
 import { personalize } from "@/lib/personalize";
 import { getPet, getPetStage, PET_CHOICE_LEVEL, PET_STAGE_LEVELS, PET_STAGE_TITLES, petMoment, pets } from "@/lib/pets";
 import { HeroBadge, HeroDuo } from "@/components/hero-badge";
-
-type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "world" | "map" | "adventures" | "activity";
+import { sanitizeSavedProgress, type SavedProgress, type Screen } from "@/lib/saved-progress";
 
 const PILOT_PROGRESS_KEY = "learnnjoy-pilot-progress";
-
-type SavedProgress = {
-  name: string;
-  grade: Grade;
-  screen: Screen;
-  diagnosticIndex: number;
-  diagnosticCorrect: number;
-  storyBeat: number;
-  storyCells: number[];
-  fruitSplit: boolean;
-  fruitShared: boolean;
-  hintRequests: number;
-  questIndex: number;
-  coins: number;
-  correct: number;
-  attempts: number;
-  ownedCosmetics: string[];
-  equippedCosmetic: string;
-  dailyStreak: number;
-  lastCompletedDate: string | null;
-  activeSubject: ActiveSubject;
-  subjectProgress: SubjectProgress;
-  nextSupportMode: "rebuild" | "steady" | "stretch";
-  completedAdventures: GradeSevenAdventureId[];
-  avatar: string;
-  pet: string | null;
-  lifetimeDiscoveries: number;
-};
 
 function FractionVisual({ chargedPieces, onCharge }: { chargedPieces: number; onCharge: () => void }) {
   return <div className="visual-play"><div className="pizza interactive-pizza" aria-label="A four-part energy disc. Tap a piece to charge it.">{[0, 1, 2, 3].map((piece) => <button key={piece} type="button" className={piece < chargedPieces ? "charged" : ""} aria-label={`Charge piece ${piece + 1}`} onClick={onCharge} />)}</div><p>Tap the energy pieces to explore equal parts.</p></div>;
@@ -162,32 +133,32 @@ export default function Home() {
   const explorer = getExplorerLevel(lifetimeDiscoveries);
 
   function applySavedProgress(saved: Partial<SavedProgress>) {
-    if (saved.name) setName(saved.name);
-    if (saved.grade && saved.grade >= 4 && saved.grade <= 12) setGrade(saved.grade as Grade);
-    if (saved.activeSubject === "maths" || ((saved.activeSubject === "science" || saved.activeSubject === "english" || saved.activeSubject === "social") && (saved.grade === 4 || saved.grade === 5 || saved.grade === 6 || saved.grade === 7 || saved.grade === 8 || saved.grade === 9 || saved.grade === 10 || saved.grade === 11 || saved.grade === 12))) setActiveSubject(saved.activeSubject);
-    if (saved.screen && saved.screen !== "welcome") setScreen(saved.screen === "story" && saved.grade !== 4 ? "diagnostic" : saved.screen);
-    if (typeof saved.diagnosticIndex === "number") setDiagnosticIndex(Math.min(saved.diagnosticIndex, 2));
-    if (typeof saved.diagnosticCorrect === "number") setDiagnosticCorrect(Math.max(0, Math.min(3, saved.diagnosticCorrect)));
-    if (typeof saved.storyBeat === "number") setStoryBeat(Math.max(0, Math.min(3, saved.storyBeat)));
-    if (Array.isArray(saved.storyCells) && saved.storyCells.every((cell) => typeof cell === "number" && cell >= 0 && cell < 4)) setStoryCells(saved.storyCells);
-    if (typeof saved.fruitSplit === "boolean") setFruitSplit(saved.fruitSplit);
-    if (typeof saved.fruitShared === "boolean") setFruitShared(saved.fruitShared);
-    if (typeof saved.hintRequests === "number") setHintRequests(Math.max(0, saved.hintRequests));
-    if (typeof saved.questIndex === "number") setQuestIndex(Math.max(0, saved.questIndex));
-    if (typeof saved.coins === "number") setCoins(saved.coins);
-    if (typeof saved.correct === "number") setCorrect(saved.correct);
-    if (typeof saved.attempts === "number") setAttempts(saved.attempts);
-    if (Array.isArray(saved.ownedCosmetics) && saved.ownedCosmetics.every((item) => typeof item === "string")) setOwnedCosmetics(saved.ownedCosmetics);
-    if (typeof saved.equippedCosmetic === "string") setEquippedCosmetic(saved.equippedCosmetic);
-    if (typeof saved.dailyStreak === "number") setDailyStreak(saved.dailyStreak);
-    if (typeof saved.lastCompletedDate === "string") setLastCompletedDate(saved.lastCompletedDate);
-    if (saved.subjectProgress) setSubjectProgress(readSubjectProgress(saved.subjectProgress));
-    if (saved.nextSupportMode === "rebuild" || saved.nextSupportMode === "steady" || saved.nextSupportMode === "stretch") setNextSupportMode(saved.nextSupportMode);
-    if (Array.isArray(saved.completedAdventures) && saved.completedAdventures.every((id) => ["mountain", "balance", "shop", "skatepark", "cricket"].includes(id))) setCompletedAdventures(saved.completedAdventures);
-    if (typeof saved.avatar === "string" && avatars.some((option) => option.id === saved.avatar)) setAvatar(saved.avatar);
-    if (saved.pet === null || (typeof saved.pet === "string" && pets.some((option) => option.id === saved.pet))) setPet(saved.pet ?? null);
-    if (typeof saved.lifetimeDiscoveries === "number" && saved.lifetimeDiscoveries >= 0) setLifetimeDiscoveries(Math.min(100000, Math.floor(saved.lifetimeDiscoveries)));
-    else setLifetimeDiscoveries(Math.max(0, (saved.correct ?? 0) + (saved.completedAdventures?.length ?? 0)));
+    const clean = sanitizeSavedProgress(saved);
+    if (clean.name !== undefined) setName(clean.name);
+    if (clean.grade !== undefined) setGrade(clean.grade);
+    if (clean.activeSubject !== undefined) setActiveSubject(clean.activeSubject);
+    if (clean.screen !== undefined) setScreen(clean.screen);
+    if (clean.diagnosticIndex !== undefined) setDiagnosticIndex(clean.diagnosticIndex);
+    if (clean.diagnosticCorrect !== undefined) setDiagnosticCorrect(clean.diagnosticCorrect);
+    if (clean.storyBeat !== undefined) setStoryBeat(clean.storyBeat);
+    if (clean.storyCells !== undefined) setStoryCells(clean.storyCells);
+    if (clean.fruitSplit !== undefined) setFruitSplit(clean.fruitSplit);
+    if (clean.fruitShared !== undefined) setFruitShared(clean.fruitShared);
+    if (clean.hintRequests !== undefined) setHintRequests(clean.hintRequests);
+    if (clean.questIndex !== undefined) setQuestIndex(clean.questIndex);
+    if (clean.coins !== undefined) setCoins(clean.coins);
+    if (clean.correct !== undefined) setCorrect(clean.correct);
+    if (clean.attempts !== undefined) setAttempts(clean.attempts);
+    if (clean.ownedCosmetics !== undefined) setOwnedCosmetics(clean.ownedCosmetics);
+    if (clean.equippedCosmetic !== undefined) setEquippedCosmetic(clean.equippedCosmetic);
+    if (clean.dailyStreak !== undefined) setDailyStreak(clean.dailyStreak);
+    if (clean.lastCompletedDate !== undefined) setLastCompletedDate(clean.lastCompletedDate);
+    if (clean.subjectProgress !== undefined) setSubjectProgress(clean.subjectProgress);
+    if (clean.nextSupportMode !== undefined) setNextSupportMode(clean.nextSupportMode);
+    if (clean.completedAdventures !== undefined) setCompletedAdventures(clean.completedAdventures);
+    if (clean.avatar !== undefined) setAvatar(clean.avatar);
+    if (clean.pet !== undefined) setPet(clean.pet);
+    setLifetimeDiscoveries(clean.lifetimeDiscoveries);
   }
 
   const isScienceMission = activeSubject === "science" && grade <= 12;
