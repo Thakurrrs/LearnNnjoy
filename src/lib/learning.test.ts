@@ -29,6 +29,15 @@ describe("Number Sense curriculum", () => {
     });
   });
 
+  it("uses Class 7 ideas in the rebuilt Grade 7 starter bank", () => {
+    const gradeSeven = getQuestsForGrade(7);
+    expect(gradeSeven.map((quest) => quest.id)).toEqual(["g7-1", "g7-2", "g7-3", "g7-4", "g7-5", "g7-6"]);
+    expect(gradeSeven[0].prompt).toContain("−3°C");
+    expect(gradeSeven[1].prompt).toContain("x + 5 = 12");
+    expect(gradeSeven[2].prompt).toContain("25% off");
+    expect(gradeSeven[3].answer).toBe("−2.5");
+  });
+
   it("uses a prerequisite before proportional reasoning", () => {
     expect(numberSenseSkills.find((skill) => skill.id === "proportion")?.prerequisite).toBe("fractions");
   });

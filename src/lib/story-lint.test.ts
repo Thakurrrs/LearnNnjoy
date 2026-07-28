@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { finaleCopy, gradeSevenAdventures } from "@/components/grade-seven-adventures";
+import { conceptBeats, finaleCopy, gradeSevenAdventures } from "@/components/grade-seven-adventures";
 import { getLessonStory } from "./lesson-story";
 import { chooseAdaptiveNextStep, recoveryPrompt } from "./adaptive";
 import type { Question } from "./learning";
@@ -56,5 +56,22 @@ describe("story copy lint", () => {
       expect(label.split(/\s+/).length).toBeLessThanOrEqual(4);
       expect(label).not.toMatch(/complete/i);
     }
+  });
+});
+
+describe("Grade 7 concept beats obey the Story Bible", () => {
+  const allLines = Object.values(conceptBeats).flat();
+
+  it("has five beat sets with at least three lines each", () => {
+    expect(Object.keys(conceptBeats)).toHaveLength(5);
+    Object.values(conceptBeats).forEach((lines) => expect(lines.length).toBeGreaterThanOrEqual(3));
+  });
+
+  it("keeps every sentence within 16 words", () => {
+    allLines.forEach((line) => expect(maxSentenceWords(line), line).toBeLessThanOrEqual(16));
+  });
+
+  it("never uses shaming words", () => {
+    allLines.forEach((line) => expect(line).not.toMatch(/wrong|incorrect|thoughtful stretch|you did it/i));
   });
 });
