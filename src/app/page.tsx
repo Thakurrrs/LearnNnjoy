@@ -15,6 +15,7 @@ import { chooseAdaptiveNextStep } from "@/lib/adaptive";
 import { readSubjectProgress, snapshotSubjectMission, type ActiveSubject, type SubjectMissionProgress, type SubjectProgress } from "@/lib/subject-progress";
 import { getMissionChapter } from "@/lib/mission-chapters";
 import { GradeSevenActivity, gradeSevenAdventures, gradeSevenComingSoonChapters, type GradeSevenAdventureId } from "@/components/grade-seven-adventures";
+import { cosmetics } from "@/lib/cosmetics";
 
 type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "world" | "map" | "adventures" | "activity";
 
@@ -44,12 +45,6 @@ type SavedProgress = {
   nextSupportMode: "rebuild" | "steady" | "stretch";
   completedAdventures: GradeSevenAdventureId[];
 };
-
-const cosmetics = [
-  { id: "trailblazer", label: "Trailblazer pack", emoji: "🎒", cost: 0, detail: "Your first expedition companion." },
-  { id: "aurora", label: "Aurora cape", emoji: "🧥", cost: 50, detail: "A warm glow for brave problem-solvers." },
-  { id: "starglow", label: "Starglow companion", emoji: "🌟", cost: 75, detail: "A tiny light for the next trail." },
-] as const;
 
 function FractionVisual({ chargedPieces, onCharge }: { chargedPieces: number; onCharge: () => void }) {
   return <div className="visual-play"><div className="pizza interactive-pizza" aria-label="A four-part energy disc. Tap a piece to charge it.">{[0, 1, 2, 3].map((piece) => <button key={piece} type="button" className={piece < chargedPieces ? "charged" : ""} aria-label={`Charge piece ${piece + 1}`} onClick={onCharge} />)}</div><p>Tap the energy pieces to explore equal parts.</p></div>;
