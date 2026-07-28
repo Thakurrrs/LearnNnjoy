@@ -51,31 +51,6 @@
   .mountain-route .route-mountain { font-size: 1.6rem; }
 }
 
-/* Task 4: Nova wears her cosmetics */
-.nova-companion {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  line-height: 1;
-}
-.nova-companion .nova-star { display: inline-block; }
-.nova-companion .nova-gear {
-  position: absolute;
-  bottom: -0.35em;
-  left: 0.72em;
-  transform: rotate(-12deg);
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
-}
-.nova-companion small { margin-left: 0.55em; font-weight: 600; opacity: 0.85; }
-.nova-sm { font-size: 1rem; }
-.nova-sm .nova-gear { font-size: 0.7rem; }
-.nova-md { font-size: 1.6rem; }
-.nova-md .nova-gear { font-size: 1rem; }
-.nova-lg { font-size: 3rem; }
-.nova-lg .nova-gear { font-size: 1.8rem; }
-.nova-lg small { font-size: 1rem; display: block; }
-
 /* Task 5: Nova preview + outcome placement */
 .nova-preview {
   display: flex;
@@ -227,10 +202,6 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
 .hand-control video { width: 120px; border-radius: 10px; transform: scaleX(-1); }
 .hand-control p { margin: 0; font-size: 0.85rem; opacity: 0.85; }
 
-/* Final review fix: keep Nova's cosmetic visible on phones (globals.css hides .quest-stats span:nth-child(2)) */
-@media (max-width: 760px) {
-  .quest-stats .nova-companion .nova-gear { display: inline-block; }
-}
 @media (prefers-reduced-motion: reduce) { .star-node i { animation: none; } }
 
 /* Kid-hero: explorer badge + duo */
@@ -254,3 +225,11 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
 .pet-stage-2 { font-size: 1.05em; filter: drop-shadow(0 0 3px rgba(255, 214, 107, 0.7)); }
 .pet-stage-3 { font-size: 1.25em; filter: drop-shadow(0 0 6px rgba(157, 255, 216, 0.8)); }
 .pet-stage-4 { font-size: 1.45em; filter: drop-shadow(0 0 9px rgba(157, 255, 216, 1)) drop-shadow(0 0 14px rgba(124, 96, 232, 0.7)); }
+
+/* Kid-hero: welcome avatar picker */
+.avatar-picker { margin: 0.4rem 0; }
+.avatar-chip-row { display: flex; gap: 0.6rem; margin-top: 0.4rem; }
+.avatar-chip { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; padding: 0.6rem 0.8rem; border: 2px solid transparent; border-radius: 16px; background: rgba(124, 96, 232, 0.07); cursor: pointer; }
+.avatar-chip small { font-weight: 600; }
+.avatar-chip.selected { border-color: #7c60e8; background: rgba(124, 96, 232, 0.14); }
+.avatar-chip:focus-visible { outline: 2px solid #ffd66b; outline-offset: 2px; }
