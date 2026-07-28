@@ -430,7 +430,7 @@ export default function Home() {
   }
 
   if (screen === "activity") {
-    return <main className="shell activity-shell theme-pathfinder"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><NovaCompanion equippedCosmetic={equippedCosmetic} size="sm" /><button className="text-button" aria-label={muted ? "Turn sounds on" : "Turn sounds off"} onClick={() => setMuted(sound.toggleMuted())}>{muted ? "🔇" : "🔊"}</button><button className="text-button" onClick={() => setScreen("adventures")}>Adventure map</button></div></nav><GradeSevenActivity id={activeAdventure} onFinish={finishGradeSevenAdventure} /></main>;
+    return <main className={`shell activity-shell theme-pathfinder world-${activeAdventure}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><NovaCompanion equippedCosmetic={equippedCosmetic} size="sm" /><button className="text-button" aria-label={muted ? "Turn sounds on" : "Turn sounds off"} onClick={() => setMuted(sound.toggleMuted())}>{muted ? "🔇" : "🔊"}</button><button className="text-button" onClick={() => setScreen("adventures")}>Adventure map</button></div></nav><GradeSevenActivity id={activeAdventure} onFinish={finishGradeSevenAdventure} /></main>;
   }
 
   if (screen === "world") {

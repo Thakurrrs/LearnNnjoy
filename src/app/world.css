@@ -194,3 +194,23 @@
 @keyframes finale-bounce { 0% { transform: scale(0.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
 @keyframes spark-rise { 0% { opacity: 0; transform: translateY(0); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateY(-90px); } }
 @media (prefers-reduced-motion: reduce) { .finale-art, .finale-sparks i, .finale-scene { animation: none; } }
+/* Task 15: per-world visual identities (see docs/design/LUMINA-DESIGN-SYSTEM.md) */
+main.activity-shell { background: linear-gradient(180deg, var(--world-sky-top, #f4f6ff) 0%, var(--world-sky-bottom, #e8ecfb) 100%); }
+main.activity-shell.world-mountain { --world-accent: #4f7fb8; --world-accent-dim: #b7c9dd; --world-sky-top: #eef4fb; --world-sky-bottom: #dbe7f4; }
+main.activity-shell.world-balance { --world-accent: #7c60e8; --world-accent-dim: #cfc4f5; --world-sky-top: #f3effd; --world-sky-bottom: #e6defa; }
+main.activity-shell.world-shop { --world-accent: #e8702a; --world-accent-dim: #f3c5a8; --world-sky-top: #fff4ea; --world-sky-bottom: #fde3cf; }
+main.activity-shell.world-skatepark { --world-accent: #d84f9a; --world-accent-dim: #f0b8d6; --world-sky-top: #fdeef7; --world-sky-bottom: #e8e0f7; }
+main.activity-shell.world-cricket { --world-accent: #2f9d5f; --world-accent-dim: #b5dcc5; --world-sky-top: #eefaf1; --world-sky-bottom: #d9f0e2; }
+main.activity-shell .activity-panel { border-top: 5px solid var(--world-accent, #7c60e8); }
+main.activity-shell .chapter-event-progress span { background: var(--world-accent, #7c60e8); }
+main.activity-shell .primary { background: var(--world-accent, #7c60e8); }
+main.activity-shell .primary:disabled { background: var(--world-accent-dim, #b9c4d8); }
+main.activity-shell .offer-grid button.selected, main.activity-shell .quarter-split button.chosen, main.activity-shell .cricket-lab button.picked { outline: 2px solid var(--world-accent, #7c60e8); outline-offset: 2px; }
+main.activity-shell .visual-story-scene, main.activity-shell .interactive-moment, main.activity-shell .balance-lab, main.activity-shell .skate-lab, main.activity-shell .shop-lab, main.activity-shell .cricket-lab { border: 1px solid color-mix(in srgb, var(--world-accent, #7c60e8) 35%, transparent); border-radius: 18px; }
+main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent, #7c60e8); }
+/* Finale tints per world */
+.finale-mountain { background: linear-gradient(180deg, #1d2f4a 0%, #35558033 100%), linear-gradient(180deg, #241a52, #3b2a72); }
+.finale-balance { background: linear-gradient(180deg, #241a52 0%, #4b378a 100%); }
+.finale-shop { background: linear-gradient(180deg, #472418 0%, #7a4a22 100%); }
+.finale-skatepark { background: linear-gradient(180deg, #33124a 0%, #7a2a5c 100%); }
+.finale-cricket { background: linear-gradient(180deg, #0f3524 0%, #1e5c3c 100%); }
