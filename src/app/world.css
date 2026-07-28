@@ -1175,3 +1175,1280 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
     transition: none !important;
   }
 }
+
+/* Grade 7 continuous worlds: Mountain Rescue's story rhythm, four distinct places. */
+.continuous-world-panel {
+  width: min(1120px, calc(100% - 40px));
+  padding: 0;
+  border: 0 !important;
+  background: transparent;
+  box-shadow: none;
+}
+.world-adventure {
+  --adventure-accent: #ffd66b;
+  --adventure-button: #7c60e8;
+  --adventure-button-shadow: #4a378d;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .34);
+  border-radius: 30px;
+  box-shadow: 0 28px 70px rgba(25, 18, 56, .22);
+}
+.world-adventure button { cursor: pointer; }
+.world-adventure button:focus-visible,
+.world-adventure input:focus-visible {
+  outline: 3px solid var(--adventure-accent);
+  outline-offset: 3px;
+}
+.world-hud {
+  position: absolute;
+  z-index: 40;
+  top: 20px;
+  left: 22px;
+  right: 22px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+.world-hud span,
+.world-hud b {
+  padding: 8px 11px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 999px;
+  background: rgba(19, 13, 48, .58);
+  box-shadow: 0 8px 25px rgba(12, 7, 33, .18);
+  backdrop-filter: blur(9px);
+}
+.world-nova {
+  position: absolute;
+  z-index: 35;
+  top: 78px;
+  left: 24px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 11px;
+  width: min(455px, 52%);
+  padding: 14px 15px;
+  border: 1px solid rgba(255, 230, 145, .56);
+  border-radius: 18px;
+  background: rgba(27, 18, 63, .78);
+  color: #fff;
+  box-shadow: 0 16px 42px rgba(12, 7, 34, .24);
+  backdrop-filter: blur(12px);
+}
+.world-nova > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 50%;
+  background: #ffe28a;
+  color: #564121;
+  font-size: 1.35rem;
+  box-shadow: 0 0 20px rgba(255, 227, 139, .62);
+}
+.world-nova small {
+  color: #ffe6a5;
+  font-size: .6rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+.world-nova p {
+  margin: 4px 0 0;
+  color: #fff;
+  font-size: .92rem;
+  line-height: 1.42;
+}
+.world-action-deck {
+  position: relative;
+  z-index: 45;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, auto);
+  align-items: center;
+  gap: 18px 28px;
+  min-height: 185px;
+  padding: 24px 28px 27px;
+  border-top: 1px solid rgba(255, 255, 255, .14);
+  background: linear-gradient(135deg, #211845, #171035);
+  color: #fff;
+}
+.world-action-copy small {
+  color: var(--adventure-accent);
+  font-size: .63rem;
+  font-weight: 900;
+  letter-spacing: .11em;
+}
+.world-action-copy h2 {
+  margin: 4px 0 6px;
+  color: #fff;
+  font-size: clamp(1.35rem, 2.8vw, 2rem);
+  letter-spacing: -.035em;
+}
+.world-action-copy p {
+  max-width: 680px;
+  margin: 0;
+  color: #d8d0ee;
+  line-height: 1.45;
+}
+.world-action-controls {
+  display: grid;
+  justify-items: stretch;
+  gap: 11px;
+  min-width: 250px;
+}
+.world-action-controls .primary {
+  justify-content: center;
+  min-width: 210px;
+  background: var(--adventure-button);
+  box-shadow: 0 7px 0 var(--adventure-button-shadow);
+}
+.world-action-controls .primary:disabled {
+  background: #615777;
+  box-shadow: 0 7px 0 #393149;
+}
+.world-button-row,
+.world-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.world-button-row button,
+.world-stepper button,
+.world-text-button {
+  padding: 9px 11px;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  font-weight: 800;
+}
+.world-stepper button:disabled { cursor: default; opacity: .35; }
+.world-stepper b {
+  min-width: 75px;
+  color: var(--adventure-accent);
+  text-align: center;
+}
+.world-range {
+  width: 100%;
+  accent-color: var(--adventure-accent);
+}
+.world-text-button {
+  border: 0;
+  background: transparent;
+  color: var(--adventure-accent);
+  font-size: .72rem;
+}
+.world-reward {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: rgba(255, 214, 107, .11);
+}
+.world-reward span { font-size: 1.5rem; }
+.world-adventure .selected {
+  border-color: #ffad85 !important;
+  background: rgba(126, 48, 72, .9) !important;
+  color: #fff !important;
+}
+.world-adventure .selected.correct {
+  border-color: #9dffd8 !important;
+  background: rgba(29, 117, 86, .92) !important;
+  color: #fff !important;
+}
+
+/* Balance Lab — a violet energy chamber where equality powers the crate. */
+.balance-world {
+  --adventure-accent: #ffd66b;
+  --adventure-button: #8b6df0;
+  --adventure-button-shadow: #4a358f;
+  background: #2a1d59;
+}
+.balance-world-stage {
+  position: relative;
+  min-height: 650px;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fff;
+  background:
+    radial-gradient(circle at 50% 58%, rgba(201, 164, 255, .28), transparent 30%),
+    linear-gradient(180deg, #463276 0%, #2a1d59 52%, #171036 100%);
+  transition: background .8s ease;
+}
+.balance-world-stage.powered {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 220, 117, .5), transparent 27%),
+    linear-gradient(180deg, #66509b 0%, #302462 53%, #18294b 100%);
+}
+.balance-world-glow {
+  position: absolute;
+  z-index: 1;
+  inset: 20% 25% 8%;
+  border-radius: 50%;
+  background: rgba(176, 123, 255, .18);
+  filter: blur(45px);
+  animation: balance-glow 2.8s ease-in-out infinite;
+}
+.balance-world-pipes {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  opacity: .45;
+  pointer-events: none;
+}
+.balance-world-pipes i {
+  position: absolute;
+  display: block;
+  border: 7px solid #7966a8;
+  border-radius: 28px;
+}
+.balance-world-pipes i:nth-child(1) { top: 24%; left: -40px; width: 220px; height: 120px; }
+.balance-world-pipes i:nth-child(2) { right: -50px; bottom: 14%; width: 260px; height: 160px; }
+.balance-world-pipes i:nth-child(3) { top: 0; right: 20%; width: 60px; height: 170px; }
+.balance-world-pipes i:nth-child(4) { bottom: -60px; left: 18%; width: 90px; height: 190px; }
+.balance-world-coils i {
+  position: absolute;
+  z-index: 3;
+  color: #d9c3ff;
+  font-size: 2.4rem;
+  font-style: normal;
+  text-shadow: 0 0 22px #a78bfa;
+  animation: balance-spark 2.1s ease-in-out infinite;
+}
+.balance-world-coils i:first-child { top: 27%; right: 10%; }
+.balance-world-coils i:last-child { bottom: 13%; left: 7%; animation-delay: -1s; }
+.balance-world-machine {
+  position: absolute;
+  z-index: 15;
+  top: 39%;
+  left: 8%;
+  width: 84%;
+  height: 245px;
+}
+.balance-world-beam {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 70px 1fr;
+  align-items: end;
+  height: 205px;
+  transform-origin: 50% 72%;
+  transition: transform .55s cubic-bezier(.5, 0, .3, 1.35);
+}
+.balance-world-machine.tipped .balance-world-beam { transform: rotate(7deg); }
+.balance-world-pan {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 106px;
+  padding: 15px;
+  border: 2px solid rgba(222, 205, 255, .7);
+  border-radius: 20px 20px 48px 48px;
+  background: linear-gradient(180deg, rgba(120, 91, 177, .62), rgba(41, 29, 85, .88));
+  box-shadow: inset 0 -10px 22px rgba(20, 10, 52, .3), 0 15px 25px rgba(12, 7, 32, .25);
+}
+.balance-world-pan::before {
+  position: absolute;
+  top: -44px;
+  left: 50%;
+  width: 2px;
+  height: 45px;
+  content: "";
+  background: #cdbff1;
+}
+.balance-world-pan::after {
+  position: absolute;
+  top: -47px;
+  left: 9%;
+  right: 9%;
+  height: 4px;
+  border-radius: 4px;
+  content: "";
+  background: linear-gradient(90deg, #8e78bb, #eadfff, #8e78bb);
+}
+.balance-world-pivot {
+  display: grid;
+  align-self: end;
+  height: 118px;
+  place-items: start center;
+  border-radius: 45px 45px 8px 8px;
+  background: linear-gradient(90deg, #6d5b98, #c5b3eb, #66528f);
+}
+.balance-world-pivot i {
+  margin-top: -20px;
+  font-size: 3rem;
+  font-style: normal;
+  filter: drop-shadow(0 5px 5px rgba(15, 6, 43, .5));
+}
+.mystery-crate {
+  position: relative;
+  display: grid;
+  flex: 0 0 62px;
+  width: 62px;
+  height: 62px;
+  place-items: center;
+  border: 3px solid #70411d;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #efac52, #9b5c2a);
+  color: #fff4c4;
+  font-size: 1.6rem;
+  box-shadow: inset 0 0 0 4px rgba(255, 225, 137, .22);
+}
+.mystery-crate i {
+  position: absolute;
+  top: 50%;
+  left: -3px;
+  right: -3px;
+  height: 7px;
+  background: #6f421f;
+}
+.mystery-crate b { position: relative; z-index: 2; }
+.mystery-crate.open {
+  background: #ffd66b;
+  color: #4a3216;
+  box-shadow: 0 0 32px rgba(255, 214, 107, .9);
+  animation: crate-open .7s ease-out;
+}
+.balance-energy-blocks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  max-width: 225px;
+}
+.balance-energy-blocks i {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border: 1px solid rgba(242, 228, 255, .6);
+  border-radius: 7px;
+  background: linear-gradient(135deg, #c8a8ff, #7c60e8);
+  color: #fff4ba;
+  font-size: .7rem;
+  font-style: normal;
+  box-shadow: 0 0 10px rgba(189, 149, 255, .5);
+}
+.balance-equation-screen {
+  width: min(430px, 70%);
+  margin: -2px auto 0;
+  padding: 9px 15px;
+  border: 1px solid rgba(168, 255, 225, .38);
+  border-radius: 12px;
+  background: rgba(10, 25, 43, .8);
+  color: #9dffd8;
+  font: 900 1.15rem/1.2 ui-monospace, monospace;
+  text-align: center;
+  box-shadow: 0 0 22px rgba(97, 255, 203, .12);
+}
+.balance-world-console,
+.balance-world-keypad,
+.balance-world-proof {
+  position: absolute;
+  z-index: 26;
+  bottom: 24px;
+  display: grid;
+  gap: 8px;
+  width: min(360px, 42%);
+  padding: 16px;
+  border: 1px solid rgba(211, 192, 255, .48);
+  border-radius: 18px;
+  background: rgba(31, 22, 70, .88);
+  box-shadow: 0 18px 45px rgba(13, 7, 36, .35);
+  backdrop-filter: blur(10px);
+}
+.balance-world-console { right: 5%; }
+.balance-world-keypad { right: 6%; bottom: 28px; width: min(300px, 38%); }
+.balance-world-proof { right: 4%; bottom: 18px; width: min(420px, 44%); }
+.balance-world-console small,
+.balance-world-keypad small,
+.balance-world-proof small {
+  color: #ffe28a;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .11em;
+}
+.balance-world-console button,
+.balance-world-proof button {
+  padding: 9px 11px;
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .07);
+  color: #fff;
+  font-weight: 800;
+  text-align: left;
+}
+.balance-world-keypad > div { display: flex; gap: 8px; }
+.balance-world-keypad button {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  font-weight: 900;
+}
+.balance-world-finale,
+.shop-world-finale,
+.skate-world-finale,
+.cricket-world-finale {
+  position: absolute;
+  z-index: 32;
+  top: 52%;
+  left: 50%;
+  width: min(510px, calc(100% - 40px));
+  padding: 26px;
+  border: 1px solid rgba(255, 239, 174, .68);
+  border-radius: 24px;
+  background: rgba(35, 24, 78, .87);
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 22px 60px rgba(10, 6, 33, .32);
+  backdrop-filter: blur(11px);
+  transform: translate(-50%, -45%);
+  animation: world-finale-in .65s ease-out;
+}
+.balance-world-finale > span,
+.shop-world-finale > span,
+.skate-world-finale > span,
+.cricket-world-finale > span { display: block; margin-bottom: 9px; font-size: 2.2rem; }
+.balance-world-finale small,
+.shop-world-finale small,
+.skate-world-finale small,
+.cricket-world-finale small { color: #ffe795; font-weight: 900; letter-spacing: .11em; }
+.balance-world-finale h2,
+.shop-world-finale h2,
+.skate-world-finale h2,
+.cricket-world-finale h2 { margin: 7px 0; font-size: clamp(1.7rem, 4vw, 2.8rem); }
+.balance-world-finale p,
+.shop-world-finale p,
+.skate-world-finale p,
+.cricket-world-finale p { margin: 0; }
+
+/* Smart Shopper — a warm bazaar where price bars are physical market signs. */
+.shop-world {
+  --adventure-accent: #ffd66b;
+  --adventure-button: #ef7d38;
+  --adventure-button-shadow: #9c421f;
+  background: #45213a;
+}
+.shop-world-stage {
+  position: relative;
+  min-height: 680px;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fff;
+  background:
+    radial-gradient(circle at 75% 16%, rgba(255, 218, 131, .45), transparent 14%),
+    linear-gradient(180deg, #94506c 0%, #b9675d 34%, #553047 70%, #2a1833 100%);
+}
+.shop-world-stage.packed {
+  background:
+    radial-gradient(circle at 75% 14%, rgba(255, 230, 143, .75), transparent 18%),
+    linear-gradient(180deg, #704c84, #c27061 46%, #432745 100%);
+}
+.bazaar-sky i {
+  position: absolute;
+  z-index: 1;
+  top: 78px;
+  right: 12%;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #ffd88a;
+  box-shadow: 0 0 45px rgba(255, 214, 112, .62);
+}
+.bazaar-sky span {
+  position: absolute;
+  z-index: 1;
+  top: 100px;
+  left: 60%;
+  color: #fff2b5;
+  animation: bazaar-star 2s ease-in-out infinite;
+}
+.bazaar-sky span:last-child { top: 150px; left: 88%; animation-delay: -1s; }
+.bazaar-lanterns {
+  position: absolute;
+  z-index: 3;
+  top: 185px;
+  left: -2%;
+  right: -2%;
+  display: flex;
+  justify-content: space-around;
+  border-top: 2px solid rgba(255, 235, 190, .46);
+  transform: rotate(-2deg);
+}
+.bazaar-lanterns i {
+  display: block;
+  width: 20px;
+  height: 30px;
+  border-radius: 5px 5px 11px 11px;
+  background: #ffb34e;
+  box-shadow: 0 0 22px rgba(255, 179, 78, .85);
+  animation: lantern-sway 2.4s ease-in-out infinite alternate;
+  transform-origin: top;
+}
+.bazaar-lanterns i:nth-child(2n) { background: #ef7163; animation-delay: -.8s; }
+.bazaar-crowd {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  color: rgba(37, 18, 43, .7);
+  font-size: 4rem;
+  white-space: nowrap;
+}
+.bazaar-stalls {
+  position: absolute;
+  z-index: 16;
+  top: 35%;
+  left: 5%;
+  right: 5%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+.bazaar-stall {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-height: 245px;
+  padding: 55px 20px 18px;
+  border: 2px solid rgba(255, 235, 190, .55);
+  border-radius: 16px 16px 24px 24px;
+  background: linear-gradient(180deg, rgba(108, 52, 44, .92), rgba(54, 27, 44, .95));
+  color: #fff;
+  text-align: left;
+  box-shadow: 0 18px 35px rgba(37, 16, 35, .3);
+}
+.bazaar-stall:disabled { cursor: default; opacity: 1; }
+.bazaar-awning {
+  position: absolute;
+  top: 0;
+  left: -2px;
+  right: -2px;
+  height: 43px;
+  border-radius: 14px 14px 7px 7px;
+  background: repeating-linear-gradient(90deg, #f7d6a6 0 40px, #c85e4d 40px 80px);
+  box-shadow: 0 9px 0 rgba(64, 28, 40, .35);
+}
+.trail-stall .bazaar-awning {
+  background: repeating-linear-gradient(90deg, #f4dfad 0 40px, #6a6ab6 40px 80px);
+}
+.bazaar-stall > small { color: #ffe4a5; font-weight: 900; letter-spacing: .12em; }
+.bazaar-stall > b { font-size: 2rem; line-height: 1; }
+.bazaar-stall > strong { color: #ffd66b; }
+.bazaar-stall > em {
+  color: #fff3cf;
+  font-size: .65rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+.bazaar-price-bar {
+  position: relative;
+  height: 58px;
+  margin: 4px 0;
+  overflow: visible;
+  border: 2px solid rgba(255, 240, 202, .7);
+  border-radius: 11px;
+  background: rgba(255, 247, 221, .17);
+}
+.bazaar-price-shade {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 8px 0 0 8px;
+  background: repeating-linear-gradient(45deg, #ffd66b 0 8px, #e8943a 8px 16px);
+  transition: width .42s ease;
+}
+.bazaar-price-bar > em {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, .7);
+}
+.bazaar-quarter-labels {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  place-items: center;
+  font-size: .63rem;
+}
+.bazaar-price-bar > strong {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 27%;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: #fff1b9;
+  color: #7b391f;
+  font-size: .7rem;
+  opacity: 0;
+  transform: translateY(-50%);
+}
+.bazaar-price-bar > strong.popped {
+  opacity: 1;
+  transform: translate(24px, -58px) rotate(-9deg) scale(1.1);
+  transition: transform .55s cubic-bezier(.3, .8, .3, 1.3), opacity .25s ease;
+}
+.trail-price-pieces { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; height: 58px; }
+.trail-price-pieces i {
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .45);
+  border-radius: 6px;
+  background: rgba(126, 102, 181, .45);
+  font-size: .55rem;
+  font-style: normal;
+}
+.bazaar-quarter-counter,
+.bazaar-receipt-proof {
+  position: absolute;
+  z-index: 28;
+  right: 5%;
+  bottom: 18px;
+  display: grid;
+  gap: 10px;
+  width: min(430px, 46%);
+  padding: 15px;
+  border: 1px solid rgba(255, 232, 169, .55);
+  border-radius: 18px;
+  background: rgba(65, 31, 48, .9);
+  box-shadow: 0 18px 44px rgba(40, 17, 36, .32);
+  backdrop-filter: blur(10px);
+}
+.bazaar-quarter-counter small,
+.bazaar-receipt-proof small { color: #ffd98a; font-size: .58rem; font-weight: 900; letter-spacing: .11em; }
+.bazaar-quarter-counter > div { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+.bazaar-quarter-counter button,
+.bazaar-receipt-proof button {
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  font-weight: 850;
+}
+.bazaar-receipt-proof {
+  right: 4%;
+  width: min(420px, 45%);
+  color: #fff;
+  transform: rotate(-1deg);
+}
+.bazaar-receipt-proof button { text-align: left; }
+.shop-world-finale { background: rgba(74, 37, 50, .9); }
+
+/* Skatepark — a neon rooftop where the rider belongs to the rotating ramp. */
+.skate-world {
+  --adventure-accent: #7fffe3;
+  --adventure-button: #df519e;
+  --adventure-button-shadow: #8b285f;
+  background: #24183d;
+}
+.skate-world-stage {
+  position: relative;
+  min-height: 670px;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fff;
+  background:
+    radial-gradient(circle at 77% 17%, rgba(255, 216, 129, .42), transparent 13%),
+    linear-gradient(180deg, #5e3c86 0%, #bd5f94 42%, #433258 68%, #1d1837 100%);
+}
+.skate-world-stage.open {
+  background:
+    radial-gradient(circle at 77% 16%, rgba(255, 228, 147, .66), transparent 15%),
+    linear-gradient(180deg, #4d4f9a, #cb6b9c 45%, #2a3155 100%);
+}
+.skate-world-sky i {
+  position: absolute;
+  z-index: 1;
+  top: 86px;
+  right: 13%;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #ffd681;
+  box-shadow: 0 0 52px rgba(255, 211, 120, .62);
+}
+.skate-world-sky span {
+  position: absolute;
+  z-index: 1;
+  top: 125px;
+  left: 55%;
+  color: #fff0bc;
+}
+.skate-world-sky span:last-child { top: 180px; left: 88%; }
+.skate-world-city {
+  position: absolute;
+  z-index: 2;
+  left: -2%;
+  right: -2%;
+  bottom: 0;
+  display: flex;
+  align-items: end;
+  justify-content: space-around;
+  opacity: .68;
+}
+.skate-world-city i {
+  display: block;
+  width: 10%;
+  height: 190px;
+  border-radius: 8px 8px 0 0;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 12px, rgba(255, 223, 125, .58) 12px 17px),
+    repeating-linear-gradient(180deg, #262447 0 18px, #383260 18px 31px);
+}
+.skate-world-city i:nth-child(2n) { height: 130px; }
+.skate-world-city i:nth-child(3n) { height: 240px; }
+.skate-world-lights {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  bottom: 155px;
+  display: flex;
+  justify-content: space-around;
+}
+.skate-world-lights i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #7fffe3;
+  box-shadow: 0 0 16px #7fffe3;
+  animation: skate-light 1.8s ease-in-out infinite alternate;
+}
+.skate-world-lights i:nth-child(2n) { background: #ff8bc8; box-shadow: 0 0 16px #ff8bc8; animation-delay: -.7s; }
+.skate-world-ramp-zone {
+  position: absolute;
+  z-index: 14;
+  top: 34%;
+  left: 7%;
+  width: 61%;
+  height: 330px;
+}
+.skate-world-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 52px;
+  height: 7px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #7fffe3, #fff, #df519e);
+  box-shadow: 0 0 20px rgba(127, 255, 227, .6);
+}
+.skate-world-ramp {
+  position: absolute;
+  left: 4%;
+  bottom: 58px;
+  width: min(520px, 78%);
+  height: 13px;
+  border: 2px solid #ffe5a1;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #7c60e8, #df519e, #ffd66b);
+  box-shadow: 0 0 22px rgba(223, 81, 158, .65);
+  transform-origin: left bottom;
+  transition: transform .55s cubic-bezier(.4, 0, .2, 1);
+}
+.skate-ramp-rail {
+  position: absolute;
+  top: 13px;
+  left: 3%;
+  right: 3%;
+  height: 5px;
+  border-radius: 4px;
+  background: #92f5e1;
+}
+.skate-world-rider {
+  position: absolute;
+  bottom: 16px;
+  display: grid;
+  justify-items: center;
+  transform: translateX(-50%);
+  transition: left .6s ease;
+}
+.skate-world-rider b { margin-bottom: -6px; font-size: 1.8rem; line-height: 1; }
+.skate-world-rider em { font-size: 1.6rem; font-style: normal; line-height: 1; }
+.skate-world-ramp-zone.target-angle .skate-world-rider {
+  animation: skate-ramp-roll 1.25s cubic-bezier(.45, 0, .58, 1) both;
+}
+.skate-world-angle-wedge {
+  position: absolute;
+  left: 4%;
+  bottom: 58px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 270deg,
+    transparent calc(90deg - var(--skate-angle)),
+    rgba(255, 214, 107, .48) calc(90deg - var(--skate-angle)),
+    rgba(255, 214, 107, .48) 90deg,
+    transparent 90deg
+  );
+}
+.skate-world-ramp-zone > strong {
+  position: absolute;
+  right: 3%;
+  top: 10px;
+  color: #ffe38d;
+  font-size: 2.2rem;
+  text-shadow: 0 0 18px rgba(255, 217, 113, .55);
+}
+.skate-world-ramp-zone > small {
+  position: absolute;
+  right: 3%;
+  top: 55px;
+  color: #d7fff6;
+  font-size: .57rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+.skate-blueprint,
+.skate-builder-board,
+.skate-safety-console {
+  position: absolute;
+  z-index: 28;
+  right: 4%;
+  bottom: 20px;
+  display: grid;
+  gap: 9px;
+  width: min(390px, 39%);
+  padding: 16px;
+  border: 1px solid rgba(143, 255, 232, .46);
+  border-radius: 18px;
+  background: rgba(27, 28, 70, .9);
+  box-shadow: 0 18px 45px rgba(12, 10, 41, .34);
+  backdrop-filter: blur(10px);
+}
+.skate-blueprint small,
+.skate-builder-board small,
+.skate-safety-console small { color: #80ffe3; font-size: .58rem; font-weight: 900; letter-spacing: .1em; }
+.skate-triangle {
+  position: relative;
+  width: 190px;
+  height: 120px;
+  margin: 0 auto;
+}
+.skate-triangle i {
+  position: absolute;
+  inset: 4px 10px 0;
+  background: linear-gradient(145deg, rgba(128, 255, 225, .22), rgba(223, 81, 158, .2));
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.skate-triangle i::after {
+  position: absolute;
+  inset: 8px;
+  content: "";
+  background: #22204f;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.skate-triangle .corner { position: absolute; z-index: 2; color: #ffe28a; font-size: .7rem; font-weight: 900; }
+.corner-one { left: 6px; bottom: 0; }
+.corner-two { right: 5px; bottom: 0; }
+.corner-three { top: 0; left: 50%; transform: translateX(-50%); }
+.skate-blueprint > div:last-child { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.skate-blueprint button,
+.skate-builder-board button,
+.skate-safety-console button {
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, .26);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .07);
+  color: #fff;
+  font-weight: 800;
+}
+.skate-builder-board button,
+.skate-safety-console button { text-align: left; }
+.skate-world-finale { background: rgba(35, 29, 77, .9); }
+
+/* Cricket Data Room — a floodlit stadium where the chart and field stay connected. */
+.cricket-world {
+  --adventure-accent: #ffd66b;
+  --adventure-button: #35a56b;
+  --adventure-button-shadow: #1c6542;
+  background: #0f3226;
+}
+.cricket-world-stage {
+  position: relative;
+  min-height: 690px;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fff;
+  background:
+    radial-gradient(ellipse at 50% 78%, rgba(79, 180, 111, .6), transparent 31%),
+    linear-gradient(180deg, #172b45 0%, #1f4051 42%, #174b37 75%, #0c2b21 100%);
+}
+.cricket-world-stage.victory {
+  background:
+    radial-gradient(ellipse at 50% 75%, rgba(116, 230, 142, .7), transparent 34%),
+    linear-gradient(180deg, #273c6b, #2c6070 43%, #1d5a3e 100%);
+}
+.cricket-floodlights i {
+  position: absolute;
+  z-index: 2;
+  top: 105px;
+  width: 95px;
+  height: 20px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(90deg, #fff8c6 0 10px, #6f7c91 10px 13px);
+  box-shadow: 0 0 38px rgba(255, 248, 196, .62);
+}
+.cricket-floodlights i::after {
+  position: absolute;
+  top: 20px;
+  left: 45px;
+  width: 5px;
+  height: 280px;
+  content: "";
+  background: #596779;
+}
+.cricket-floodlights i:nth-child(1) { left: 2%; transform: rotate(3deg); }
+.cricket-floodlights i:nth-child(2) { left: 30%; transform: scale(.8); }
+.cricket-floodlights i:nth-child(3) { right: 28%; transform: scale(.8); }
+.cricket-floodlights i:nth-child(4) { right: 2%; transform: rotate(-3deg); }
+.cricket-crowd {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 140px;
+  overflow: hidden;
+  color: rgba(214, 236, 220, .34);
+  font-size: 1.3rem;
+  letter-spacing: 8px;
+  white-space: nowrap;
+}
+.cricket-boundary {
+  position: absolute;
+  z-index: 3;
+  left: 8%;
+  right: 8%;
+  bottom: -110px;
+  height: 330px;
+  border: 5px solid rgba(236, 255, 230, .52);
+  border-radius: 50%;
+  background: repeating-linear-gradient(90deg, rgba(65, 146, 81, .38) 0 38px, rgba(52, 128, 72, .38) 38px 76px);
+}
+.stadium-scoreboard {
+  position: absolute;
+  z-index: 16;
+  top: 29%;
+  left: 8%;
+  width: min(560px, 57%);
+  height: 330px;
+  padding: 42px 24px 20px 54px;
+  border: 5px solid #56606b;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #12283a, #0d1f2e);
+  box-shadow: 0 19px 42px rgba(5, 15, 22, .4), inset 0 0 0 2px rgba(194, 227, 230, .12);
+}
+.stadium-scoreboard > header {
+  position: absolute;
+  top: 11px;
+  left: 18px;
+  right: 18px;
+  display: flex;
+  justify-content: space-between;
+  color: #a9ecca;
+  font-size: .64rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+.stadium-grid-lines {
+  position: absolute;
+  z-index: 1;
+  inset: 47px 22px 48px 50px;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: space-around;
+}
+.stadium-grid-lines i {
+  position: relative;
+  border-top: 1px dashed rgba(178, 217, 221, .19);
+}
+.stadium-grid-lines small {
+  position: absolute;
+  top: -8px;
+  left: -34px;
+  color: #8ba8b2;
+  font-size: .58rem;
+  font-style: normal;
+}
+.stadium-bars {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: end;
+  gap: 12px;
+  height: 242px;
+}
+.stadium-bars button {
+  display: grid;
+  justify-items: center;
+  align-items: end;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #d8f8ec;
+}
+.stadium-bars button:disabled { cursor: default; opacity: 1; }
+.stadium-bars button > span {
+  position: relative;
+  display: grid;
+  width: min(58px, 72%);
+  place-items: start center;
+  border: 2px solid rgba(159, 245, 210, .4);
+  border-radius: 8px 8px 3px 3px;
+  background: linear-gradient(180deg, #54c98e, #227250);
+  box-shadow: 0 0 17px rgba(57, 192, 125, .2);
+  transition: filter .25s ease, transform .25s ease;
+}
+.stadium-bars button:nth-child(2) > span { background: linear-gradient(180deg, #63c7bb, #247b78); }
+.stadium-bars button:nth-child(3) > span { background: linear-gradient(180deg, #a8cc70, #5f8637); }
+.stadium-bars button:nth-child(4) > span { background: linear-gradient(180deg, #f0a86b, #a65b2b); }
+.stadium-bars button > span b {
+  margin-top: 7px;
+  color: #fff;
+  font-size: .78rem;
+}
+.stadium-bars button > small { margin-top: 7px; font-weight: 850; }
+.stadium-bars button.selected > span {
+  filter: brightness(1.18);
+  transform: translateY(-4px);
+  box-shadow: 0 0 22px rgba(255, 214, 107, .62);
+}
+.stadium-bars button.demonstrated > span { animation: scoreboard-pulse 1.4s ease-in-out infinite; }
+.cricket-squad-field {
+  position: absolute;
+  z-index: 17;
+  right: 6%;
+  bottom: 45px;
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+  width: min(340px, 34%);
+  min-height: 145px;
+  padding: 15px;
+  border: 2px solid rgba(218, 255, 222, .46);
+  border-radius: 50% 50% 22px 22px;
+  background: rgba(31, 113, 63, .78);
+  box-shadow: 0 18px 40px rgba(6, 37, 21, .3);
+}
+.cricket-squad-field > small { color: #ffe28a; font-size: .58rem; font-weight: 900; letter-spacing: .11em; }
+.cricket-squad-field > div { display: flex; align-items: end; gap: 13px; }
+.cricket-squad-field b,
+.cricket-squad-field i {
+  display: grid;
+  width: 58px;
+  height: 72px;
+  place-items: center;
+  border-radius: 30px 30px 12px 12px;
+  background: rgba(255, 255, 255, .14);
+  color: #fff;
+  font-style: normal;
+  animation: player-run-in .45s ease-out;
+}
+.cricket-squad-field b span { font-size: 1.5rem; }
+.cricket-squad-field b small { font-size: .66rem; }
+.cricket-squad-field i { border: 2px dashed rgba(255, 255, 255, .4); font-size: 1.3rem; }
+.cricket-press-desk,
+.cricket-team-sheet {
+  position: absolute;
+  z-index: 29;
+  right: 4%;
+  bottom: 23px;
+  display: grid;
+  gap: 9px;
+  width: min(390px, 39%);
+  padding: 16px;
+  border: 1px solid rgba(194, 255, 218, .46);
+  border-radius: 18px;
+  background: rgba(11, 45, 36, .92);
+  box-shadow: 0 18px 44px rgba(4, 26, 18, .35);
+  backdrop-filter: blur(10px);
+}
+.cricket-press-desk small,
+.cricket-team-sheet small { color: #ffd66b; font-size: .58rem; font-weight: 900; letter-spacing: .1em; }
+.cricket-press-desk button,
+.cricket-team-sheet button {
+  padding: 9px 11px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .07);
+  color: #fff;
+  font-weight: 800;
+  text-align: left;
+}
+.cricket-world-finale { background: rgba(12, 66, 45, .9); }
+
+@keyframes balance-glow { 50% { opacity: .55; transform: scale(1.08); } }
+@keyframes balance-spark { 50% { opacity: .35; transform: translateY(-8px) scale(1.15); } }
+@keyframes crate-open { 55% { transform: scale(1.12) rotate(-2deg); } }
+@keyframes bazaar-star { 50% { opacity: .35; transform: scale(1.3); } }
+@keyframes lantern-sway { to { transform: rotate(6deg); } }
+@keyframes skate-light { to { opacity: .3; transform: scale(.7); } }
+@keyframes skate-ramp-roll { from { left: 82%; } to { left: 7%; } }
+@keyframes scoreboard-pulse { 50% { filter: brightness(1.35); transform: translateY(-5px); } }
+@keyframes player-run-in { from { opacity: 0; transform: translate(25px, 15px) scale(.75); } }
+@keyframes world-finale-in { from { opacity: 0; transform: translate(-50%, -35%) scale(.9); } }
+
+@media (max-width: 760px) {
+  .continuous-world-panel { width: calc(100% - 20px); margin-top: 14px; }
+  .world-adventure { border-radius: 22px; }
+  .world-hud { top: 12px; left: 12px; right: 12px; font-size: .55rem; }
+  .world-hud span, .world-hud b { padding: 6px 8px; }
+  .world-nova { top: 57px; left: 12px; width: calc(100% - 24px); padding: 11px 12px; }
+  .world-nova > span { width: 32px; height: 32px; font-size: 1.05rem; }
+  .world-nova p { font-size: .81rem; }
+  .world-action-deck {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    min-height: 0;
+    padding: 20px 17px 24px;
+  }
+  .world-action-controls { min-width: 0; }
+  .world-action-controls .primary { width: 100%; min-width: 0; }
+  .world-button-row { display: grid; grid-template-columns: 1fr 1fr; }
+  .world-button-row button { font-size: .72rem; }
+  .world-stepper { justify-content: space-between; }
+  .world-stepper button { font-size: .72rem; }
+
+  .balance-world-stage { min-height: 770px; }
+  .balance-world-machine { top: 29%; left: 3%; width: 94%; height: 290px; }
+  .balance-world-beam { grid-template-columns: 1fr 45px 1fr; height: 250px; }
+  .balance-world-pan { min-height: 155px; padding: 9px 5px; flex-direction: column; }
+  .balance-world-pivot { height: 145px; }
+  .mystery-crate { width: 50px; height: 50px; flex-basis: 50px; }
+  .balance-energy-blocks { max-width: 130px; gap: 3px; }
+  .balance-energy-blocks i { width: 20px; height: 20px; font-size: .55rem; }
+  .balance-equation-screen { width: 92%; }
+  .balance-world-console,
+  .balance-world-keypad,
+  .balance-world-proof {
+    right: 12px;
+    bottom: 16px;
+    left: 12px;
+    width: auto;
+    padding: 13px;
+  }
+  .balance-world-proof button { font-size: .72rem; }
+
+  .shop-world-stage { min-height: 850px; }
+  .bazaar-lanterns { top: 171px; }
+  .bazaar-stalls { top: 27%; left: 3%; right: 3%; gap: 8px; }
+  .bazaar-stall { min-height: 310px; padding: 49px 10px 13px; }
+  .bazaar-stall > b { font-size: 1.45rem; }
+  .bazaar-stall > strong { font-size: .75rem; }
+  .bazaar-stall > em { font-size: .5rem; }
+  .bazaar-awning { height: 38px; background-size: 70px 100%; }
+  .bazaar-price-bar { height: 76px; }
+  .bazaar-quarter-labels { grid-template-columns: repeat(2, 1fr); font-size: .53rem; }
+  .trail-price-pieces { grid-template-columns: 1fr; height: 76px; gap: 2px; }
+  .trail-price-pieces i { font-size: .47rem; }
+  .bazaar-price-bar > strong.popped { transform: translate(18px, -51px) rotate(-8deg); }
+  .bazaar-quarter-counter,
+  .bazaar-receipt-proof {
+    right: 12px;
+    bottom: 17px;
+    left: 12px;
+    width: auto;
+  }
+  .bazaar-quarter-counter > div { grid-template-columns: repeat(4, 1fr); }
+  .bazaar-quarter-counter button { padding: 9px 4px; font-size: .7rem; }
+  .bazaar-receipt-proof button { font-size: .72rem; }
+
+  .skate-world-stage { min-height: 820px; }
+  .skate-world-ramp-zone { top: 27%; left: 3%; width: 94%; height: 340px; }
+  .skate-world-ramp { width: 75%; }
+  .skate-world-ramp-zone > strong { font-size: 1.7rem; }
+  .skate-world-ramp-zone > small { max-width: 110px; text-align: right; }
+  .skate-blueprint,
+  .skate-builder-board,
+  .skate-safety-console {
+    right: 12px;
+    bottom: 18px;
+    left: 12px;
+    width: auto;
+    padding: 13px;
+  }
+  .skate-triangle { width: 160px; height: 102px; }
+  .skate-builder-board button,
+  .skate-safety-console button { font-size: .72rem; }
+
+  .cricket-world-stage { min-height: 870px; }
+  .cricket-floodlights i:nth-child(2),
+  .cricket-floodlights i:nth-child(3) { display: none; }
+  .stadium-scoreboard {
+    top: 23%;
+    left: 3%;
+    width: 94%;
+    height: 330px;
+    padding-right: 12px;
+    padding-left: 42px;
+  }
+  .stadium-bars { gap: 5px; }
+  .stadium-bars button > span { width: 72%; }
+  .cricket-squad-field {
+    right: 12px;
+    bottom: 34px;
+    left: 12px;
+    width: auto;
+  }
+  .cricket-squad-field b,
+  .cricket-squad-field i { width: 55px; height: 68px; }
+  .cricket-press-desk,
+  .cricket-team-sheet {
+    right: 12px;
+    bottom: 19px;
+    left: 12px;
+    width: auto;
+    padding: 13px;
+  }
+  .cricket-press-desk button,
+  .cricket-team-sheet button { font-size: .72rem; }
+  .balance-world-finale,
+  .shop-world-finale,
+  .skate-world-finale,
+  .cricket-world-finale { top: 56%; padding: 20px 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .balance-world-stage,
+  .balance-world-glow,
+  .balance-world-coils i,
+  .balance-world-beam,
+  .mystery-crate,
+  .bazaar-sky span,
+  .bazaar-lanterns i,
+  .bazaar-price-shade,
+  .bazaar-price-bar > strong,
+  .skate-world-lights i,
+  .skate-world-ramp,
+  .skate-world-rider,
+  .stadium-bars button > span,
+  .stadium-bars button.demonstrated > span,
+  .cricket-squad-field b,
+  .balance-world-finale,
+  .shop-world-finale,
+  .skate-world-finale,
+  .cricket-world-finale {
+    animation: none !important;
+    transition: none !important;
+  }
+}
