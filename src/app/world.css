@@ -369,6 +369,267 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
   .sparkle-burst i, .nova-hop, .nova-think, .coin-pop, .demo-beam, .cliff-pod, .slope-ramp, .slope-skater, .start-hint, .constellation .star-node.lit i { animation: none !important; transition: none !important; }
 }
 
+/* Character mini-plays: a story reason before the maths and a specific response after it. */
+.adventure-play-backdrop {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(10, 17, 40, .72);
+  backdrop-filter: blur(10px);
+}
+.adventure-play {
+  width: min(760px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 28px;
+  background: #f9fbff;
+  color: #1d2140;
+  box-shadow: 0 32px 90px rgba(5, 10, 30, .42);
+}
+.adventure-play > header,
+.adventure-play > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 17px 20px;
+}
+.adventure-play > header p,
+.adventure-play > header h2 { margin: 0; }
+.adventure-play > header p {
+  color: #7459c5;
+  font-size: .66rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+.adventure-play > header h2 {
+  margin-top: 3px;
+  font-size: clamp(1.25rem, 3vw, 1.8rem);
+  letter-spacing: -.035em;
+}
+.adventure-play > header .text-button { flex: none; }
+.adventure-play-stage {
+  position: relative;
+  min-height: 390px;
+  overflow: hidden;
+  color: #fff;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 225, 133, .28), transparent 24%),
+    linear-gradient(145deg, #244f72, #142340);
+  isolation: isolate;
+}
+.play-balance .adventure-play-stage { background: radial-gradient(circle at 50% 22%, rgba(255, 220, 128, .28), transparent 23%), linear-gradient(145deg, #563b81, #241d4a); }
+.play-shop .adventure-play-stage { background: radial-gradient(circle at 50% 22%, rgba(255, 240, 172, .32), transparent 24%), linear-gradient(145deg, #bc613f, #592e46); }
+.play-skatepark .adventure-play-stage { background: radial-gradient(circle at 50% 22%, rgba(255, 238, 159, .3), transparent 24%), linear-gradient(145deg, #9b3f78, #34244f); }
+.play-cricket .adventure-play-stage { background: radial-gradient(circle at 50% 22%, rgba(255, 237, 151, .3), transparent 24%), linear-gradient(145deg, #37724c, #16372f); }
+.play-closing .adventure-play-stage::after {
+  content: "✦  ✧  ✦";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 231, 145, .2);
+  font-size: clamp(5rem, 16vw, 9rem);
+  letter-spacing: .14em;
+  animation: play-celebration-glow 2s ease-in-out infinite;
+}
+.play-world-symbol {
+  position: absolute;
+  z-index: -1;
+  top: 20px;
+  left: 50%;
+  opacity: .34;
+  font-size: 5.6rem;
+  filter: drop-shadow(0 15px 28px rgba(0, 0, 0, .22));
+  transform: translateX(-50%);
+  animation: play-world-float 3s ease-in-out infinite;
+}
+.play-world-trail {
+  position: absolute;
+  z-index: -1;
+  top: 128px;
+  left: 50%;
+  color: rgba(255, 240, 174, .42);
+  font-size: 1.2rem;
+  letter-spacing: .38em;
+  transform: translateX(-50%);
+}
+.play-nova-character,
+.play-hero-character {
+  position: absolute;
+  z-index: 2;
+  bottom: 120px;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  transition: transform .35s cubic-bezier(.2, .8, .2, 1), opacity .35s ease, filter .35s ease;
+}
+.play-nova-character { left: 16%; }
+.play-hero-character { right: 13%; }
+.play-nova-character > small {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(10, 20, 48, .45);
+  color: #ffecad;
+  font-size: .6rem;
+  font-weight: 950;
+  letter-spacing: .12em;
+}
+.play-hero-character .hero-badge {
+  flex-direction: column;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, .4);
+}
+.speaker-nova .play-nova-character,
+.speaker-together .play-nova-character { transform: translateY(-10px) scale(1.12); filter: drop-shadow(0 12px 18px rgba(255, 224, 120, .22)); }
+.speaker-nova .play-hero-character { opacity: .72; transform: scale(.9); }
+.speaker-hero .play-hero-character,
+.speaker-together .play-hero-character { transform: translateY(-10px) scale(1.08); }
+.speaker-hero .play-nova-character { opacity: .72; transform: scale(.9); }
+.nova-mascot {
+  position: relative;
+  display: block;
+  width: 98px;
+  height: 88px;
+  border: 3px solid rgba(255, 255, 255, .72);
+  border-radius: 48% 48% 44% 44%;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, .9), transparent 12%),
+    linear-gradient(145deg, #fff3a8, #d590ff 72%);
+  box-shadow: inset 0 -12px 20px rgba(84, 45, 145, .2), 0 0 30px rgba(255, 229, 140, .42);
+  animation: nova-mascot-breathe 2.2s ease-in-out infinite;
+}
+.nova-ear {
+  position: absolute;
+  z-index: -1;
+  top: -45px;
+  width: 29px;
+  height: 61px;
+  border: 3px solid rgba(255, 255, 255, .72);
+  border-radius: 70% 70% 42% 42%;
+  background: linear-gradient(#fff1ae, #e1a3ef);
+  transform-origin: bottom center;
+}
+.nova-ear::after {
+  content: "";
+  position: absolute;
+  inset: 9px 8px 11px;
+  border-radius: inherit;
+  background: rgba(191, 93, 171, .35);
+}
+.nova-ear-left { left: 15px; transform: rotate(-8deg); }
+.nova-ear-right { right: 15px; transform: rotate(8deg); }
+.nova-eye {
+  position: absolute;
+  top: 34px;
+  width: 9px;
+  height: 13px;
+  border-radius: 50%;
+  background: #312451;
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, .75);
+}
+.nova-eye-left { left: 27px; }
+.nova-eye-right { right: 27px; }
+.nova-mascot em {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  color: #fff9c9;
+  font-size: 1.25rem;
+  font-style: normal;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 0 5px rgba(93, 51, 140, .5));
+}
+.play-dialogue {
+  position: absolute;
+  z-index: 4;
+  right: 22px;
+  bottom: 17px;
+  left: 22px;
+  min-height: 86px;
+  padding: 14px 18px;
+  border: 1px solid rgba(255, 255, 255, .32);
+  border-radius: 18px;
+  background: rgba(9, 18, 42, .72);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .22);
+  backdrop-filter: blur(10px);
+  animation: play-dialogue-in .35s ease both;
+}
+.play-dialogue small {
+  color: #ffe99d;
+  font-size: .62rem;
+  font-weight: 950;
+  letter-spacing: .12em;
+}
+.play-dialogue p {
+  margin: 5px 0 0;
+  font-size: clamp(1.03rem, 2.6vw, 1.32rem);
+  font-weight: 750;
+  line-height: 1.35;
+}
+.adventure-play > footer { padding-block: 14px 16px; }
+.play-dots {
+  display: flex;
+  gap: 7px;
+}
+.play-dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #d9d8e3;
+}
+.play-dots i.lit { background: #7c60e8; box-shadow: 0 0 0 3px rgba(124, 96, 232, .11); }
+@keyframes play-dialogue-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes play-world-float {
+  50% { transform: translate(-50%, -8px) rotate(4deg); }
+}
+@keyframes nova-mascot-breathe {
+  50% { transform: translateY(-5px) scale(1.025); }
+}
+@keyframes play-celebration-glow {
+  50% { opacity: .48; transform: scale(1.05); }
+}
+@media (max-width: 560px) {
+  .adventure-play-backdrop { padding: 10px; }
+  .adventure-play { max-height: calc(100vh - 20px); border-radius: 22px; }
+  .adventure-play > header { align-items: flex-start; padding: 14px; }
+  .adventure-play > header h2 { max-width: 210px; }
+  .adventure-play > header .text-button { padding: 7px 4px; font-size: .72rem; }
+  .adventure-play-stage { min-height: 365px; }
+  .play-world-symbol { top: 30px; font-size: 4.4rem; }
+  .play-world-trail { top: 108px; }
+  .play-nova-character { left: 8%; }
+  .play-hero-character { right: 6%; }
+  .play-nova-character, .play-hero-character { bottom: 128px; }
+  .nova-mascot { width: 82px; height: 74px; }
+  .nova-ear { top: -38px; width: 25px; height: 52px; }
+  .nova-eye { top: 29px; }
+  .nova-eye-left { left: 22px; }
+  .nova-eye-right { right: 22px; }
+  .nova-mascot em { bottom: 8px; }
+  .play-hero-character .hero-lg .hero-portrait { width: 78px; height: 78px; }
+  .play-dialogue { right: 12px; bottom: 12px; left: 12px; min-height: 102px; padding: 13px 14px; }
+  .adventure-play > footer { align-items: stretch; flex-direction: column; gap: 11px; padding: 12px 14px 14px; }
+  .play-dots { justify-content: center; }
+  .adventure-play > footer .primary { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .play-world-symbol,
+  .nova-mascot,
+  .play-closing .adventure-play-stage::after,
+  .play-dialogue { animation: none !important; }
+  .play-nova-character,
+  .play-hero-character { transition: none !important; }
+}
+
 /* Mountain Rescue benchmark: one continuous, directly manipulated story world. */
 .mountain-benchmark-panel {
   width: min(1120px, calc(100% - 40px));

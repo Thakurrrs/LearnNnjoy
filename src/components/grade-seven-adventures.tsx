@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AdventurePlay } from "@/components/adventure-play";
 import { sound } from "@/lib/sound";
 import { HandAngleControl, supportsHandControl } from "@/components/hand-angle-control";
 import { MountainRescueAdventure } from "@/components/mountain-rescue-adventure";
@@ -213,23 +214,34 @@ function CricketData({ state, onChange, firstTime, replay, heroName, onFinish }:
   </>;
 }
 
-export function GradeSevenActivity({ id, state, mode, firstTime, heroName, onChange, onFinish }: {
+export function GradeSevenActivity({ id, state, mode, firstTime, heroName, avatar, equippedCosmetic, onChange, onFinish }: {
   id: GradeSevenAdventureId;
   state: GradeSevenInteractionState;
   mode: GradeSevenActivityMode;
   firstTime: boolean;
   heroName: string;
+  avatar: string;
+  equippedCosmetic?: string;
   onChange: (state: GradeSevenInteractionState) => void;
   onFinish: () => void;
 }) {
   const adventure = gradeSevenAdventures.find((item) => item.id === id)!;
   const heading = <div className="activity-heading"><span>{adventure.icon}</span><div><p className="eyebrow">{mode === "replay" ? "STORY JOURNAL REPLAY" : `GRADE 7 · ${adventure.topic.toUpperCase()}`}</p><h1>{adventure.topic}</h1><p className="story-world">Story world · {adventure.title}</p><p>{personalize(adventure.intro, heroName)}</p><div className="subtopic-row">{adventure.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div></div></div>;
+  const characterPlay = (state.step === 0 || state.step === 5) && <AdventurePlay
+    key={`${id}-${state.step}`}
+    id={id}
+    phase={state.step === 0 ? "opening" : "closing"}
+    heroName={heroName}
+    avatar={avatar}
+    equippedCosmetic={equippedCosmetic}
+  />;
   if (id === "mountain" && state.kind === "mountain") {
     return <section className="activity-panel mountain-benchmark-panel">
+      {characterPlay}
       <MountainRescueAdventure state={state} onChange={onChange} firstTime={firstTime} replay={mode === "replay"} heroName={heroName} onFinish={onFinish} />
     </section>;
   }
-  return <section className="activity-panel">{heading}
+  return <section className="activity-panel">{characterPlay}{heading}
     {id === "balance" && state.kind === "balance" && <BalanceLab state={state} onChange={onChange} firstTime={firstTime} replay={mode === "replay"} heroName={heroName} onFinish={onFinish} />}
     {id === "shop" && state.kind === "shop" && <SmartShopper state={state} onChange={onChange} firstTime={firstTime} replay={mode === "replay"} heroName={heroName} onFinish={onFinish} />}
     {id === "skatepark" && state.kind === "skatepark" && <Skatepark state={state} onChange={onChange} firstTime={firstTime} replay={mode === "replay"} heroName={heroName} onFinish={onFinish} />}
