@@ -16,6 +16,6 @@ describe("transparent adaptive support", () => {
   it("offers an optional stretch only after confident evidence", () => {
     const next = chooseAdaptiveNextStep(question, { wrongAttempts: 0, hintUsed: false, recentAccuracy: 0.9 });
     expect(next.mode).toBe("stretch");
-    expect(next.message).toContain("optional");
+    expect(next.message).toContain("Only if you like");
   });
 });

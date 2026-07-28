@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gradeSevenAdventures } from "./grade-seven-adventures";
+import { finaleCopy, gradeSevenAdventures } from "./grade-seven-adventures";
 
 describe("Grade 7 interactive adventure pilot", () => {
   it("keeps the five planned concept adventures available", () => {
@@ -18,6 +18,24 @@ describe("Grade 7 interactive adventure pilot", () => {
       expect(adventure.subtopics).toHaveLength(3);
       expect(adventure.action.trim()).not.toBe("");
       expect(adventure.intro.trim()).not.toBe("");
+    }
+  });
+});
+
+describe("finaleCopy", () => {
+  it("covers every playable adventure with celebration copy", () => {
+    for (const adventure of gradeSevenAdventures) {
+      const copy = finaleCopy[adventure.id];
+      expect(copy).toBeDefined();
+      expect(copy.title.length).toBeGreaterThan(0);
+      expect(copy.detail.length).toBeGreaterThan(20);
+      expect(copy.art.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("finale details speak to the hero by name token", () => {
+    for (const adventure of gradeSevenAdventures) {
+      expect(finaleCopy[adventure.id].detail).toContain("{hero}");
     }
   });
 });

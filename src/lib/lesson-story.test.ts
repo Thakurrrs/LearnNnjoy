@@ -18,6 +18,6 @@ describe("lesson stories", () => {
   it("anchors the first Grade 4 story in one whole and equal parts", () => {
     const story = getLessonStory(getQuestsForGrade(4)[0]);
     expect(story.learningObjective).toContain("one clear whole");
-    expect(story.outcomeDetail).toContain("two equal parts");
+    expect(story.outcomeDetail).toContain("two equal pieces");
   });
 });

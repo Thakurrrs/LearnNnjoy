@@ -14,7 +14,15 @@ import { recordDailyQuest } from "@/lib/streak";
 import { chooseAdaptiveNextStep } from "@/lib/adaptive";
 import { readSubjectProgress, snapshotSubjectMission, type ActiveSubject, type SubjectMissionProgress, type SubjectProgress } from "@/lib/subject-progress";
 import { getMissionChapter } from "@/lib/mission-chapters";
-import { GradeSevenActivity, gradeSevenAdventures, gradeSevenComingSoonChapters, type GradeSevenAdventureId } from "@/components/grade-seven-adventures";
+import { GradeSevenActivity, gradeSevenAdventures, gradeSevenComingSoonChapters, type GradeSevenAdventureId, type GradeSevenChapter } from "@/components/grade-seven-adventures";
+import { cosmetics } from "@/lib/cosmetics";
+import { ConstellationMap } from "@/components/constellation-map";
+import { sound } from "@/lib/sound";
+import { avatars } from "@/lib/avatars";
+import { getExplorerLevel } from "@/lib/levels";
+import { personalize } from "@/lib/personalize";
+import { getPet, getPetStage, PET_CHOICE_LEVEL, PET_STAGE_LEVELS, PET_STAGE_TITLES, petMoment, pets } from "@/lib/pets";
+import { HeroBadge, HeroDuo } from "@/components/hero-badge";
 
 type Screen = "welcome" | "story" | "diagnostic" | "path" | "chapter" | "quest" | "outcome" | "world" | "map" | "adventures" | "activity";
 
@@ -43,13 +51,10 @@ type SavedProgress = {
   subjectProgress: SubjectProgress;
   nextSupportMode: "rebuild" | "steady" | "stretch";
   completedAdventures: GradeSevenAdventureId[];
+  avatar: string;
+  pet: string | null;
+  lifetimeDiscoveries: number;
 };
-
-const cosmetics = [
-  { id: "trailblazer", label: "Trailblazer pack", emoji: "🎒", cost: 0, detail: "Your first expedition companion." },
-  { id: "aurora", label: "Aurora cape", emoji: "🧥", cost: 50, detail: "A warm glow for brave problem-solvers." },
-  { id: "starglow", label: "Starglow companion", emoji: "🌟", cost: 75, detail: "A tiny light for the next trail." },
-] as const;
 
 function FractionVisual({ chargedPieces, onCharge }: { chargedPieces: number; onCharge: () => void }) {
   return <div className="visual-play"><div className="pizza interactive-pizza" aria-label="A four-part energy disc. Tap a piece to charge it.">{[0, 1, 2, 3].map((piece) => <button key={piece} type="button" className={piece < chargedPieces ? "charged" : ""} aria-label={`Charge piece ${piece + 1}`} onClick={onCharge} />)}</div><p>Tap the energy pieces to explore equal parts.</p></div>;
@@ -136,10 +141,14 @@ export default function Home() {
   const [coins, setCoins] = useState(60);
   const [correct, setCorrect] = useState(0);
   const [attempts, setAttempts] = useState(0);
-  const pet = "Nova";
   const [hydrated, setHydrated] = useState(false);
+  const [muted, setMuted] = useState(false);
   const [ownedCosmetics, setOwnedCosmetics] = useState<string[]>(["trailblazer"]);
   const [equippedCosmetic, setEquippedCosmetic] = useState("trailblazer");
+  const [avatar, setAvatar] = useState("explorer");
+  const [pet, setPet] = useState<string | null>(null);
+  const [lifetimeDiscoveries, setLifetimeDiscoveries] = useState(0);
+  const [petNote, setPetNote] = useState<string | null>(null);
   const [dailyStreak, setDailyStreak] = useState(0);
   const [lastCompletedDate, setLastCompletedDate] = useState<string | null>(null);
   const [chargedPieces, setChargedPieces] = useState(0);
@@ -148,7 +157,9 @@ export default function Home() {
   const [nextSupportMode, setNextSupportMode] = useState<SavedProgress["nextSupportMode"]>("steady");
   const [activeAdventure, setActiveAdventure] = useState<GradeSevenAdventureId>("mountain");
   const [completedAdventures, setCompletedAdventures] = useState<GradeSevenAdventureId[]>([]);
+  const [selectedChapter, setSelectedChapter] = useState<string>("mountain");
   const gradeSevenChapters = [...gradeSevenAdventures, ...gradeSevenComingSoonChapters];
+  const explorer = getExplorerLevel(lifetimeDiscoveries);
 
   function applySavedProgress(saved: Partial<SavedProgress>) {
     if (saved.name) setName(saved.name);
@@ -173,6 +184,10 @@ export default function Home() {
     if (saved.subjectProgress) setSubjectProgress(readSubjectProgress(saved.subjectProgress));
     if (saved.nextSupportMode === "rebuild" || saved.nextSupportMode === "steady" || saved.nextSupportMode === "stretch") setNextSupportMode(saved.nextSupportMode);
     if (Array.isArray(saved.completedAdventures) && saved.completedAdventures.every((id) => ["mountain", "balance", "shop", "skatepark", "cricket"].includes(id))) setCompletedAdventures(saved.completedAdventures);
+    if (typeof saved.avatar === "string" && avatars.some((option) => option.id === saved.avatar)) setAvatar(saved.avatar);
+    if (saved.pet === null || (typeof saved.pet === "string" && pets.some((option) => option.id === saved.pet))) setPet(saved.pet ?? null);
+    if (typeof saved.lifetimeDiscoveries === "number" && saved.lifetimeDiscoveries >= 0) setLifetimeDiscoveries(Math.floor(saved.lifetimeDiscoveries));
+    else setLifetimeDiscoveries(Math.max(0, (saved.correct ?? 0) + (saved.completedAdventures?.length ?? 0)));
   }
 
   const isScienceMission = activeSubject === "science" && grade <= 12;
@@ -187,7 +202,7 @@ export default function Home() {
     ? { role: "Explorer", object: "moon-fruit", world: "Lumina rescue" }
     : grade <= 9
       ? { role: "Pathfinder", object: "signal orb", world: "Lumina signal run" }
-      : { role: "Navigator", object: "calibration core", world: "Lumina navigation brief" };
+      : { role: "Navigator", object: "star compass", world: "Lumina navigation brief" };
   // Keep a valid lesson available while the completed screen is rendering. The
   // completion state deliberately has questIndex === gradeQuests.length.
   const current = screen === "diagnostic"
@@ -207,8 +222,8 @@ export default function Home() {
   const activeMissionChapter = getMissionChapter(grade, activeSubject, gradeQuests.length, Math.min(questIndex, gradeQuests.length - 1));
   const skillNames = { fractions: "equal parts and fractions", "number-sense": "number sense and distance", proportion: "matching groups and proportion", algebra: "algebraic rules and relationships", geometry: "shape, position, and spatial reasoning", data: "data, chance, and interpretation", "science-inquiry": "living things, materials, and environmental care", language: "reading, vocabulary, and clear expression", "social-inquiry": "maps, community, and shared responsibility" } as const;
   const beaconEnergy = Math.min(3, Math.ceil(questCorrect / Math.max(1, Math.ceil(gradeQuests.length / 3))));
-  const missionTitle = isScienceMission ? questIndex === 0 ? "Wake the garden sensors" : questIndex === 1 ? "Follow the food trail" : "Protect the pond habitat" : isEnglishMission ? questIndex === 0 ? "Open the storybook portal" : questIndex === 1 ? "Gather the word clues" : "Shape a brighter ending" : isSocialMission ? questIndex === 0 ? "Find the north marker" : questIndex === 1 ? "Trace the community route" : "Care for the shared map" : screen === "diagnostic" ? grade <= 7 ? "Nova's signal is fading" : "Set your starting signal" : questIndex === 0 ? "Restore the first beacon" : questIndex === 1 ? "Clear the mist trail" : "Open the starlight bridge";
-  const missionMoment = isScienceMission ? "Observe closely, make a prediction, and use the evidence in front of you." : isEnglishMission ? "Read closely, follow the clues, and make meaning from the story." : isSocialMission ? "Use the map clues, notice people’s needs, and think about how a community works together." : screen === "diagnostic" ? grade <= 7 ? "Your choices help Nova find the trail that feels right for you." : "Three short grade-level ideas help set a useful starting point—this is not a score." : `One idea at a time. Each discovery brings Lumina back to life.`;
+  const missionTitle = isScienceMission ? questIndex === 0 ? "Wake the garden sensors" : questIndex === 1 ? "Follow the food trail" : "Protect the pond habitat" : isEnglishMission ? questIndex === 0 ? "Open the storybook portal" : questIndex === 1 ? "Gather the word clues" : "Shape a brighter ending" : isSocialMission ? questIndex === 0 ? "Find the north marker" : questIndex === 1 ? "Trace the community route" : "Care for the shared map" : screen === "diagnostic" ? "Nova checks your trail" : questIndex === 0 ? "Restore the first beacon" : questIndex === 1 ? "Clear the mist trail" : "Open the starlight bridge";
+  const missionMoment = isScienceMission ? "Observe closely, make a prediction, and use the evidence in front of you." : isEnglishMission ? "Read closely, follow the clues, and make meaning from the story." : isSocialMission ? "Use the map clues, notice people’s needs, and think about how a community works together." : screen === "diagnostic" ? `"A few quick tries, ${name.trim() || "friend"} — so I pick the right path for us."` : `One idea at a time. Each one wakes up more of Lumina.`;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -221,6 +236,7 @@ export default function Home() {
           window.localStorage.removeItem(PILOT_PROGRESS_KEY);
         }
       }
+      setMuted(sound.isMuted());
       setHydrated(true);
     }, 0);
 
@@ -229,9 +245,9 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated || !name.trim()) return;
-    const progress: SavedProgress = { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, subjectProgress, nextSupportMode, completedAdventures };
+    const progress: SavedProgress = { name, grade, activeSubject, screen, diagnosticIndex, diagnosticCorrect, storyBeat, storyCells, fruitSplit, fruitShared, hintRequests, questIndex, coins, correct, attempts, ownedCosmetics, equippedCosmetic, dailyStreak, lastCompletedDate, subjectProgress, nextSupportMode, completedAdventures, avatar, pet, lifetimeDiscoveries };
     window.localStorage.setItem(PILOT_PROGRESS_KEY, JSON.stringify(progress));
-  }, [activeSubject, attempts, coins, completedAdventures, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, hintRequests, hydrated, lastCompletedDate, name, nextSupportMode, ownedCosmetics, questIndex, screen, storyBeat, storyCells, subjectProgress]);
+  }, [activeSubject, attempts, avatar, coins, completedAdventures, correct, dailyStreak, diagnosticCorrect, diagnosticIndex, equippedCosmetic, fruitShared, fruitSplit, grade, hintRequests, hydrated, lastCompletedDate, lifetimeDiscoveries, name, nextSupportMode, ownedCosmetics, pet, questIndex, screen, storyBeat, storyCells, subjectProgress]);
 
   function answer() {
     if (!selected || !current) return;
@@ -243,9 +259,14 @@ export default function Home() {
         recentAccuracy: questCorrect / Math.max(1, attempts - diagnosticCorrect),
       });
       setFeedback("correct");
+      sound.play("success");
+      sound.play("coin");
       setCorrect((value) => value + 1);
       if (screen === "diagnostic") setDiagnosticCorrect((value) => value + 1);
       setCoins((value) => value + 25);
+      const note = petMoment(lifetimeDiscoveries, lifetimeDiscoveries + 1, pet);
+      if (note) setPetNote(note);
+      setLifetimeDiscoveries((value) => value + 1);
       const streak = recordDailyQuest({ dailyStreak, lastCompletedDate }, new Date().toISOString().slice(0, 10));
       setDailyStreak(streak.dailyStreak);
       setLastCompletedDate(streak.lastCompletedDate);
@@ -257,10 +278,12 @@ export default function Home() {
     }
     setWrongAttemptsOnQuestion((value) => value + 1);
     setFeedback("retry");
+    sound.play("tap");
     setShowHint(true);
   }
 
   function continueLearning() {
+    if (screen === "outcome") setPetNote(null);
     setSelected(null);
     setFeedback(null);
     setShowHint(screen === "outcome" && nextSupportMode === "rebuild");
@@ -328,6 +351,7 @@ export default function Home() {
   }
 
   function chooseGrade(nextGrade: Grade) {
+    // avatar, pet, and lifetimeDiscoveries are permanent - never reset them here
     setGrade(nextGrade);
     setActiveSubject("maths");
     setDiagnosticIndex(0);
@@ -375,9 +399,13 @@ export default function Home() {
   }
 
   function finishGradeSevenAdventure() {
+    sound.play("finale");
     if (!completedAdventures.includes(activeAdventure)) {
       setCompletedAdventures((items) => [...items, activeAdventure]);
       setCoins((value) => value + 25);
+      const note = petMoment(lifetimeDiscoveries, lifetimeDiscoveries + 1, pet);
+      if (note) setPetNote(note);
+      setLifetimeDiscoveries((value) => value + 1);
     }
     setScreen("adventures");
   }
@@ -388,13 +416,14 @@ export default function Home() {
       <section className="hero">
         <div className="hero-copy">
           <p className="eyebrow">THE NUMBER SENSE EXPEDITION</p>
-          <h1>Maths becomes a world you want to explore.</h1>
-          <p className="lede">Visual, interactive quests for Grades 4–12—designed to replace “I can’t do maths” with “let me try one more.”</p>
+          <h1>This world needs a hero. That&apos;s you.</h1>
+          <p className="lede">Real adventures with Nova, your star friend — who needs your help with the maths that saves the day. Grades 4–12.</p>
           <div className="welcome-card">
             <label>Explorer nickname<input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Aanya" maxLength={24} /></label>
             <label>School grade<select value={grade} onChange={(event) => chooseGrade(Number(event.target.value) as Grade)}>{[4,5,6,7,8,9,10,11,12].map((item) => <option key={item} value={item}>Grade {item}</option>)}</select></label>
+            <div className="avatar-picker"><p className="eyebrow">CHOOSE YOUR EXPLORER</p><div className="avatar-chip-row">{avatars.map((option) => <button key={option.id} type="button" className={avatar === option.id ? "avatar-chip selected" : "avatar-chip"} aria-pressed={avatar === option.id} onClick={() => setAvatar(option.id)}><HeroBadge avatar={option.id} size="md" /><small>{option.label}</small></button>)}</div></div>
             <div className="grade-preview"><p className="eyebrow">GRADE {grade} MATHS STARTER</p><b>{gradeRoadmap.find((subject) => subject.id === "maths")?.topics[0]}</b><span>First discovery: {getQuestsForGrade(grade)[0].prompt}</span></div>
-            <button className="primary" disabled={!name.trim()} onClick={() => setScreen(grade === 7 ? "adventures" : grade === 4 ? "story" : "diagnostic")}>{grade === 7 ? "Enter the Grade 7 adventure map" : grade === 4 ? "Help Nova restore the first beacon" : `Start Grade ${grade} maths calibration`} <span>→</span></button>
+            <button className="primary" disabled={!name.trim()} onClick={() => setScreen(grade === 7 ? "adventures" : grade === 4 ? "story" : "diagnostic")}>{grade === 7 ? "Nova is waiting at the star map" : grade === 4 ? "Nova needs your help — start the rescue" : `Start your Grade ${grade} adventure`} <span>→</span></button>
             <p className="fine-print">Your progress stays on this device. No rankings, public profiles, or peer pressure.</p>
           </div>
         </div>
@@ -407,26 +436,35 @@ export default function Home() {
   if (screen === "story") {
     const bridgeReady = storyCells.length === 2;
     return <main className={`story-shell ${gradeTheme} beat-${storyBeat}`}><Image src="/images/lumina-bridge.png" alt="Nova waits by a broken starlight bridge in the world of Lumina." fill priority sizes="100vw" className="story-art" /><div className="story-vignette" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>{ageFraming.world} · {storyBeat + 1}/4</span></nav><section className="story-player">
-      {storyBeat === 0 && <div className="story-dialogue"><p className="eyebrow">CHAPTER ONE · {ageFraming.role.toUpperCase()}</p><h1>Nova has one whole {ageFraming.object}.</h1><p>{grade <= 6 ? "Two explorers need a fair share before they cross the bridge." : "The bridge can only initialise when its energy is divided fairly."} Can you help Nova reason from one clear whole?</p><button className="primary" onClick={() => setStoryBeat(1)}>{grade <= 6 ? "Help Nova share it" : "Start the calibration"} →</button></div>}
-      {storyBeat === 1 && <div className="story-dialogue"><p className="eyebrow">MAKE A FAIR SHARE</p><h1>{!fruitSplit ? `Here is one whole ${ageFraming.object}.` : !fruitShared ? "Now choose one equal piece for Nova." : "Nova has one of two equal pieces."}</h1><p>{!fruitSplit ? `Tap the ${ageFraming.object} to make one fair cut through its middle.` : !fruitShared ? "Both pieces came from the same whole and are the same size. Tap either piece to give it to Nova." : "One whole was split into 2 equal parts. Nova has 1 of those 2 parts: one-half, written 1/2."}</p><div className={`${fruitSplit ? "moon-fruit split" : "moon-fruit"} ${gradeTheme}`} aria-label={`One whole ${ageFraming.object} that can be split into two equal parts`}>{!fruitSplit ? <button type="button" aria-label={`Split the whole ${ageFraming.object} fairly`} onClick={() => setFruitSplit(true)}>✦</button> : <><button type="button" className={fruitShared ? "shared" : ""} aria-label="Give this equal half to Nova" onClick={() => setFruitShared(true)}>✦</button><button type="button" className={fruitShared ? "remaining" : ""} aria-label="The other equal half">✦</button></>}</div><p className="story-helper">{!fruitSplit ? "One whole · tap to split it fairly" : !fruitShared ? "2 equal parts · choose one for Nova" : "1 of 2 equal parts = 1/2"}</p>{fruitShared && <button className="primary" onClick={() => setStoryBeat(2)}>{grade <= 6 ? "Use one-half at the bridge" : "Apply the same relationship"} →</button>}</div>}
-      {storyBeat === 2 && <div className="story-dialogue"><p className="eyebrow">TRY THE IDEA AGAIN</p><h1>The bridge has four equal energy panels.</h1><p>Nova knows that one-half can look different. Light two of the four equal panels to make half the bridge glow.</p><div className="bridge-cells" aria-label="Four equal bridge energy chambers">{[0, 1, 2, 3].map((cell) => <button type="button" key={cell} className={storyCells.includes(cell) ? "charged" : ""} onClick={() => toggleStoryCell(cell)} aria-pressed={storyCells.includes(cell)}><span>✦</span></button>)}</div><p className="story-helper">{bridgeReady ? "Two of four equal panels are glowing. That is also one half." : `${storyCells.length} of 4 panels glowing`}</p><button className="primary" disabled={!bridgeReady} onClick={() => setStoryBeat(3)}>Send starlight to the bridge →</button></div>}
-      {storyBeat === 3 && <div className="story-dialogue resolved"><p className="eyebrow">BRIDGE RESTORED</p><h1>One-half can be 1 of 2 or 2 of 4.</h1><p>You started with one clear whole, made fair equal parts, and used the same idea again. Nova can now map the next trail with you.</p><div className="story-reveal">✦ ✦ <span>✦ ✦</span></div><button className="primary" onClick={() => setScreen("diagnostic")}>Continue with Nova →</button></div>}
+      {storyBeat === 0 && <div className="story-dialogue"><p className="eyebrow">CHAPTER ONE · YOUR ADVENTURE</p><h1>Nova zooms down to you.</h1><p>{`"${name.trim() || "Hey"}! I found ONE ${ageFraming.object}. Mira and I both want it. Help us share it fairly?"`}</p><button className="primary" onClick={() => setStoryBeat(1)}>I&apos;ll help you, Nova →</button></div>}
+      {storyBeat === 1 && <div className="story-dialogue"><p className="eyebrow">MAKE A FAIR SHARE</p><h1>{!fruitSplit ? "Here's the moon-fruit." : !fruitShared ? "Two equal pieces! Pick mine." : "Nova hugs the piece. \"One-half!\""}</h1><p>{!fruitSplit ? "Tap it to make one fair cut through the middle." : !fruitShared ? "Both pieces match. Tap one to give it to Nova." : "One whole, split into 2 equal parts. Nova has 1 of 2: one-half, written 1/2."}</p><div className={`${fruitSplit ? "moon-fruit split" : "moon-fruit"} ${gradeTheme}`} aria-label={`One whole ${ageFraming.object} that can be split into two equal parts`}>{!fruitSplit ? <button type="button" aria-label={`Split the whole ${ageFraming.object} fairly`} onClick={() => setFruitSplit(true)}>✦</button> : <><button type="button" className={fruitShared ? "shared" : ""} aria-label="Give this equal half to Nova" onClick={() => setFruitShared(true)}>✦</button><button type="button" className={fruitShared ? "remaining" : ""} aria-label="The other equal half">✦</button></>}</div><p className="story-helper">{!fruitSplit ? "One whole · tap to split it" : !fruitShared ? "2 equal pieces · pick one for Nova" : "1 of 2 equal parts = 1/2"}</p>{fruitShared && <button className="primary" onClick={() => setStoryBeat(2)}>To the bridge! →</button>}</div>}
+      {storyBeat === 2 && <div className="story-dialogue"><p className="eyebrow">TRY THE IDEA AGAIN</p><h1>The bridge wants half its panels lit.</h1><p>Nova whispers: &quot;One-half can look different here. Light 2 of the 4 equal panels!&quot;</p><div className="bridge-cells" aria-label="Four equal bridge energy chambers">{[0, 1, 2, 3].map((cell) => <button type="button" key={cell} className={storyCells.includes(cell) ? "charged" : ""} onClick={() => toggleStoryCell(cell)} aria-pressed={storyCells.includes(cell)}><span>✦</span></button>)}</div><p className="story-helper">{bridgeReady ? "2 of 4 lit — that's one-half too!" : `${storyCells.length} of 4 panels lit`}</p><button className="primary" disabled={!bridgeReady} onClick={() => setStoryBeat(3)}>Send the starlight →</button></div>}
+      {storyBeat === 3 && <div className="story-dialogue resolved"><p className="eyebrow">THE BRIDGE WAKES UP</p><h1>You did it — Nova is dancing.</h1><p>{`"See, ${name.trim() || "friend"}? 1 of 2, or 2 of 4 — BOTH are one-half. You're good at this!"`}</p><div className="story-reveal">✦ ✦ <span>✦ ✦</span></div><button className="primary" onClick={() => setScreen("diagnostic")}>Keep going with Nova →</button></div>}
     </section></main>;
   }
 
   if (screen === "adventures") {
-    return <main className="shell adventure-shell theme-pathfinder"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={openGradePicker}>Switch grade</button></nav><section className="adventure-hero"><p className="eyebrow">GRADE 7 · MATHS ADVENTURE MAP</p><h1>Choose a topic. Make the maths move.</h1><p>Every Grade 7 topic has a world here. Playable chapters teach now; Nova is preparing the next worlds.</p><p className="adventure-progress">{completedAdventures.length}/5 playable discoveries completed · {gradeSevenChapters.length} Grade 7 topics mapped</p></section><section className="adventure-grid">{gradeSevenChapters.map((chapter) => { const comingSoon = "status" in chapter; const completedAdventure = !comingSoon && completedAdventures.includes(chapter.id); return <article key={chapter.id} className={comingSoon ? "adventure-card coming-soon" : completedAdventure ? "adventure-card completed" : "adventure-card"}><span>{chapter.icon}</span><p className="eyebrow">{comingSoon ? "NOVA IS PREPARING THIS WORLD" : completedAdventure ? "DISCOVERED" : "PLAY NOW"}</p><h2>{chapter.topic}</h2><p className="story-world">Story world · {chapter.title}</p><div className="subtopic-row">{chapter.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div><p>{chapter.intro}</p>{comingSoon ? <div className="coming-soon-note"><span>✦</span><b>Coming soon</b><small>This world will unlock after its interactive chapter is ready.</small></div> : <button className="primary" onClick={() => openGradeSevenAdventure(chapter.id)}>{completedAdventure ? "Explore again →" : `${chapter.action} →`}</button>}</article>; })}</section></main>;
+    const selected = gradeSevenChapters.find((chapter) => chapter.id === selectedChapter) ?? gradeSevenChapters[0];
+    const selectedComingSoon = "status" in selected;
+    const selectedCompleted = !selectedComingSoon && completedAdventures.includes(selected.id as GradeSevenAdventureId);
+    return <main className="shell adventure-shell theme-pathfinder"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><HeroDuo avatar={avatar} name={name} equippedCosmetic={equippedCosmetic} level={explorer.level} pet={pet} size="sm" /><button className="text-button" aria-label={muted ? "Turn sounds on" : "Turn sounds off"} onClick={() => setMuted(sound.toggleMuted())}>{muted ? "🔇" : "🔊"}</button><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button><button className="text-button" onClick={openGradePicker}>Switch grade</button></div></nav>
+      <section className="adventure-hero"><p className="eyebrow">GRADE 7 · MATHS CONSTELLATION</p><h1>Light every star in the Lumina sky.</h1><p>Each Grade 7 topic is a star on Nova&apos;s trail. Bright stars are ready to play; dim stars wait on the horizon.</p><p className="adventure-progress">{completedAdventures.length}/{gradeSevenAdventures.length} stars lit · {gradeSevenChapters.length} topics mapped</p></section>
+      {petNote && <button type="button" className="pet-note pet-note-dismiss" onClick={() => setPetNote(null)}>⭐ {petNote} ✕</button>}
+      <ConstellationMap chapters={gradeSevenChapters} completedIds={completedAdventures} selectedId={selectedChapter} onSelect={setSelectedChapter} />
+      <section className="star-detail" aria-live="polite"><span className="star-detail-icon">{selected.icon}</span><div><p className="eyebrow">{selectedComingSoon ? "NOVA IS PREPARING THIS WORLD" : selectedCompleted ? "STAR LIT · PLAY AGAIN ANYTIME" : "READY TO PLAY"}</p><h2>{selected.topic}</h2><p className="story-world">Story world · {selected.title}</p><div className="subtopic-row">{selected.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div><p>{personalize(selected.intro, name)}</p>{selectedComingSoon ? <div className="coming-soon-note"><span>✦</span><b>Coming soon</b><small>This star will brighten when its interactive chapter is ready.</small></div> : <button className="primary" onClick={() => openGradeSevenAdventure(selected.id as GradeSevenAdventureId)}>{selectedCompleted ? "Explore again →" : `${(selected as GradeSevenChapter).action} →`}</button>}</div></section>
+    </main>;
   }
 
   if (screen === "activity") {
-    return <main className="shell activity-shell theme-pathfinder"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("adventures")}>Adventure map</button></nav><GradeSevenActivity id={activeAdventure} onFinish={finishGradeSevenAdventure} /></main>;
+    return <main className={`shell activity-shell theme-pathfinder world-theme-${activeAdventure}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><HeroDuo avatar={avatar} equippedCosmetic={equippedCosmetic} level={explorer.level} pet={pet} size="sm" /><button className="text-button" aria-label={muted ? "Turn sounds on" : "Turn sounds off"} onClick={() => setMuted(sound.toggleMuted())}>{muted ? "🔇" : "🔊"}</button><button className="text-button" onClick={() => setScreen("adventures")}>Adventure map</button></div></nav><GradeSevenActivity id={activeAdventure} firstTime={!completedAdventures.includes(activeAdventure)} heroName={name} onFinish={finishGradeSevenAdventure} /></main>;
   }
 
   if (screen === "world") {
-    return <main className={`shell dashboard-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("quest")}>Back to quest</button></nav>
+    return <main className={`shell dashboard-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen(grade === 7 ? "adventures" : "quest")}>{grade === 7 ? "Star map" : "Back to quest"}</button></nav>
       <section className="dashboard-heading"><p className="eyebrow">AVATAR WORLD</p><h1>Make your expedition feel like yours.</h1><p>Cosmetics are earned through learning. They never make a quest easier.</p></section>
-      <section className="world-balance"><span>🪙</span><div><b>{coins} Lumina coins</b><small>Earn 25 coins for each thoughtful quest answer.</small></div></section>
+      <section className="nova-preview"><HeroBadge avatar={avatar} name={name} size="lg" level={explorer.level} equippedCosmetic={equippedCosmetic} /><p>Everything you wear was earned by your ideas. {explorer.toNext} more {explorer.toNext === 1 ? "discovery" : "discoveries"} to Level {explorer.level + 1}.</p></section><section className="world-balance"><span>🪙</span><div><b>{coins} Lumina coins</b><small>Earn 25 coins for each thoughtful quest answer.</small></div></section>
       <section className="cosmetic-grid">{cosmetics.map((cosmetic) => { const owned = ownedCosmetics.includes(cosmetic.id); const equipped = equippedCosmetic === cosmetic.id; const affordable = coins >= cosmetic.cost; return <article key={cosmetic.id} className={equipped ? "cosmetic-card equipped" : "cosmetic-card"}><div className="cosmetic-icon">{cosmetic.emoji}</div><p className="eyebrow">{equipped ? "EQUIPPED" : owned ? "IN YOUR WORLD" : `${cosmetic.cost} COINS`}</p><h2>{cosmetic.label}</h2><p>{cosmetic.detail}</p><button className="primary" disabled={!owned && !affordable} onClick={() => chooseCosmetic(cosmetic.id, cosmetic.cost)}>{equipped ? "Equipped" : owned ? "Equip" : affordable ? `Unlock for ${cosmetic.cost}` : `Need ${cosmetic.cost - coins} more`}</button></article>; })}</section>
+      <section className="star-friend">{pet ? (() => { const chosen = getPet(pet)!; const stage = getPetStage(explorer.level); const nextStageLevel = PET_STAGE_LEVELS.find((at) => at > explorer.level); return <><span className={`friend-face pet-stage-${Math.max(1, stage)}`}>{chosen.emoji}</span><div><p className="eyebrow">YOUR STAR FRIEND</p><b>{chosen.name} the {chosen.species} · {PET_STAGE_TITLES[Math.max(1, stage) - 1]}</b><small>{nextStageLevel ? `Grows again at Level ${nextStageLevel}` : "Fully grown — and very proud of you"}</small></div></>; })() : explorer.level >= PET_CHOICE_LEVEL ? <><span className="friend-face egg-ready">🥚</span><div><p className="eyebrow">A STAR-EGG IS HATCHING!</p><b>Choose your forever friend</b><div className="pet-choice-row">{pets.map((option) => <button key={option.id} type="button" className="pet-chip" onClick={() => { setPet(option.id); setPetNote(null); sound.play("finale"); }}><span>{option.emoji}</span><small>{option.name}</small><i>{option.species}</i></button>)}</div><small>Choose carefully — your friend stays with you forever.</small></div></> : <><span className="friend-face egg-dim">🥚</span><div><p className="eyebrow">STAR-EGG</p><b>Something is sleeping inside…</b><small>Hatches at Level {PET_CHOICE_LEVEL} · {explorer.toNext} more {explorer.toNext === 1 ? "discovery" : "discoveries"} to go</small></div></>}</section>
     </main>;
   }
 
@@ -439,25 +477,25 @@ export default function Home() {
 
   if (screen === "path") {
     const trail = chooseLearningTrail(diagnosticCorrect);
-    return <main className={`shell completion-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="pill">Nova found your trail</div></nav><section className="trail-card"><div className={`trail-emblem ${trail.id}`}>{trail.id === "visual" ? "◐" : trail.id === "guided" ? "✦" : "✧"}</div><p className="eyebrow">YOUR STARTING TRAIL</p><h1>{trail.label}</h1><p>{trail.message}</p><div className="trail-support"><b>How LearnNnjoy will help</b><span>{trail.support}</span></div><button className="primary" onClick={() => { setShowHint(trail.id === "visual"); setScreen("chapter"); }}>Begin my Lumina mission →</button><small>This is not a score. It is simply the most comfortable place to begin today.</small></section></main>;
+    return <main className={`shell completion-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="pill">Nova found your trail</div></nav><section className="trail-card"><div className={`trail-emblem ${trail.id}`}>{trail.id === "visual" ? "◐" : trail.id === "guided" ? "✦" : "✧"}</div><p className="eyebrow">YOUR STARTING TRAIL</p><h1>{trail.label}</h1><p>{trail.message}</p><div className="trail-support"><b>How Nova will help</b><span>{trail.support}</span></div><button className="primary" onClick={() => { setShowHint(trail.id === "visual"); setScreen("chapter"); }}>Begin my Lumina mission →</button></section></main>;
   }
 
   if (screen === "chapter") {
     const sceneImage = current.visual === "number-line" ? "/images/lumina-mist-trail.png" : "/images/lumina-bridge.png";
-    return <main className={`chapter-shell chapter-${current.visual} ${gradeTheme}`}><Image src={sceneImage} alt="A chapter of Nova's learning adventure begins." fill priority sizes="100vw" className="chapter-art" /><div className="chapter-overlay" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>{subjectMissionName} · discovery {questIndex + 1} of {gradeQuests.length}</span></nav><section className="chapter-dialogue"><p className="eyebrow">CHAPTER {activeMissionChapter.number} · {activeMissionChapter.topic}</p><h1>{lessonStory.chapterTitle}</h1><p>{lessonStory.chapterDialogue}</p><StoryReel story={lessonStory} />{current.visual === "ratio" && <div className="chapter-groups" aria-label="One matching group becomes two matching groups"><div>✦✦<small>one group</small></div><strong>→</strong><div>✦✦✦✦<small>two matching groups</small></div></div>}{current.visual === "fraction" && <div className="chapter-whole" aria-label="One whole divided into two equal pieces"><span /><span /></div>}<div className="chapter-progress"><span style={{ width: `${((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><button className="primary" onClick={() => setScreen("quest")}>{lessonStory.chapterAction} →</button></section></main>;
+    return <main className={`chapter-shell chapter-${current.visual} ${gradeTheme}`}><Image src={sceneImage} alt="A chapter of Nova's learning adventure begins." fill priority sizes="100vw" className="chapter-art" /><div className="chapter-overlay" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>{subjectMissionName} · discovery {questIndex + 1} of {gradeQuests.length}</span></nav><section className="chapter-dialogue"><p className="eyebrow">CHAPTER {activeMissionChapter.number} · {activeMissionChapter.topic}</p><h1>{lessonStory.chapterTitle}</h1><p>{personalize(lessonStory.chapterDialogue, name)}</p><StoryReel story={lessonStory} />{current.visual === "ratio" && <div className="chapter-groups" aria-label="One matching group becomes two matching groups"><div>✦✦<small>one group</small></div><strong>→</strong><div>✦✦✦✦<small>two matching groups</small></div></div>}{current.visual === "fraction" && <div className="chapter-whole" aria-label="One whole divided into two equal pieces"><span /><span /></div>}<div className="chapter-progress"><span style={{ width: `${((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><button className="primary" onClick={() => setScreen("quest")}>{lessonStory.chapterAction} →</button></section></main>;
   }
 
   if (screen === "outcome") {
     const sceneImage = current.visual === "number-line" ? "/images/lumina-mist-trail.png" : "/images/lumina-bridge.png";
-    return <main className={`outcome-shell ${gradeTheme}`}><Image src={sceneImage} alt="Lumina glows brighter after the learner helps Nova." fill priority sizes="100vw" className="outcome-art" /><div className="outcome-overlay" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>Lumina is brighter because of your idea</span></nav><section className="outcome-card"><div className="outcome-icon">{lessonStory.outcomeIcon}</div><p className="eyebrow">MISSION MOMENT COMPLETE</p><h1>{lessonStory.outcomeTitle}</h1><p>{lessonStory.outcomeDetail}</p><div className="outcome-explanation"><b>What you discovered</b><span>{current.explanation}</span></div><div className="outcome-explanation adaptive-note"><b>{adaptiveNextStep.title}</b><span>{adaptiveNextStep.message}</span></div>{learningTrail.id === "stretch" && <p className="outcome-reflection">Pathfinder thought: could you explain this to Nova in your own words?</p>}<div className="outcome-reward"><span>🪙</span><b>+25 Lumina coins</b><small>For thoughtful problem solving</small></div><button className="primary" onClick={continueLearning}>{questIndex < gradeQuests.length - 1 ? "See what Nova finds next →" : "Return to the restored beacon →"}</button></section></main>;
+    return <main className={`outcome-shell ${gradeTheme}`}><Image src={sceneImage} alt="Lumina glows brighter after the learner helps Nova." fill priority sizes="100vw" className="outcome-art" /><div className="outcome-overlay" /><nav className="story-nav"><div className="brand"><span>✦</span> LearnNnjoy</div><span>Lumina is brighter because of your idea</span></nav><section className="outcome-card"><div className="outcome-icon">{lessonStory.outcomeIcon}</div><div className="outcome-nova"><HeroDuo avatar={avatar} name={name} equippedCosmetic={equippedCosmetic} level={explorer.level} pet={pet} size="md" /></div><p className="eyebrow">{lessonStory.completeLabel}</p><h1>{lessonStory.outcomeTitle}</h1><p>{personalize(lessonStory.outcomeDetail, name)}</p><div className="outcome-explanation"><b>What you discovered</b><span>{current.explanation}</span></div><div className="outcome-explanation adaptive-note"><b>{adaptiveNextStep.title}</b><span>{adaptiveNextStep.message}</span></div>{petNote && <div className="pet-note" role="status">⭐ {petNote}</div>}{learningTrail.id === "stretch" && <p className="outcome-reflection">Bonus star: tell Nova WHY it worked — in your own words.</p>}<div className="outcome-reward"><span>🪙</span><b>+25 Lumina coins</b><small>For thoughtful problem solving</small></div><button className="primary" onClick={continueLearning}>{questIndex < gradeQuests.length - 1 ? "See what Nova finds next →" : "Return to the restored beacon →"}</button></section></main>;
   }
 
   if (completed) {
-    return <main className={`shell completion-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("map")}>Learning atlas</button></nav><section className="completion-card"><div className="burst">✦</div><p className="eyebrow">MISSION COMPLETE</p><h1>{isScienceMission ? `You protected the habitat, ${name}!` : isEnglishMission ? `You unlocked the Story Studio, ${name}!` : isSocialMission ? `You mapped a kinder community, ${name}!` : `You completed Grade ${grade} maths, ${name}!`}</h1><p>You made {gradeQuests.length} connected discoveries about {completedSkills.map((skill) => skillNames[skill]).join(" and ")}.</p><div className="reward"><span>🪙</span><div><b>+{questCorrect * 25} Lumina coins</b><small>Earned by solving the mission ideas.</small></div></div><button className="primary" onClick={() => setScreen("map")}>Choose another world →</button></section></main>;
+    return <main className={`shell completion-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><button className="text-button" onClick={() => setScreen("map")}>Learning atlas</button></nav><section className="completion-card"><div className="burst">✦</div><p className="eyebrow">EVERY BEACON LIT!</p><h1>{isScienceMission ? `You protected the habitat, ${name}!` : isEnglishMission ? `You unlocked the Story Studio, ${name}!` : isSocialMission ? `You mapped a kinder community, ${name}!` : `You completed Grade ${grade} maths, ${name}!`}</h1><p>You made {gradeQuests.length} connected discoveries about {completedSkills.map((skill) => skillNames[skill]).join(" and ")}.</p><div className="reward"><span>🪙</span><div><b>+{questCorrect * 25} Lumina coins</b><small>Earned by solving the mission ideas.</small></div></div><button className="primary" onClick={() => setScreen("map")}>Choose another world →</button></section></main>;
   }
 
-  return <main className={`shell quest-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>🔥 {dailyStreak}</span><span>✨ {pet}</span><button className="text-button" onClick={openGradePicker}>Switch grade</button><button className="text-button" onClick={() => setScreen("map")}>Learning atlas</button><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button></div></nav>
-    <section className="quest-layout"><aside className="quest-side"><div className={`mission-scene stage-${beaconEnergy}`}><div className="scene-stars">✦ ✧ ✦</div><div className="beacon-core">✦</div><div className="beacon-pulse" /><div className="nova-orbit">✨</div><p>Beacon energy: {beaconEnergy}/3</p></div><p className="eyebrow">{screen === "diagnostic" ? grade <= 7 ? "NOVA'S RESCUE MISSION" : "MATHS CALIBRATION" : `GRADE ${grade} · LUMINA RESTORATION`}</p><h1>{missionTitle}</h1><p>{missionMoment}</p><div className="progress"><span style={{ width: `${screen === "diagnostic" ? ((diagnosticIndex + 1) / gradeDiagnostic.length) * 100 : ((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><small>{screen === "diagnostic" ? diagnosticIndex + 1 : questIndex + 1} of {screen === "diagnostic" ? gradeDiagnostic.length : gradeQuests.length} small discoveries</small></aside>
-      <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Explore first" : "Use your discovery"}</span></div><Visual kind={current.visual} chargedPieces={chargedPieces} onCharge={chargePiece} /><div className="quest-story"><span>Nova says</span><p>{lessonStory.coachLine}</p></div>{screen === "quest" && learningTrail.id === "visual" && <p className="trail-nudge">Visual Trail · Start with the picture. The symbols can wait.</p>}<h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Nova&apos;s clue:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Not yet—and that&apos;s useful information.</b><span>Let&apos;s slow the picture down and try a new route.</span></div>}{wrongAttemptsOnQuestion >= 2 && feedback !== "correct" && <div className="recovery-card"><p className="eyebrow">NOVA&apos;S SLOW-DOWN PATH</p><h3>You don&apos;t have to get it quickly to get it.</h3><p>{recoveryPrompt()}</p><button className="text-button" onClick={() => { setShowHint(true); setFeedback(null); }}>I&apos;m ready to look again</button></div>}{feedback === "correct" && <div className="feedback correct"><b>Beacon energy restored! +25 Lumina coins</b><span>{current.explanation}</span></div>}{feedback === "correct" && screen === "quest" && learningTrail.id === "stretch" && <div className="stretch-prompt"><b>Pathfinder thought</b><span>Can you explain this answer to Nova without using the choices?</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={askNovaForClue}>Ask Nova for a clue</button><button className="primary" disabled={!selected} onClick={answer}>Send my idea →</button></>}{feedback === "correct" && <button className="primary" onClick={continueLearning}>See what changed in Lumina →</button>}{feedback === "retry" && <button className="primary" onClick={retryCurrentQuestion}>{wrongAttemptsOnQuestion >= 2 ? "Use the slow-down path" : "Try a different idea"}</button>}</div></section>
+  return <main className={`shell quest-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><span>🪙 {coins}</span><span>🔥 {dailyStreak}</span><HeroDuo avatar={avatar} name={name} equippedCosmetic={equippedCosmetic} level={explorer.level} pet={pet} size="sm" /><button className="text-button" aria-label={muted ? "Turn sounds on" : "Turn sounds off"} onClick={() => setMuted(sound.toggleMuted())}>{muted ? "🔇" : "🔊"}</button><button className="text-button" onClick={openGradePicker}>Switch grade</button><button className="text-button" onClick={() => setScreen("map")}>Learning atlas</button><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button></div></nav>
+    <section className="quest-layout"><aside className="quest-side"><div className={`mission-scene stage-${beaconEnergy}`}><div className="scene-stars">✦ ✧ ✦</div><div className="beacon-core">✦</div><div className="beacon-pulse" /><div className="nova-orbit">✨</div><p>Beacon energy: {beaconEnergy}/3</p></div><p className="eyebrow">{screen === "diagnostic" ? "NOVA CHECKS YOUR TRAIL" : `GRADE ${grade} · LUMINA RESTORATION`}</p><h1>{missionTitle}</h1><p>{missionMoment}</p><div className="progress"><span style={{ width: `${screen === "diagnostic" ? ((diagnosticIndex + 1) / gradeDiagnostic.length) * 100 : ((questIndex + 1) / gradeQuests.length) * 100}%` }} /></div><small>{screen === "diagnostic" ? diagnosticIndex + 1 : questIndex + 1} of {screen === "diagnostic" ? gradeDiagnostic.length : gradeQuests.length} small discoveries</small></aside>
+      <section className="quest-card"><div className="quest-top"><span className="badge">{grade <= 6 ? "Explorer" : grade <= 9 ? "Pathfinder" : "Navigator"}</span><span>{screen === "diagnostic" ? "Explore first" : "Use your discovery"}</span></div><Visual kind={current.visual} chargedPieces={chargedPieces} onCharge={chargePiece} /><div className="quest-story"><span>Nova says</span><p>{personalize(lessonStory.coachLine, name)}</p></div>{screen === "quest" && learningTrail.id === "visual" && <p className="trail-nudge">Visual Trail · Start with the picture. The symbols can wait.</p>}<h2>{current.prompt}</h2><div className="choice-list">{current.choices.map((choice) => <button key={choice} className={selected === choice ? "choice selected" : "choice"} onClick={() => { setSelected(choice); setFeedback(null); sound.play("tap"); }}>{choice}</button>)}</div>{showHint && <div className="hint"><b>Nova&apos;s clue:</b> {current.hint}</div>}{feedback === "retry" && <div className="feedback retry"><b>Hmm, not that one.</b><span>Nova: &quot;Want to look at the picture again with me?&quot;</span></div>}{wrongAttemptsOnQuestion >= 2 && feedback !== "correct" && <div className="recovery-card"><p className="eyebrow">SLOW DOWN WITH NOVA</p><h3>You don&apos;t have to be fast to be right.</h3><p>{recoveryPrompt()}</p><button className="text-button" onClick={() => { setShowHint(true); setFeedback(null); }}>I&apos;m ready to look again</button></div>}{feedback === "correct" && <div className="feedback correct"><b>{lessonStory.completeLabel} +25 Lumina coins</b><span>{current.explanation}</span></div>}{feedback === "correct" && screen === "quest" && learningTrail.id === "stretch" && <div className="stretch-prompt"><b>Bonus star</b><span>Nova: &quot;Tell me WHY that works — in your own words!&quot;</span></div>}<div className="quest-actions">{!feedback && <><button className="text-button" onClick={askNovaForClue}>Ask Nova for a clue</button><button className="primary" disabled={!selected} onClick={answer}>Send my idea →</button></>}{feedback === "correct" && <button className="primary" onClick={continueLearning}>See what changed in Lumina →</button>}{feedback === "retry" && <button className="primary" onClick={retryCurrentQuestion}>{wrongAttemptsOnQuestion >= 2 ? "Use the slow-down path" : "Try a different idea"}</button>}</div></section>
     </section></main>;
 }

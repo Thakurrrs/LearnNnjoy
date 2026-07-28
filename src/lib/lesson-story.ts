@@ -6,6 +6,7 @@ export type LessonStory = {
   chapterDialogue: string;
   chapterAction: string;
   coachLine: string;
+  completeLabel: string;
   outcomeTitle: string;
   outcomeDetail: string;
   outcomeIcon: string;
@@ -17,29 +18,32 @@ export type LessonStory = {
 const byQuestionId: Record<string, Partial<LessonStory>> = {
   "g4-1": {
     learningObjective: "A fraction names equal parts of one clear whole.",
-    chapterTitle: "One moon-fruit needs a fair share.",
-    chapterDialogue: "Nova remembers the rule from the bridge: begin with one whole, then split it into equal parts for each explorer.",
-    coachLine: "“Let’s look for the one whole and its equal shares.”",
-    outcomeTitle: "Nova received a fair half.",
-    outcomeDetail: "The moon-fruit was one whole. Sharing it equally made two equal parts.",
+    chapterTitle: "One moon-fruit. Two hungry friends.",
+    chapterDialogue: "\"{hero}, Mira and I found ONE moon-fruit. We both want it. Split it fairly?\"",
+    coachLine: "\"Which way gives us both the SAME size piece?\"",
+    completeLabel: "FAIR SHARE MADE!",
+    outcomeTitle: "Half for Nova, half for Mira.",
+    outcomeDetail: "\"One whole, two equal pieces. My piece is one-half: 1/2. Thanks, {hero}!\"",
     videoCue: "Moon-fruit glows, splits cleanly into two matching halves, and one half floats gently to Nova.",
   },
   "g4-2": {
     learningObjective: "Halves must be equal parts of the same whole.",
-    chapterTitle: "The beacon checks whether a share is fair.",
-    chapterDialogue: "Some glowing panels look almost the same, but the beacon only accepts equal parts. Nova needs your careful eyes.",
-    coachLine: "“Fair shares are equal shares.”",
-    outcomeTitle: "The beacon recognised the fair share.",
-    outcomeDetail: "A half is one of two equal parts. Two uneven pieces do not make fair halves.",
+    chapterTitle: "The beacon spots an unfair share.",
+    chapterDialogue: "\"Uh oh, {hero}. Some pieces LOOK like halves but aren't. Check them for me?\"",
+    coachLine: "\"Fair means equal. Are these pieces really equal?\"",
+    completeLabel: "FAIR CATCH!",
+    outcomeTitle: "You caught the unfair pieces.",
+    outcomeDetail: "\"A half is one of two EQUAL parts. Uneven pieces can't be halves. You spotted it!\"",
     videoCue: "Uneven panels flicker softly; two matching panels lock into place and send a warm beam to the beacon.",
   },
   "g4-3": {
     learningObjective: "Equivalent fractions can name the same amount.",
-    chapterTitle: "The bridge remembers another name for one-half.",
-    chapterDialogue: "The bridge has four equal panels. Nova wonders whether two glowing panels can still make the same half you already know.",
-    coachLine: "“Count the glowing equal panels and the whole set.”",
-    outcomeTitle: "The bridge found the same half again.",
-    outcomeDetail: "Two of four equal panels, 2/4, covers the same amount as one half, 1/2.",
+    chapterTitle: "One-half wears a disguise.",
+    chapterDialogue: "\"{hero}, the bridge has FOUR panels now. Can one-half still fit? I'm confused!\"",
+    coachLine: "\"Count the glowing panels. Then count them all.\"",
+    completeLabel: "DISGUISE SPOTTED!",
+    outcomeTitle: "2/4 was one-half all along.",
+    outcomeDetail: "\"Two of four equal panels is the SAME amount as one-half! Sneaky fraction!\"",
     videoCue: "Two of four panels brighten in sequence; the bridge glow joins into one half-width beam.",
   },
 };
@@ -48,112 +52,120 @@ function defaultStory(question: Question): LessonStory {
   if (question.visual === "fraction") {
     return {
       learningObjective: "Fractions describe equal parts of a whole.",
-      chapterTitle: "The beacon doors need equal light.",
-      chapterDialogue: "Nova found an energy pattern that only works when equal pieces are noticed carefully.",
-      chapterAction: "Step into the energy chamber",
-      coachLine: "“The beacon responds when equal pieces fit together.”",
-      outcomeTitle: "The beacon doors glow in balance.",
-      outcomeDetail: "The bridge has found its equal share of energy.",
+      chapterTitle: "The beacon door is stuck.",
+      chapterDialogue: "\"{hero}, this door only opens for equal pieces. Find them with me?\"",
+      chapterAction: "Open the door with Nova",
+      coachLine: "\"Look for pieces that match exactly.\"",
+      completeLabel: "DOOR OPENED!",
+      outcomeTitle: "The door swings open.",
+      outcomeDetail: "\"Equal pieces! That was the secret. Nice one, {hero}!\"",
       outcomeIcon: "◐",
       videoCue: "Equal glowing pieces join into a balanced beam of starlight.",
-      reelFrames: ["Nova notices the equal pieces.", "The pieces fit together as one balanced whole.", "Look for the relationship the picture is showing.", "Your turn: use that relationship in the mission."],
+      reelFrames: ["Nova finds pieces that look equal.", "The equal pieces fit together as one whole.", "Unequal pieces never fit.", "Your turn: find the equal pieces."],
     };
   }
   if (question.visual === "number-line") {
     return {
       learningObjective: "Number position and distance can be reasoned about on a path.",
-      chapterTitle: "The mist trail has lost its markers.",
-      chapterDialogue: "Nova can see the destination, but not the path. Trace the steps carefully before choosing where to go.",
-      chapterAction: "Follow the glowing trail",
-      coachLine: "“Let’s trace the path before we decide.”",
-      outcomeTitle: "The mist trail lights up ahead.",
-      outcomeDetail: "Nova can see exactly where the next step belongs.",
+      chapterTitle: "Nova is lost in the mist.",
+      chapterDialogue: "\"{hero}, I can see the end of the trail but not the steps! Walk it with me?\"",
+      chapterAction: "Step onto the trail",
+      coachLine: "\"One step at a time. Which way are we going?\"",
+      completeLabel: "TRAIL FOUND!",
+      outcomeTitle: "The mist clears ahead.",
+      outcomeDetail: "\"I can see every step now. You counted us home, {hero}!\"",
       outcomeIcon: "⟶",
       videoCue: "A sequence of stepping stones lights from the starting point to the chosen marker.",
-      reelFrames: ["Nova marks a clear starting point.", "Each step changes the position on the path.", "Look for direction and distance before choosing.", "Your turn: trace the next move in the mission."],
+      reelFrames: ["Nova marks the starting stone.", "Each step moves one place along the trail.", "Direction matters: left or right?", "Your turn: take the next step."],
     };
   }
   if (question.visual === "formula") {
     return {
       learningObjective: "A mathematical rule can be followed one visible step at a time.",
-      chapterTitle: "The navigation console needs a clean rule.",
-      chapterDialogue: "Nova has the inputs, but the console only responds when each operation is traced in the right order.",
-      chapterAction: "Run the rule check",
-      coachLine: "“Keep the rule visible; change only one thing at a time.”",
-      outcomeTitle: "The navigation rule resolves cleanly.",
-      outcomeDetail: "The console now shows how each mathematical step leads to the result.",
+      chapterTitle: "The star machine ate Nova's snack.",
+      chapterDialogue: "\"{hero}! This machine follows ONE rule. Crack it and it gives my snack back!\"",
+      chapterAction: "Inspect the machine",
+      coachLine: "\"Change one thing at a time. Watch what happens.\"",
+      completeLabel: "MACHINE CRACKED!",
+      outcomeTitle: "The machine gives up the snack.",
+      outcomeDetail: "\"You followed the rule step by step and beat the machine, {hero}!\"",
       outcomeIcon: "ƒ",
       videoCue: "A clear formula assembles from glowing symbols; each operation lights in sequence until the route resolves.",
-      reelFrames: ["Nova records the input and the rule.", "One operation changes the value at a time.", "Keep the rule visible as you reason.", "Your turn: apply the rule in the mission."],
+      reelFrames: ["Nova feeds the machine a number.", "The rule changes it one step at a time.", "Undo the steps to find the secret.", "Your turn: crack the rule."],
     };
   }
   if (question.visual === "coordinate") {
     return {
       learningObjective: "Position, structure, and evidence can be read from a mathematical model.",
-      chapterTitle: "The star map needs a precise reading.",
-      chapterDialogue: "Nova has found a grid of signals. The important part is not guessing—it is noticing what the model tells you.",
-      chapterAction: "Inspect the signal map",
-      coachLine: "“Read the structure first, then make your decision.”",
-      outcomeTitle: "The signal map becomes clear.",
-      outcomeDetail: "The next route is visible because the model was read carefully.",
+      chapterTitle: "The star map holds a secret.",
+      chapterDialogue: "\"{hero}, this map knows where to go — if we read it right. Help me look?\"",
+      chapterAction: "Open the star map",
+      coachLine: "\"Don't guess. The map already tells us.\"",
+      completeLabel: "SECRET READ!",
+      outcomeTitle: "The map gives up its secret.",
+      outcomeDetail: "\"You read it instead of guessing. That's real explorer thinking, {hero}!\"",
       outcomeIcon: "⌁",
       videoCue: "A coordinate grid and its signal points illuminate one by one, revealing a clean route across the map.",
-      reelFrames: ["Nova studies the model before deciding.", "The important positions and patterns become visible.", "Read the structure, not just one detail.", "Your turn: use the model in the mission."],
+      reelFrames: ["Nova unrolls the star map.", "Every point sits in its own spot.", "The pattern points the way.", "Your turn: read the map."],
     };
   }
   if (question.visual === "ecosystem") {
     return {
       learningObjective: "Careful observation helps us understand living things, materials, and environmental change.",
-      chapterTitle: "The Earthkeepers have found a clue in the habitat.",
-      chapterDialogue: "Nova's field notebook has a question, not an answer. Notice the living world closely before deciding what the evidence means.",
-      chapterAction: "Open the field notebook",
-      coachLine: "“Let’s observe first, then explain what the evidence shows.”",
-      outcomeTitle: "A field note helps protect the habitat.",
-      outcomeDetail: "Your observation gives the Earthkeepers one clear way to understand and care for this living world.",
+      chapterTitle: "Something changed in the garden.",
+      chapterDialogue: "\"{hero}, my garden looks different today. Look closely with me — what changed?\"",
+      chapterAction: "Look closely with Nova",
+      coachLine: "\"Look first. Then say what the clues mean.\"",
+      completeLabel: "GARDEN HELPED!",
+      outcomeTitle: "The garden perks up.",
+      outcomeDetail: "\"You looked carefully and found what it needed. The garden says thanks, {hero}!\"",
       outcomeIcon: "🌿",
       videoCue: "A small habitat wakes gently: sunlight, water, a plant, and an animal appear as the field note records the observation.",
-      reelFrames: ["Nova observes the habitat closely.", "A change in one part can affect the whole system.", "Look for evidence before explaining what happened.", "Your turn: use the field clue in the mission."],
+      reelFrames: ["Nova checks the garden every day.", "One small change affects everything.", "Clues first, answers second.", "Your turn: read the clues."],
     };
   }
   if (question.visual === "reading") {
     return {
       learningObjective: "Readers use exact details, vocabulary, and structure to make meaning from a text.",
-      chapterTitle: "The Story Studio is missing one important clue.",
-      chapterDialogue: "Nova has opened a page that changes as you read it. The answer is already in the story—look closely and connect the details.",
-      chapterAction: "Read the page closely",
-      coachLine: "“Let’s find the words that help us understand the story.”",
-      outcomeTitle: "The story clue shines clearly.",
-      outcomeDetail: "You used the words on the page to build a stronger meaning, one detail at a time.",
+      chapterTitle: "The storybook is hiding something.",
+      chapterDialogue: "\"{hero}, the answer is hiding IN the story. Read it with me and catch it?\"",
+      chapterAction: "Open the storybook",
+      coachLine: "\"The exact words are the clues.\"",
+      completeLabel: "CLUE CAUGHT!",
+      outcomeTitle: "The hidden clue jumps out.",
+      outcomeDetail: "\"The words told us everything. You're a sharp reader, {hero}!\"",
       outcomeIcon: "📚",
       videoCue: "A storybook opens; key words glow gently and connect into a small illustrated scene as the page turns.",
-      reelFrames: ["Nova opens the page and notices a clue.", "The key words reveal more than the page first shows.", "Connect the details to make meaning.", "Your turn: use the story clue in the mission."],
+      reelFrames: ["Nova opens the page.", "Some words glow — they matter most.", "Connect the words to catch the meaning.", "Your turn: catch the clue."],
     };
   }
   if (question.visual === "map") {
     return {
       learningObjective: "Maps, shared spaces, and everyday choices help us understand how communities work together.",
-      chapterTitle: "Mapmakers’ Camp has found a community clue.",
-      chapterDialogue: "Nova’s map is more than a route. It shows places, people, and choices that can help everyone belong and move safely.",
-      chapterAction: "Read the map clue",
-      coachLine: "“Let’s notice what this place needs and what the clues tell us.”",
-      outcomeTitle: "The community route is clearer.",
-      outcomeDetail: "You used a map clue and a caring choice to understand how people share spaces together.",
+      chapterTitle: "Nova can't find the way to the park.",
+      chapterDialogue: "\"{hero}, everyone's waiting at the park and I'm LOST. Read the map with me?\"",
+      chapterAction: "Unfold the map",
+      coachLine: "\"Compass first. Then the symbols.\"",
+      completeLabel: "WAY FOUND!",
+      outcomeTitle: "Nova makes it to the park.",
+      outcomeDetail: "\"The compass and the symbols got us there. Everyone cheered for you, {hero}!\"",
       outcomeIcon: "🧭",
       videoCue: "A hand-drawn map unfolds; a compass turns north and gentle route markers connect homes, parks, and shared places.",
-      reelFrames: ["Nova unfolds a map of a shared place.", "Directions, symbols, and people’s needs form the route.", "Notice what the clue says about the community.", "Your turn: use the map clue in the mission."],
+      reelFrames: ["Nova unfolds the map.", "The compass shows the directions.", "The symbols show what's where.", "Your turn: find the way."],
     };
   }
   return {
     learningObjective: "Matching groups preserve a proportional relationship.",
-    chapterTitle: "The starlight bridge needs matching supplies.",
-    chapterDialogue: "Every explorer needs a fair share. Help Nova build equal groups so the bridge can hold everyone.",
-    chapterAction: "Open the supply satchel",
-    coachLine: "“Let’s build equal groups, then see what changes.”",
-    outcomeTitle: "The bridge supplies click into place.",
-    outcomeDetail: "Every explorer has the matching amount they need.",
+    chapterTitle: "The picnic doesn't have enough packs.",
+    chapterDialogue: "\"{hero}, more friends came to the picnic! Help me make matching packs for everyone?\"",
+    chapterAction: "Open the picnic basket",
+    coachLine: "\"When one group grows, its partner grows the same way.\"",
+    completeLabel: "PICNIC SAVED!",
+    outcomeTitle: "Every friend gets a matching pack.",
+    outcomeDetail: "\"Every pack matches! Nobody left out. Best picnic ever, {hero}!\"",
     outcomeIcon: "✦",
     videoCue: "Supply groups multiply together and settle into balanced packs on the bridge.",
-    reelFrames: ["Nova gathers matching supplies.", "Each group changes in the same relationship.", "Look for what stays balanced.", "Your turn: use the relationship in the mission."],
+    reelFrames: ["Nova counts the friends.", "Each pack must match the others.", "Grow the groups together.", "Your turn: make them match."],
   };
 }
 
