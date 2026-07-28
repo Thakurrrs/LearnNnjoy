@@ -37,6 +37,29 @@ export const gradeSevenComingSoonChapters: GradeSevenComingSoonChapter[] = [
   { id: "solid-shapes", status: "coming", icon: "🔭", title: "Starlight Observatory", topic: "Visualising Solid Shapes", subtopics: ["Faces, edges and vertices", "Views of solids", "Nets"], intro: "Build an observatory from 3D modules that fit together perfectly." },
 ];
 
+export const finaleCopy: Record<GradeSevenAdventureId, { title: string; detail: string; art: string }> = {
+  mountain: { title: "The storm clears — pod recovered!", detail: "Your number line guided the rescue team straight to −4. The cliff beacons relight one by one as the clouds roll away.", art: "🚁⛰️☀️" },
+  balance: { title: "The crate bursts open!", detail: "Seven glowing energy blocks float free, and the whole lab hums back to life — because you kept both sides fair.", art: "📦✨⚖️" },
+  shop: { title: "Kit packed, coins spared!", detail: "Nova buckles on the ₹180 expedition kit while the market lanterns flare to celebrate a truly fair deal.", art: "🎒🏮🪙" },
+  skatepark: { title: "The course locks in!", detail: "Skaters roll down your 60° ramp as the rooftop lights trace your triangle across the night sky.", art: "🛹🌆🔺" },
+  cricket: { title: "Squad takes the field!", detail: "Asha, Kabir and Noor jog out under the floodlights — picked by your data, cheered by the crowd.", art: "🏏🏟️🎉" },
+};
+
+export function FinaleScene({ id, onDone }: { id: GradeSevenAdventureId; onDone: () => void }) {
+  const copy = finaleCopy[id];
+  return (
+    <section className={`finale-scene finale-${id}`} aria-live="polite">
+      <div className="finale-sparks" aria-hidden><i>✦</i><i>✧</i><i>✦</i><i>✧</i><i>✦</i><i>✧</i></div>
+      <div className="finale-art" aria-hidden>{copy.art}</div>
+      <p className="eyebrow">WORLD TRANSFORMED</p>
+      <h2>{copy.title}</h2>
+      <p>{copy.detail}</p>
+      <div className="finale-reward"><span>🪙</span><b>+25 Lumina coins</b><small>banked for Nova&apos;s wardrobe</small></div>
+      <button className="primary" onClick={onDone}>Return to the star map →</button>
+    </section>
+  );
+}
+
 function Success({ title, children, question, choices, answer, onFinish }: { title: string; children: React.ReactNode; question: string; choices: string[]; answer: string; onFinish: () => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const correct = selected === answer;

@@ -157,3 +157,40 @@
 .star-detail h2 { margin: 0.15rem 0 0.3rem; }
 .star-detail .primary { margin-top: 0.8rem; }
 @media (max-width: 640px) { .star-detail { flex-direction: column; } }
+
+/* Task 9: finale spectacle */
+.finale-scene {
+  position: relative;
+  text-align: center;
+  padding: 2.2rem 1.6rem;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #241a52 0%, #3b2a72 100%);
+  color: #fff;
+  animation: finale-in 0.5s ease-out;
+}
+.finale-scene h2 { margin: 0.3rem 0 0.5rem; font-size: 1.6rem; }
+.finale-scene > p { max-width: 42ch; margin: 0 auto; opacity: 0.9; }
+.finale-art { font-size: 3rem; margin-bottom: 0.6rem; animation: finale-bounce 0.9s ease-out; }
+.finale-sparks { position: absolute; inset: 0; pointer-events: none; }
+.finale-sparks i { position: absolute; font-style: normal; color: #ffd66b; animation: spark-rise 1.8s ease-out infinite; }
+.finale-sparks i:nth-child(1) { left: 12%; bottom: 8%; animation-delay: 0s; }
+.finale-sparks i:nth-child(2) { left: 28%; bottom: 4%; animation-delay: 0.35s; }
+.finale-sparks i:nth-child(3) { left: 52%; bottom: 6%; animation-delay: 0.7s; }
+.finale-sparks i:nth-child(4) { left: 68%; bottom: 3%; animation-delay: 0.2s; }
+.finale-sparks i:nth-child(5) { left: 84%; bottom: 9%; animation-delay: 0.55s; }
+.finale-sparks i:nth-child(6) { left: 40%; bottom: 2%; animation-delay: 0.9s; }
+.finale-reward {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 1.1rem auto 1.2rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  background: rgba(255, 214, 107, 0.15);
+}
+.finale-reward small { opacity: 0.75; }
+@keyframes finale-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes finale-bounce { 0% { transform: scale(0.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@keyframes spark-rise { 0% { opacity: 0; transform: translateY(0); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateY(-90px); } }
+@media (prefers-reduced-motion: reduce) { .finale-art, .finale-sparks i, .finale-scene { animation: none; } }
