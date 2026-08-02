@@ -4,6 +4,7 @@ import { AdventurePlay } from "@/components/adventure-play";
 import { BalanceLabAdventure } from "@/components/balance-lab-adventure";
 import { CricketDataAdventure } from "@/components/cricket-data-adventure";
 import { MountainRescueAdventure } from "@/components/mountain-rescue-adventure";
+import { MoonbaseTenfoldAdventure } from "@/components/moonbase-tenfold-adventure";
 import { SkateparkAdventure } from "@/components/skatepark-adventure";
 import { SmartShopperAdventure } from "@/components/smart-shopper-adventure";
 import type {
@@ -25,10 +26,11 @@ export type GradeSevenChapter = {
 };
 
 export const gradeSevenAdventures: GradeSevenChapter[] = [
+  { id: "moonbase", icon: "🌙", title: "Moonbase Tenfold", topic: "Large Numbers", subtopics: ["Place value and tenfold relationships", "Indian and international grouping", "Comparison and estimation"], intro: "{hero}, Blink followed a rare comet beyond our telescope map. Help Nova rebuild the enormous coordinate?", action: "Launch the comet mission" },
   { id: "mountain", icon: "🏔️", title: "Mountain Rescue", topic: "Integers", subtopics: ["Positive and negative positions", "Number-line movement", "Addition and subtraction"], intro: "{hero}! A storm knocked my rescue pod off the cliff. Help me find it?", action: "Explore integers" },
   { id: "balance", icon: "⚖️", title: "Balance Lab", topic: "Simple Equations", subtopics: ["Equality", "Inverse operations", "Solving for an unknown"], intro: "{hero}, this crate won't open until the scale balances. I can't do it alone!", action: "Explore equations" },
   { id: "shop", icon: "🛍️", title: "Smart Shopper", topic: "Comparing Quantities", subtopics: ["Percentages as fractions", "Discounts", "Comparing final prices"], intro: "{hero}, two shops claim they have the better deal. Help me check?", action: "Explore percentages" },
-  { id: "skatepark", icon: "🛹", title: "Skatepark Architect", topic: "Lines, Angles and Triangles", subtopics: ["Measuring turns", "Angle pairs", "Triangle construction"], intro: "{hero}, my skate ramp needs a perfect 60° turn. Build it with me?", action: "Explore angles" },
+  { id: "skatepark", icon: "🛹", title: "Nova’s Night Run", topic: "Lines and Angles", subtopics: ["Intersecting lines", "Vertically opposite angles", "Linear pairs"], intro: "{hero}! Two riders want to perform a mirrored glow trick. Help me map their crossing paths?", action: "Plan the glow trick" },
   { id: "cricket", icon: "🏏", title: "Cricket Data Room", topic: "Data Handling", subtopics: ["Reading bar graphs", "Comparing values", "Making evidence-based choices"], intro: "{hero}, the final starts soon! Help me pick the squad—with real data.", action: "Explore data" },
 ];
 
@@ -48,18 +50,20 @@ export const gradeSevenComingSoonChapters: GradeSevenComingSoonChapter[] = [
 ];
 
 export const conceptBeats: Record<GradeSevenAdventureId, readonly string[]> = {
+  moonbase: ["Watch the telescope!", "The same digit can sit in different places.", "One place left makes its value ten times greater.", "Commas can group one number in different ways.", "Exact finds the comet; rounded helps us aim."],
   mountain: ["Watch me first!", "Base camp is ZERO.", "I fly UP one level. That is plus 1.", "I drop DOWN two. Past zero—minus 1!", "Down means MINUS. Up means PLUS."],
   balance: ["Watch the scale!", "I take a block from ONE side only.", "Crash—the beam tips! That is not fair.", "Same from BOTH sides keeps it level.", "Fair moves keep the balance true."],
   shop: ["Watch the price!", "₹240 is the WHOLE bar.", "25% means one of four equal parts.", "I shade one part—₹60 falls away!", "The rest is what we pay."],
-  skatepark: ["Watch the board!", "A flat ramp barely turns it.", "I tilt the ramp UP. The turn grows.", "The board slides DOWN the steep slope!", "That turn between ramp and ground is the angle."],
+  skatepark: ["Choose any direction and make one straight skating trail.", "Tilt one crossing trail and all four openings change.", "Mirror riders use matching openings across the X.", "A straight exit uses the openings side by side.", "The same patterns plan a new crossing."],
   cricket: ["Watch me read a bar!", "Ira’s bar stops at 21.", "Asha’s bar climbs to 42—twice as tall!", "Taller bar means a bigger number.", "The chart never guesses."],
 };
 
 export const finaleCopy: Record<GradeSevenAdventureId, { title: string; detail: string; art: string }> = {
+  moonbase: { title: "Comet captured!", detail: "\"Exact found Blink, {hero}, and your estimate aimed the telescope fast. Look at that dome photo!\"", art: "🌙📷☄️" },
   mountain: { title: "Pod safe!", detail: "\"You found it, {hero}! Your number trail led us to −4. The beacons are lighting up!\"", art: "🚁⛰️☀️" },
   balance: { title: "Crate open!", detail: "\"Seven glowing blocks, {hero}! It worked because you kept both sides fair!\"", art: "📦✨⚖️" },
   shop: { title: "Deal done!", detail: "\"₹60 off, ₹180 paid—you saved us real coins, {hero}! Kit packed!\"", art: "🎒🏮🪙" },
-  skatepark: { title: "Ramp ready!", detail: "\"Sixty degrees, exactly right! Look, {hero}—they're skating YOUR ramp!\"", art: "🛹🌆🔺" },
+  skatepark: { title: "Night run complete!", detail: "\"We cracked it, {hero}! The mirror riders matched across, and the exit stayed straight.\"", art: "🛹🌆✨" },
   cricket: { title: "Squad picked!", detail: "\"Asha, Kabir and Noor—chosen by your data, {hero}! Listen to that crowd!\"", art: "🏏🏟️🎉" },
 };
 
@@ -82,9 +86,9 @@ export function GradeSevenActivity({
   avatar: string;
   equippedCosmetic?: string;
   onChange: (state: GradeSevenInteractionState) => void;
-  onFinish: () => void;
+  onFinish: (finalState?: GradeSevenInteractionState) => void;
 }) {
-  const characterPlay = (state.step === 0 || state.step === 5) && (
+  const characterPlay = id !== "skatepark" && id !== "mountain" && id !== "moonbase" && id !== "balance" && (state.step === 0 || state.step === 5) && (
     <AdventurePlay
       key={`${id}-${state.step}`}
       id={id}
@@ -105,7 +109,15 @@ export function GradeSevenActivity({
     return (
       <section className="activity-panel mountain-benchmark-panel">
         {characterPlay}
-        <MountainRescueAdventure state={state} onChange={onChange} {...shared} />
+        <MountainRescueAdventure state={state} onChange={onChange} avatar={avatar} {...shared} />
+      </section>
+    );
+  }
+
+  if (id === "moonbase" && state.kind === "moonbase") {
+    return (
+      <section className="activity-panel moonbase-benchmark-panel">
+        <MoonbaseTenfoldAdventure state={state} onChange={onChange} avatar={avatar} {...shared} />
       </section>
     );
   }
@@ -113,9 +125,9 @@ export function GradeSevenActivity({
   return (
     <section className="activity-panel continuous-world-panel">
       {characterPlay}
-      {id === "balance" && state.kind === "balance" && <BalanceLabAdventure state={state} onChange={onChange} {...shared} />}
+      {id === "balance" && state.kind === "balance" && <BalanceLabAdventure state={state} onChange={onChange} avatar={avatar} {...shared} />}
       {id === "shop" && state.kind === "shop" && <SmartShopperAdventure state={state} onChange={onChange} {...shared} />}
-      {id === "skatepark" && state.kind === "skatepark" && <SkateparkAdventure state={state} onChange={onChange} {...shared} />}
+      {id === "skatepark" && state.kind === "skatepark" && <SkateparkAdventure state={state} onChange={onChange} avatar={avatar} {...shared} />}
       {id === "cricket" && state.kind === "cricket" && <CricketDataAdventure state={state} onChange={onChange} {...shared} />}
     </section>
   );

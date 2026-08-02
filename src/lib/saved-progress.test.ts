@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LIFETIME_DISCOVERIES_CAP, sanitizeSavedProgress, type SavedProgress } from "./saved-progress";
+import { createGradeSevenState } from "./grade-seven-progress";
 
 describe("sanitizeSavedProgress", () => {
   it("clamps a corrupt giant lifetimeDiscoveries so level math cannot hang", () => {
@@ -62,14 +63,26 @@ describe("sanitizeSavedProgress", () => {
           lastEvent: 1,
           completed: false,
           interactionState: {
+            ...createGradeSevenState("mountain"),
             kind: "mountain",
-            step: 1,
+            storyVersion: 2,
+            step: 0,
             showDemo: false,
             successChoice: null,
-            position: -4,
+            chapterMapOpen: false,
+            activeQuest: "signal-below-zero",
+            completedQuests: [],
+            questStep: 1,
+            openingBeat: 2,
+            openingComplete: true,
+            signalPrediction: "below",
+            signalRunStarted: true,
+            signalFound: false,
+            recapPlayed: false,
+            position: -2,
             returnPosition: -4,
             briefingBeat: 3,
-            flightPath: [3, 2, 1, 0, -1, -2, -3, -4],
+            flightPath: [3, 2, 1, 0, -1, -2],
             direction: null,
             equation: null,
           },
@@ -78,7 +91,13 @@ describe("sanitizeSavedProgress", () => {
     });
     expect(valid.screen).toBe("activity");
     expect(valid.activeAdventure).toBe("mountain");
-    expect(valid.gradeSevenProgress?.mountain?.interactionState).toMatchObject({ step: 1, position: -4 });
+    expect(valid.gradeSevenProgress?.mountain?.interactionState).toMatchObject({
+      step: 0,
+      questStep: 1,
+      position: -2,
+      signalPrediction: "below",
+      signalRunStarted: true,
+    });
 
     expect(sanitizeSavedProgress({ grade: 7, screen: "activity" }).screen).toBe("adventures");
     expect(sanitizeSavedProgress({ grade: 6, screen: "journal" }).screen).toBe("adventures");

@@ -18,6 +18,19 @@ export type AdventurePlayScript = {
 };
 
 export const adventurePlayScripts: Record<GradeSevenAdventureId, AdventurePlayScript> = {
+  moonbase: {
+    symbol: "☄️",
+    opening: [
+      { speaker: "nova", line: "{hero}, Blink followed a rare comet beyond the telescope map!" },
+      { speaker: "hero", line: "His signal is blinking through the outer zoom rings." },
+      { speaker: "together", line: "We’ll rebuild his coordinate and bring home the comet photograph." },
+    ],
+    closing: [
+      { speaker: "nova", line: "Exact coordinates found Blink, and our estimate aimed the telescope quickly!" },
+      { speaker: "hero", line: "Each digit’s place gave the coordinate its value." },
+      { speaker: "together", line: "The comet bloom now shines across the moonbase dome." },
+    ],
+  },
   mountain: {
     symbol: "🚁",
     opening: [

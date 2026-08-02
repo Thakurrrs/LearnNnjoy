@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { finaleCopy, gradeSevenAdventures } from "./grade-seven-adventures";
 
 describe("Grade 7 interactive adventure pilot", () => {
-  it("keeps the five planned concept adventures available", () => {
+  it("keeps the six planned concept adventures available", () => {
     expect(gradeSevenAdventures.map((adventure) => adventure.id)).toEqual([
+      "moonbase",
       "mountain",
       "balance",
       "shop",

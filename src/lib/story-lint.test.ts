@@ -64,8 +64,8 @@ describe("story copy lint", () => {
 describe("Grade 7 concept beats obey the Story Bible", () => {
   const allLines = Object.values(conceptBeats).flat();
 
-  it("has five beat sets with at least three lines each", () => {
-    expect(Object.keys(conceptBeats)).toHaveLength(5);
+  it("has six beat sets with at least three lines each", () => {
+    expect(Object.keys(conceptBeats)).toHaveLength(6);
     Object.values(conceptBeats).forEach((lines) => expect(lines.length).toBeGreaterThanOrEqual(3));
   });
 

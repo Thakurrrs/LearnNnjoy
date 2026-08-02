@@ -9,6 +9,7 @@
 }
 
 .hero,
+.sectionHeading,
 .grid,
 .note {
   width: min(960px, 100%);
@@ -39,11 +40,28 @@
   line-height: 1.6;
 }
 
+.sectionHeading {
+  margin-top: 42px;
+}
+
+.sectionHeading p {
+  margin: 0 0 5px;
+  color: #9edcf0;
+  font-size: .7rem;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.sectionHeading h2 {
+  margin: 0;
+  font-size: clamp(1.55rem, 4vw, 2.25rem);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
-  margin-top: 42px;
+  margin-top: 16px;
 }
 
 .card {
