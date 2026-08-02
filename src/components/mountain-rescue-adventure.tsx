@@ -179,17 +179,17 @@ const Q2_OPENING_LINES = [
 const Q3_OPENING_LINES = [
   {
     speaker: "SCOUT" as const,
-    line: "Wind burst incoming! The pod is drifting!",
+    line: "Wind burst incoming! The winch hook is swinging loose!",
     voice: MOUNTAIN_AUDIO.q3OpeningScout,
   },
   {
     speaker: "NOVA" as const,
-    line: "Every gust moves it up or down. Stay with me and track each move.",
+    line: "Every gust swings it up or down. Track each move with me.",
     voice: MOUNTAIN_AUDIO.q3OpeningNova,
   },
   {
     speaker: "YOU" as const,
-    line: "Call the gusts. I’ll follow the pod.",
+    line: "Call the gusts. I’ll follow the hook.",
     voice: MOUNTAIN_AUDIO.q3OpeningKid,
   },
 ] as const;
@@ -728,6 +728,7 @@ function ConnectedMountainOpening({
   avatar,
   podLabel,
   playVoice,
+  traveller = "pod",
 }: {
   label: string;
   lines: readonly { speaker: MountainSpeaker; line: string; voice: string }[];
@@ -737,6 +738,7 @@ function ConnectedMountainOpening({
   avatar: string;
   podLabel: string;
   playVoice: (source: string) => void;
+  traveller?: "pod" | "hook";
 }) {
   const currentBeat = Math.min(beat, lines.length - 1);
   const current = lines[currentBeat];
@@ -763,7 +765,14 @@ function ConnectedMountainOpening({
       <div className="mountain-opening-scene">
         <div className="mountain-opening-ridge" aria-hidden />
         <div className="mountain-opening-pod" aria-hidden>
-          <MountainPod label={podLabel} />
+          {traveller === "hook"
+            ? (
+              <span className="mountain-real-pod mountain-opening-hook">
+                <span className="mountain-hook-glyph">⚓</span>
+                <strong>{podLabel}</strong>
+              </span>
+            )
+            : <MountainPod label={podLabel} />}
         </div>
         <Image
           className="mountain-opening-nova"
@@ -815,6 +824,7 @@ function MountainRouteStage({
   onMarker,
   conceptLabels,
   routeRunning = false,
+  traveller = "pod",
 }: {
   title: string;
   questNumber: number;
@@ -835,6 +845,7 @@ function MountainRouteStage({
   onMarker?: (position: number) => void;
   conceptLabels?: boolean;
   routeRunning?: boolean;
+  traveller?: "pod" | "hook";
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef(false);
@@ -922,10 +933,12 @@ function MountainRouteStage({
           disabled={!interactive}
           style={{ top: `${((MOUNTAIN_TOP - position) / (MOUNTAIN_TOP - MOUNTAIN_BOTTOM)) * 100}%` }}
           aria-label={interactive
-            ? `Drag the rescue pod. It is at ${formatAltitude(position)}`
-            : `Rescue pod at ${formatAltitude(position)}`}
+            ? `Drag the rescue ${traveller}. It is at ${formatAltitude(position)}`
+            : `Rescue ${traveller} at ${formatAltitude(position)}`}
         >
-          <MountainPod label={formatAltitude(position)} />
+          {traveller === "hook"
+            ? <span className="mountain-hook-glyph" aria-hidden>⚓</span>
+            : <MountainPod label={formatAltitude(position)} />}
         </button>
       </div>
 
@@ -1521,14 +1534,14 @@ function StormMovesQuest({
     : TRANSFER_GUSTS[state.transferGustIndex];
   const dialogue = state.questStep === 0
     ? state.stormRunComplete
-      ? "We rode every gust. The pod finished at plus one."
-      : `Pod at ${formatAltitude(state.stormPosition)}. Next gust: ${currentGust?.label.toLowerCase()}.`
+      ? "We rode every gust. The hook finished at plus one."
+      : `Hook at ${formatAltitude(state.stormPosition)}. Next gust: ${currentGust?.label.toLowerCase()}.`
     : state.questStep === 1
       ? state.stormTransferComplete
         ? "New storm, same idea—the final position changed with every move."
         : `Transfer run at ${formatAltitude(state.stormPosition)}. Next gust: ${currentGust?.label.toLowerCase()}.`
       : state.questStep === 2
-        ? "Adding a positive move sends the pod up. Adding a negative move sends it down."
+        ? "Adding a positive move swings the hook up. Adding a negative move swings it down."
         : state.stormRecapPlayed
           ? "The whole storm route is now one movement story."
           : "Replay each gust and watch the running position change.";
@@ -1543,13 +1556,14 @@ function StormMovesQuest({
         trail={state.stormTrail}
         avatar={avatar}
         markers={[
-          { value: -2, label: "STORM START", complete: state.stormTrail.includes(-2) },
-          { value: 1, label: "CURRENT SIGNAL", active: state.stormPosition === 1 },
+          { value: -2, label: "HOOK AT START", complete: state.stormTrail.includes(-2) },
+          { value: 1, label: "HOOK NOW", active: state.stormPosition === 1 },
         ]}
         travelling={state.gustIndex > 0 || state.transferGustIndex > 0}
         interactive={false}
         conceptLabels={state.questStep >= 2}
         routeRunning={routeRunning}
+        traveller="hook"
       />
       <div className="signal-action-deck">
         <MountainComicLine
@@ -1571,7 +1585,7 @@ function StormMovesQuest({
             <div>
               <small>{state.questStep === 0 ? "FOLLOW THE FIRST STORM" : "TRY A CHANGED STORM"}</small>
               <h2>{currentGust ? `The next gust pushes ${currentGust.label.toLowerCase()}.` : "Every gust is tracked."}</h2>
-              <p>Release one gust at a time. The pod and team move before the next gust appears.</p>
+              <p>Release one gust at a time. The hook and team move before the next gust appears.</p>
             </div>
             {currentGust && (
               <button className={`mountain-gust-button${currentGust.delta > 0 ? " up" : " down"}`} type="button" onClick={rideGust}>
@@ -1623,7 +1637,7 @@ function StormMovesQuest({
             <div>
               <small>NOVA NAMES THE MOVES</small>
               <h2>Integer addition keeps a running position.</h2>
-              <p>Up is a positive movement. Down is a negative movement. The pod’s final height includes every gust.</p>
+              <p>Up is a positive movement. Down is a negative movement. The hook’s final height includes every gust.</p>
             </div>
             <div className="mountain-storm-proof">
               <span>−2</span><b>+5</b><b>−4</b><b>+2</b><strong>= +1</strong>
@@ -1639,7 +1653,7 @@ function StormMovesQuest({
             <div>
               <small>VISIBLE RECAP</small>
               <h2>Watch the running position survive every gust.</h2>
-              <p>The pod never teleports to an answer—the whole route stays visible.</p>
+              <p>The hook never teleports to an answer—the whole route stays visible.</p>
             </div>
             <button className="signal-replay-button" type="button" disabled={routeRunning} onClick={playStormRecap}>
               {routeRunning ? "Riding up 5, down 4, up 2…" : state.stormRecapPlayed ? "Play storm again" : "Run the full storm"}
@@ -2095,6 +2109,7 @@ export function MountainRescueAdventure({
         avatar={avatar}
         podLabel="−2"
         playVoice={playVoice}
+        traveller="hook"
       />
     );
   }

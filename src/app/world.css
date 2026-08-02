@@ -2452,3 +2452,6 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
     transition: none !important;
   }
 }
+.mountain-hook-glyph { font-size: 28px; filter: drop-shadow(0 0 8px #6fd4ff); }
+.mountain-opening-hook { display: grid; place-items: center; height: 174px; }
+.mountain-opening-hook .mountain-hook-glyph { font-size: 96px; }
