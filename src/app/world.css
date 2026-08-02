@@ -7784,8 +7784,8 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
 .mountain-finale.beat-2 .finale-pip, .mountain-finale.beat-3 .finale-pip, .mountain-finale.beat-4 .finale-pip { transform: scale(1) rotate(0deg); }
 .mountain-finale .finale-route polyline { stroke: #ffd75e; stroke-width: 2; stroke-dasharray: 240; stroke-dashoffset: 240; animation: finale-route-trace 2.4s ease forwards; }
 @media (prefers-reduced-motion: reduce) {
-  .finale-route polyline { animation: none; stroke-dashoffset: 0; }
-  .mountain-finale-scene * { transition: none; }
+  .mountain-finale .finale-route polyline { animation: none; stroke-dashoffset: 0; }
+  .mountain-finale .mountain-finale-scene * { transition: none; }
 }
 @keyframes finale-route-trace { to { stroke-dashoffset: 0; } }
 .mountain-postcard { border: 2px solid #ffd98a; border-radius: 14px; padding: 14px 16px; background: #14203ccc; color: #d6e9f1; }
