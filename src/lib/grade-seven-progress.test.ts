@@ -71,7 +71,7 @@ describe("Grade 7 adventure progress", () => {
       position: -8,
       direction: "below",
       activeQuest: "signal-below-zero",
-      questStep: 3,
+      questStep: 4,
     });
   });
 
@@ -803,6 +803,21 @@ describe("Grade 7 adventure progress", () => {
       const s = createGradeSevenState("mountain", 3);
       expect(s.winchPosition).toBe(2);
       expect(s.reversePosition).toBe(-4);
+    });
+  });
+
+  describe("mountain finale state", () => {
+    it("defaults finale fields safely for old saves", () => {
+      const progress = sanitizeGradeSevenProgress({
+        mountain: {
+          seenEvents: [], lastEvent: 0, completed: false,
+          interactionState: { kind: "mountain", storyVersion: 2 },
+        },
+      });
+      const s = progress.mountain!.interactionState as MountainState;
+      expect(s.finaleBeat).toBe(0);
+      expect(s.finaleCellDocked).toBe(false);
+      expect(s.finaleComplete).toBe(false);
     });
   });
 });

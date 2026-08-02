@@ -82,6 +82,9 @@ export type MountainState = SharedState & {
   stormRecapPlayed: boolean;
   q4OpeningBeat: number;
   q4OpeningComplete: boolean;
+  // Quest 4 semantics (post lower-then-lift reorder): winchPosition/winchReached
+  // track LOWERING the empty hook +2→−4; reversePosition/reverseComplete track
+  // the LIFT −4→+2. Names predate the reorder and are kept for save compatibility.
   winchPosition: number;
   winchRunStarted: boolean;
   winchReached: boolean;
@@ -89,6 +92,9 @@ export type MountainState = SharedState & {
   reverseRunStarted: boolean;
   reverseComplete: boolean;
   q4RecapPlayed: boolean;
+  finaleBeat: number;
+  finaleCellDocked: boolean;
+  finaleComplete: boolean;
   position: number;
   returnPosition: number;
   briefingBeat: number;
@@ -414,6 +420,7 @@ export function createGradeSevenState(id: GradeSevenAdventureId, step = 0): Grad
       stormRecapPlayed: false,
       q4OpeningBeat: 0,
       q4OpeningComplete: false,
+      // Lower-then-lift order: hook starts at +2, lift starts at −4.
       winchPosition: 2,
       winchRunStarted: false,
       winchReached: false,
@@ -421,6 +428,9 @@ export function createGradeSevenState(id: GradeSevenAdventureId, step = 0): Grad
       reverseRunStarted: false,
       reverseComplete: false,
       q4RecapPlayed: false,
+      finaleBeat: 0,
+      finaleCellDocked: false,
+      finaleComplete: false,
       position,
       returnPosition: -4,
       briefingBeat: 0,
@@ -594,7 +604,7 @@ export function sanitizeGradeSevenState(id: GradeSevenAdventureId, value: unknow
       chapterMapOpen: boolOr(raw.chapterMapOpen, false),
       activeQuest,
       completedQuests,
-      questStep: numberOr(raw.questStep, 0, 0, 3),
+      questStep: numberOr(raw.questStep, 0, 0, 4),
       openingBeat: numberOr(raw.openingBeat, 0, 0, 8),
       openingComplete: boolOr(raw.openingComplete, false),
       signalPrediction: raw.signalPrediction === "above" || raw.signalPrediction === "below"
@@ -632,6 +642,7 @@ export function sanitizeGradeSevenState(id: GradeSevenAdventureId, value: unknow
       stormRecapPlayed: boolOr(raw.stormRecapPlayed, false),
       q4OpeningBeat: numberOr(raw.q4OpeningBeat, 0, 0, 3),
       q4OpeningComplete: boolOr(raw.q4OpeningComplete, false),
+      // Lower-then-lift order: hook starts at +2, lift starts at −4.
       winchPosition: numberOr(raw.winchPosition, 2, -4, 2),
       winchRunStarted: boolOr(raw.winchRunStarted, false),
       winchReached: boolOr(raw.winchReached, false),
@@ -639,6 +650,9 @@ export function sanitizeGradeSevenState(id: GradeSevenAdventureId, value: unknow
       reverseRunStarted: boolOr(raw.reverseRunStarted, false),
       reverseComplete: boolOr(raw.reverseComplete, false),
       q4RecapPlayed: boolOr(raw.q4RecapPlayed, false),
+      finaleBeat: numberOr(raw.finaleBeat, 0, 0, 4),
+      finaleCellDocked: boolOr(raw.finaleCellDocked, false),
+      finaleComplete: boolOr(raw.finaleComplete, false),
       position,
       returnPosition: numberOr(raw.returnPosition, -4, -8, 8),
       briefingBeat: numberOr(raw.briefingBeat, 0, 0, 3),
