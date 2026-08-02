@@ -78,6 +78,10 @@ const MOUNTAIN_AUDIO = {
   q4LiftNova: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-02-nova.mp3`,
   q4RevealNova: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-03-nova.mp3`,
   q4FinalScout: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-04-scout.mp3`,
+  finale01Scout: `${MOUNTAIN_AUDIO_ROOT}/finale-01-scout.mp3`,
+  finale02Nova: `${MOUNTAIN_AUDIO_ROOT}/finale-02-nova.mp3`,
+  finale03Kid: `${MOUNTAIN_AUDIO_ROOT}/finale-03-kid.mp3`,
+  finale04Nova: `${MOUNTAIN_AUDIO_ROOT}/finale-04-nova.mp3`,
 } as const;
 
 const MOUNTAIN_QUESTS: readonly {
@@ -1686,7 +1690,7 @@ function RescueWinchQuest({
   heroName,
   avatar,
   playVoice,
-  onChapterComplete,
+  onEnterFinale,
   onReplayComplete,
 }: {
   state: MountainState;
@@ -1695,7 +1699,7 @@ function RescueWinchQuest({
   heroName: string;
   avatar: string;
   playVoice: (source: string) => void;
-  onChapterComplete: () => void;
+  onEnterFinale: () => void;
   onReplayComplete: () => void;
 }) {
   const [routeRunning, setRouteRunning] = useState(false);
@@ -1761,7 +1765,7 @@ function RescueWinchQuest({
         ? "Down six and up six are inverse moves—they undo each other."
         : state.q4RecapPlayed
           ? "Every route is secure. Bring the cell home!"
-          : "Replay the drop and the climb before we close the rescue.";
+          : "Replay the drop and the climb before we open the shelter.";
 
   return (
     <section className="signal-below-zero-quest mountain-connected-quest" aria-label="Rescue Winch quest">
@@ -1879,19 +1883,123 @@ function RescueWinchQuest({
                 <span><b>1</b> Find −4</span>
                 <span><b>2</b> Order checkpoints</span>
                 <span><b>3</b> Track gusts</span>
-                <span><b>4</b> Reverse the winch</span>
+                <span><b>4</b> Lift the pod home</span>
               </div>
             )}
             <button
               className="signal-primary"
               type="button"
               disabled={!state.q4RecapPlayed}
-              onClick={replay ? onReplayComplete : onChapterComplete}
+              onClick={replay ? onReplayComplete : onEnterFinale}
             >
-              {replay ? "Return to my journal →" : personalize("Complete Mountain Rescue, {hero} →", heroName)}
+              {replay ? "Return to my journal →" : personalize("Open the shelter, {hero} →", heroName)}
             </button>
           </div>
         )}
+      </div>
+    </section>
+  );
+}
+
+// NOTE: this would ideally reuse `finaleCopy.mountain` from
+// grade-seven-adventures.tsx, but that module imports MountainRescueAdventure
+// from *this* file, so importing back from it would create a circular
+// import. Kept as a local copy instead; if the two ever need to move in
+// lockstep, extract both into a shared, import-free copy module.
+const MOUNTAIN_POSTCARD = {
+  title: "Postcard from Ridge Shelter",
+  detail: "\"The cell is docked and the shelter glows warm, {hero}. Pip found his cosy corner, and the aurora came out to watch.\"",
+};
+
+export const MOUNTAIN_FINALE_BEATS = [
+  { action: "Dock the energy cell →", voice: () => MOUNTAIN_AUDIO.finale01Scout },
+  { action: "Watch the shelter wake →", voice: () => MOUNTAIN_AUDIO.finale02Nova },
+  { action: "Trace our whole rescue →", voice: () => MOUNTAIN_AUDIO.finale03Kid },
+  { action: "Save the postcard →", voice: () => MOUNTAIN_AUDIO.finale04Nova },
+  { action: "Back to the star map →", voice: null },
+] as const;
+
+function MountainFinale({
+  state,
+  onChange,
+  heroName,
+  playVoice,
+  onChapterComplete,
+}: {
+  state: MountainState;
+  onChange: (patch: Partial<MountainState>) => void;
+  heroName: string;
+  playVoice: (source: string) => void;
+  onChapterComplete: () => void;
+}) {
+  const beat = state.finaleBeat;
+  const postcard = MOUNTAIN_POSTCARD;
+
+  function advance() {
+    const next = Math.min(beat + 1, MOUNTAIN_FINALE_BEATS.length - 1);
+    const voice = MOUNTAIN_FINALE_BEATS[beat].voice;
+    if (voice) playVoice(voice());
+    sound.play(beat === 0 ? "finale" : "success");
+    onChange(beat === 0
+      ? { finaleCellDocked: true, finaleBeat: next }
+      : { finaleBeat: next });
+  }
+
+  const speaker: MountainSpeaker = beat <= 1 ? "SCOUT" : beat === 2 ? "NOVA" : beat === 3 ? "YOU" : "NOVA";
+  const line = beat === 0
+    ? "The dock is open. Bring the cell home!"
+    : beat === 1
+      ? "Cell docked! Power is back at Ridge Shelter!"
+      : beat === 2
+        ? "Look—the windows are warming. Pip found the cosy corner."
+        : beat === 3
+          ? "And the sky… the aurora came to watch."
+          : "One postcard for your journal. Tomorrow, a new star starts glowing.";
+
+  return (
+    <section
+      className={`mountain-finale beat-${beat}${state.finaleCellDocked ? " cell-docked" : ""}`}
+      aria-label="Mountain Rescue finale"
+    >
+      <div className="mountain-finale-scene" aria-hidden>
+        <i className="finale-aurora band-one" />
+        <i className="finale-aurora band-two" />
+        <div className="finale-shelter">
+          <span className="finale-window w1" />
+          <span className="finale-window w2" />
+          <span className="finale-dock" />
+        </div>
+        <img className="finale-pod" src="/images/mountain-rescue/rescue-pod.png" alt="" />
+        <img className="finale-pip" src="/images/mountain-rescue/pip-snow-fox.png" alt="" />
+        {beat >= 3 && (
+          <svg className="finale-route" viewBox="0 0 100 100" aria-hidden>
+            <polyline points="20,20 20,50 20,86 78,32" fill="none" />
+          </svg>
+        )}
+      </div>
+
+      <div className="signal-action-deck">
+        <MountainComicLine
+          speaker={speaker}
+          line={line}
+          onHear={() => {
+            const voice = MOUNTAIN_FINALE_BEATS[Math.max(0, beat - 1)].voice;
+            if (voice) playVoice(voice());
+          }}
+        />
+        {beat === 3 && (
+          <div className="mountain-postcard">
+            <b>{postcard.title}</b>
+            <p>{personalize(postcard.detail, heroName)}</p>
+          </div>
+        )}
+        <button
+          className="signal-primary"
+          type="button"
+          onClick={beat >= MOUNTAIN_FINALE_BEATS.length - 1 ? onChapterComplete : advance}
+        >
+          {personalize(MOUNTAIN_FINALE_BEATS[beat].action, heroName)}
+        </button>
       </div>
     </section>
   );
@@ -2053,6 +2161,7 @@ export function MountainRescueAdventure({
       chapterMapOpen: true,
       activeQuest: null,
       step: 4,
+      finaleComplete: true,
     };
     onChange(finalState);
     onFinish(finalState);
@@ -2160,6 +2269,18 @@ export function MountainRescueAdventure({
     );
   }
 
+  if (activeQuest === "rescue-winch" && state.questStep === 4 && !replay) {
+    return (
+      <MountainFinale
+        state={state}
+        onChange={set}
+        heroName={heroName}
+        playVoice={playVoice}
+        onChapterComplete={finishMountainChapter}
+      />
+    );
+  }
+
   if (activeQuest === "rescue-winch") {
     return (
       <RescueWinchQuest
@@ -2169,7 +2290,7 @@ export function MountainRescueAdventure({
         heroName={heroName}
         avatar={avatar}
         playVoice={playVoice}
-        onChapterComplete={finishMountainChapter}
+        onEnterFinale={() => set({ questStep: 4, finaleBeat: 0, finaleCellDocked: false })}
         onReplayComplete={() => onFinish(state)}
       />
     );

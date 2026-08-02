@@ -58,8 +58,9 @@ describe("Grade 7 adventure progress", () => {
           showDemo: false,
           position: -999,
           direction: "below",
-          activeQuest: "not-a-quest",
+          activeQuest: "signal-below-zero",
           questStep: 99,
+          finaleBeat: 99,
         },
       },
     });
@@ -71,7 +72,8 @@ describe("Grade 7 adventure progress", () => {
       position: -8,
       direction: "below",
       activeQuest: "signal-below-zero",
-      questStep: 4,
+      questStep: 3,
+      finaleBeat: 4,
     });
   });
 

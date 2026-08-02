@@ -604,7 +604,7 @@ export function sanitizeGradeSevenState(id: GradeSevenAdventureId, value: unknow
       chapterMapOpen: boolOr(raw.chapterMapOpen, false),
       activeQuest,
       completedQuests,
-      questStep: numberOr(raw.questStep, 0, 0, 4),
+      questStep: numberOr(raw.questStep, 0, 0, activeQuest === "rescue-winch" ? 4 : 3),
       openingBeat: numberOr(raw.openingBeat, 0, 0, 8),
       openingComplete: boolOr(raw.openingComplete, false),
       signalPrediction: raw.signalPrediction === "above" || raw.signalPrediction === "below"

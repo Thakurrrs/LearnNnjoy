@@ -2,6 +2,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { GradeSevenActivity } from "./grade-seven-adventures";
+import { MOUNTAIN_FINALE_BEATS } from "./mountain-rescue-adventure";
 import {
   SKATEPARK_QUEST_IDS,
   createGradeSevenState,
@@ -428,9 +429,16 @@ describe("continuous Grade 7 story worlds", () => {
     expect(revealHtml).toContain("Opposite moves can undo each other");
     expect(revealHtml).toContain("+2 − 6 = −4");
     expect(revealHtml).toContain("−4 + 6 = +2");
+    expect(revealHtml.indexOf("+2 − 6 = −4")).toBeLessThan(revealHtml.indexOf("−4 + 6 = +2"));
     expect(finaleLockedHtml).toContain("Play the full rescue");
     expect(finaleLockedHtml).toMatch(/signal-primary" type="button" disabled/);
     expect(finaleLockedHtml).not.toContain("+25 Lumina coins");
+  });
+
+  it("mountain finale beats gate chapter completion", () => {
+    expect(MOUNTAIN_FINALE_BEATS).toHaveLength(5);
+    expect(MOUNTAIN_FINALE_BEATS[0].action).toMatch(/Dock the energy cell/);
+    expect(MOUNTAIN_FINALE_BEATS[3].action).toMatch(/Save the postcard/);
   });
 
   it("makes Keep It Level show the physical beam before the equality symbol", () => {
