@@ -214,9 +214,14 @@ Per phase: vitest suite (including new story-lint and asset-existence tests) +
 live browser walkthrough at desktop and 375×812 + reduced-motion check +
 canonical 7-step rhythm checklist per touched quest.
 
-After Phase 5: a fresh three-judge re-score on the same five-dimension rubric
-against the 2026-08-02 baseline, then a real session with the target child
-before any new world is built.
+After Phase 5 (owner directive): **one closing judge cycle**. The same
+three-lens panel re-scores the journey on the five-dimension rubric against
+the 2026-08-02 baseline, with findings **deduplicated** — an issue from the
+baseline report is either verified fixed (one line, no re-reporting) or
+carried forward; only genuinely new findings are written up. Then exactly one
+consolidated fix pass addresses the surviving findings, with a spot-check
+verification of those fixes (no second full panel). After that: a real
+session with the target child before any new world is built.
 
 ## Decisions log (this session)
 
