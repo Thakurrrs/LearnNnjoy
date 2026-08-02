@@ -36,6 +36,7 @@ type MountainRescueAdventureProps = {
 };
 
 type MountainSpeaker = "SCOUT" | "NOVA" | "YOU";
+type MountainTraveller = "pod" | "hook";
 
 const MOUNTAIN_AUDIO_ROOT = "/audio/mountain-rescue";
 const MOUNTAIN_AUDIO = {
@@ -73,8 +74,8 @@ const MOUNTAIN_AUDIO = {
   q4OpeningScout: `${MOUNTAIN_AUDIO_ROOT}/q4-opening-01-scout.mp3`,
   q4OpeningNova: `${MOUNTAIN_AUDIO_ROOT}/q4-opening-02-nova.mp3`,
   q4OpeningKid: `${MOUNTAIN_AUDIO_ROOT}/q4-opening-03-kid.mp3`,
-  q4LiftKid: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-01-kid.mp3`,
-  q4ReverseNova: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-02-nova.mp3`,
+  q4LowerKid: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-01-kid.mp3`,
+  q4LiftNova: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-02-nova.mp3`,
   q4RevealNova: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-03-nova.mp3`,
   q4FinalScout: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-04-scout.mp3`,
 } as const;
@@ -738,7 +739,7 @@ function ConnectedMountainOpening({
   avatar: string;
   podLabel: string;
   playVoice: (source: string) => void;
-  traveller?: "pod" | "hook";
+  traveller?: MountainTraveller;
 }) {
   const currentBeat = Math.min(beat, lines.length - 1);
   const current = lines[currentBeat];
@@ -845,7 +846,7 @@ function MountainRouteStage({
   onMarker?: (position: number) => void;
   conceptLabels?: boolean;
   routeRunning?: boolean;
-  traveller?: "pod" | "hook";
+  traveller?: MountainTraveller;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef(false);
@@ -1556,7 +1557,7 @@ function StormMovesQuest({
         trail={state.stormTrail}
         avatar={avatar}
         markers={[
-          { value: -2, label: "HOOK AT START", complete: state.stormTrail.includes(-2) },
+          { value: -2, label: "HOOK START", complete: state.stormTrail.includes(-2) },
           { value: 1, label: "HOOK NOW", active: state.stormPosition === 1 },
         ]}
         travelling={state.gustIndex > 0 || state.transferGustIndex > 0}
@@ -1711,25 +1712,25 @@ function RescueWinchQuest({
     if (!interactive) return;
     if (state.questStep === 0) {
       const next = Math.max(-4, Math.min(2, value));
-      const reached = next === 2;
+      const reached = next === -4;
       onChange({
         winchPosition: next,
         winchRunStarted: true,
         winchReached: reached,
       });
       sound.play(reached ? "success" : "tap");
-      if (reached) playVoice(MOUNTAIN_AUDIO.q4LiftKid);
+      if (reached) playVoice(MOUNTAIN_AUDIO.q4LowerKid);
       return;
     }
     const next = Math.max(-4, Math.min(2, value));
-    const complete = next === -4;
+    const complete = next === 2;
     onChange({
       reversePosition: next,
       reverseRunStarted: true,
       reverseComplete: complete,
     });
     sound.play(complete ? "success" : "tap");
-    if (complete) playVoice(MOUNTAIN_AUDIO.q4ReverseNova);
+    if (complete) playVoice(MOUNTAIN_AUDIO.q4LiftNova);
   }
 
   function playFinalRoute() {
@@ -1750,17 +1751,17 @@ function RescueWinchQuest({
 
   const dialogue = state.questStep === 0
     ? state.winchReached
-      ? "Safe ledge reached—six levels up from minus four!"
-      : "Pull the pod upward from minus four to the plus two ledge."
+      ? "Hooked on! Six levels below the ledge."
+      : "Lower the empty hook from plus two down to the pod at minus four."
     : state.questStep === 1
       ? state.reverseComplete
-        ? "The route reversed perfectly. Down six returned us to minus four."
-        : "Now run the route backwards. Lower the pod from plus two to minus four."
+        ? "Plus two! The climb undid the whole fall—six levels up."
+        : "Winch up! Lift the pod from minus four to the safe ledge."
       : state.questStep === 2
-        ? "Adding six and subtracting six are inverse moves—they undo each other."
+        ? "Down six and up six are inverse moves—they undo each other."
         : state.q4RecapPlayed
-          ? "Every mountain route is secure. The rescue team can bring the pod home."
-          : "Replay the climb and its reverse before we close the rescue.";
+          ? "Every route is secure. Bring the cell home!"
+          : "Replay the drop and the climb before we close the rescue.";
 
   return (
     <section className="signal-below-zero-quest mountain-connected-quest" aria-label="Rescue Winch quest">
@@ -1770,12 +1771,12 @@ function RescueWinchQuest({
         questStep={state.questStep}
         position={position}
         trail={state.questStep === 1
-          ? integerPath(2, state.reversePosition)
-          : integerPath(-4, state.winchPosition)}
+          ? integerPath(-4, state.reversePosition)
+          : integerPath(2, state.winchPosition)}
         avatar={avatar}
         markers={[
-          { value: -4, label: "FOUND POD", complete: state.winchRunStarted },
-          { value: 2, label: "SAFE LEDGE", active: state.winchReached, complete: state.winchReached },
+          { value: -4, label: "SECURED POD", complete: state.winchReached },
+          { value: 2, label: "SAFE LEDGE", active: state.reverseComplete, complete: state.reverseComplete },
         ]}
         travelling={state.winchRunStarted || state.reverseRunStarted}
         interactive={interactive}
@@ -1789,9 +1790,9 @@ function RescueWinchQuest({
           line={dialogue}
           onHear={() => playVoice(
             state.questStep === 0
-              ? MOUNTAIN_AUDIO.q4LiftKid
+              ? MOUNTAIN_AUDIO.q4LowerKid
               : state.questStep === 1
-                ? MOUNTAIN_AUDIO.q4ReverseNova
+                ? MOUNTAIN_AUDIO.q4LiftNova
                 : state.questStep === 2
                   ? MOUNTAIN_AUDIO.q4RevealNova
                   : MOUNTAIN_AUDIO.q4FinalScout,
@@ -1801,15 +1802,15 @@ function RescueWinchQuest({
         {(state.questStep === 0 || state.questStep === 1) && (
           <div className="mountain-quest-actions">
             <div>
-              <small>{state.questStep === 0 ? "YOUR RESCUE WINCH" : "REVERSE THE ROUTE"}</small>
-              <h2>{state.questStep === 0 ? "Lift −4 up to the +2 safe ledge." : "Lower +2 back to −4."}</h2>
+              <small>{state.questStep === 0 ? "LOWER THE EMPTY HOOK" : "YOUR RESCUE WINCH"}</small>
+              <h2>{state.questStep === 0 ? "Drop +2 down to the pod at −4." : "Lift −4 up to the +2 safe ledge."}</h2>
               <p>Drag the real pod on the cliff, or move one level at a time.</p>
             </div>
             <div className="signal-nudge-row">
               <button
                 type="button"
                 onClick={() => moveWinch(position - 1)}
-                disabled={state.questStep === 0 || position <= -4 || state.reverseComplete}
+                disabled={state.questStep === 1 || position <= -4 || state.winchReached}
               >
                 Down 1
               </button>
@@ -1817,7 +1818,7 @@ function RescueWinchQuest({
               <button
                 type="button"
                 onClick={() => moveWinch(position + 1)}
-                disabled={state.questStep === 1 || position >= 2 || state.winchReached}
+                disabled={state.questStep === 0 || position >= 2 || state.reverseComplete}
               >
                 Up 1
               </button>
@@ -1830,7 +1831,7 @@ function RescueWinchQuest({
                 if (state.questStep === 0) {
                   onChange({
                     questStep: 1,
-                    reversePosition: 2,
+                    reversePosition: -4,
                     reverseRunStarted: false,
                     reverseComplete: false,
                   });
@@ -1840,7 +1841,7 @@ function RescueWinchQuest({
                 }
               }}
             >
-              {state.questStep === 0 ? "Test the route backwards →" : "Show why the moves undo →"}
+              {state.questStep === 0 ? "Attach and start the lift →" : "Show why the moves undo →"}
             </button>
           </div>
         )}
@@ -1850,12 +1851,12 @@ function RescueWinchQuest({
             <div>
               <small>NOVA NAMES THE INVERSE</small>
               <h2>Opposite moves can undo each other.</h2>
-              <p>Up six adds six. Down six subtracts six. Running both returns to the starting position.</p>
+              <p>Down six subtracts six. Up six adds six. Running both returns to the starting position.</p>
             </div>
             <div className="mountain-inverse-proof">
-              <span>−4 + 6 = +2</span>
-              <b>reverse</b>
               <span>+2 − 6 = −4</span>
+              <b>reverse</b>
+              <span>−4 + 6 = +2</span>
             </div>
             <button className="signal-primary" type="button" onClick={() => onChange({ questStep: 3 })}>
               Replay the complete rescue →
@@ -1871,7 +1872,7 @@ function RescueWinchQuest({
               <p>Position, order, storm movement, and inverse movement all lived on this one cliff.</p>
             </div>
             <button className="signal-replay-button" type="button" disabled={routeRunning} onClick={playFinalRoute}>
-              {routeRunning ? "Replaying fall, climb, and reverse…" : state.q4RecapPlayed ? "Play rescue again" : "Play the full rescue"}
+              {routeRunning ? "Replaying the drop and the climb…" : state.q4RecapPlayed ? "Play rescue again" : "Play the full rescue"}
             </button>
             {state.q4RecapPlayed && (
               <div className="mountain-chapter-proof">
@@ -1980,10 +1981,10 @@ export function MountainRescueAdventure({
       ...shared,
       q4OpeningBeat: 0,
       q4OpeningComplete: false,
-      winchPosition: -4,
+      winchPosition: 2,
       winchRunStarted: false,
       winchReached: false,
-      reversePosition: 2,
+      reversePosition: -4,
       reverseRunStarted: false,
       reverseComplete: false,
       q4RecapPlayed: false,
@@ -2033,10 +2034,10 @@ export function MountainRescueAdventure({
       Object.assign(next, {
         q4OpeningBeat: 0,
         q4OpeningComplete: false,
-        winchPosition: -4,
+        winchPosition: 2,
         winchRunStarted: false,
         winchReached: false,
-        reversePosition: 2,
+        reversePosition: -4,
         reverseRunStarted: false,
         reverseComplete: false,
         q4RecapPlayed: false,
