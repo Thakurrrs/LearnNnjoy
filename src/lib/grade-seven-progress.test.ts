@@ -58,7 +58,7 @@ describe("Grade 7 adventure progress", () => {
           showDemo: false,
           position: -999,
           direction: "below",
-          activeQuest: "signal-below-zero",
+          activeQuest: "not-a-quest",
           questStep: 99,
           finaleBeat: 99,
         },
@@ -74,6 +74,27 @@ describe("Grade 7 adventure progress", () => {
       activeQuest: "signal-below-zero",
       questStep: 3,
       finaleBeat: 4,
+    });
+  });
+
+  it("allows Rescue Winch's questStep to reach the finale beat", () => {
+    const progress = sanitizeGradeSevenProgress({
+      mountain: {
+        seenEvents: [0, 1, 2, 3],
+        lastEvent: 3,
+        completed: false,
+        interactionState: {
+          kind: "mountain",
+          storyVersion: 2,
+          activeQuest: "rescue-winch",
+          completedQuests: ["signal-below-zero", "cliff-checkpoints", "storm-moves"],
+          questStep: 99,
+        },
+      },
+    });
+    expect(progress.mountain?.interactionState).toMatchObject({
+      activeQuest: "rescue-winch",
+      questStep: 4,
     });
   });
 

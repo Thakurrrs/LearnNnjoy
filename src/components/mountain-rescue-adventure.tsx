@@ -78,6 +78,7 @@ const MOUNTAIN_AUDIO = {
   q4LiftNova: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-02-nova.mp3`,
   q4RevealNova: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-03-nova.mp3`,
   q4FinalScout: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-04-scout.mp3`,
+  finale00Scout: `${MOUNTAIN_AUDIO_ROOT}/finale-00-scout.mp3`,
   finale01Scout: `${MOUNTAIN_AUDIO_ROOT}/finale-01-scout.mp3`,
   finale02Nova: `${MOUNTAIN_AUDIO_ROOT}/finale-02-nova.mp3`,
   finale03Kid: `${MOUNTAIN_AUDIO_ROOT}/finale-03-kid.mp3`,
@@ -1901,22 +1902,53 @@ function RescueWinchQuest({
   );
 }
 
-// NOTE: this would ideally reuse `finaleCopy.mountain` from
-// grade-seven-adventures.tsx, but that module imports MountainRescueAdventure
-// from *this* file, so importing back from it would create a circular
-// import. Kept as a local copy instead; if the two ever need to move in
-// lockstep, extract both into a shared, import-free copy module.
+// This is the finale's own postcard copy — written for this scene (docked
+// cell, warm shelter, Pip, aurora), not a stand-in for `finaleCopy.mountain`
+// in grade-seven-adventures.tsx. It has to stay local: that module imports
+// MountainRescueAdventure from *this* file, so importing back from it would
+// create a circular import. Phase 5's journal work should extract a single
+// shared, import-free copy module so this and `finaleCopy.mountain` can't
+// drift apart.
 const MOUNTAIN_POSTCARD = {
   title: "Postcard from Ridge Shelter",
   detail: "\"The cell is docked and the shelter glows warm, {hero}. Pip found his cosy corner, and the aurora came out to watch.\"",
 };
 
+// Each entry is one finale beat: the line shown (and its speaker/voice), and
+// the action button that advances past it. `voice` narrates THIS beat's
+// line, so `advance()` plays the line being moved to, and "Hear line" plays
+// the line currently on screen — no separate index bookkeeping.
 export const MOUNTAIN_FINALE_BEATS = [
-  { action: "Dock the energy cell →", voice: () => MOUNTAIN_AUDIO.finale01Scout },
-  { action: "Watch the shelter wake →", voice: () => MOUNTAIN_AUDIO.finale02Nova },
-  { action: "Trace our whole rescue →", voice: () => MOUNTAIN_AUDIO.finale03Kid },
-  { action: "Save the postcard →", voice: () => MOUNTAIN_AUDIO.finale04Nova },
-  { action: "Back to the star map →", voice: null },
+  {
+    speaker: "SCOUT",
+    line: "The dock is open. Bring the cell home!",
+    action: "Dock the energy cell →",
+    voice: MOUNTAIN_AUDIO.finale00Scout,
+  },
+  {
+    speaker: "SCOUT",
+    line: "Cell docked! Power is back at Ridge Shelter!",
+    action: "Watch the shelter wake →",
+    voice: MOUNTAIN_AUDIO.finale01Scout,
+  },
+  {
+    speaker: "NOVA",
+    line: "Look—the windows are warming. Pip found the cosy corner.",
+    action: "Trace our whole rescue →",
+    voice: MOUNTAIN_AUDIO.finale02Nova,
+  },
+  {
+    speaker: "YOU",
+    line: "And the sky… the aurora came to watch.",
+    action: "Save the postcard →",
+    voice: MOUNTAIN_AUDIO.finale03Kid,
+  },
+  {
+    speaker: "NOVA",
+    line: "One postcard for your journal. Tomorrow, a new star starts glowing.",
+    action: "Back to the star map →",
+    voice: MOUNTAIN_AUDIO.finale04Nova,
+  },
 ] as const;
 
 function MountainFinale({
@@ -1933,28 +1965,16 @@ function MountainFinale({
   onChapterComplete: () => void;
 }) {
   const beat = state.finaleBeat;
-  const postcard = MOUNTAIN_POSTCARD;
+  const current = MOUNTAIN_FINALE_BEATS[beat];
 
   function advance() {
     const next = Math.min(beat + 1, MOUNTAIN_FINALE_BEATS.length - 1);
-    const voice = MOUNTAIN_FINALE_BEATS[beat].voice;
-    if (voice) playVoice(voice());
+    playVoice(MOUNTAIN_FINALE_BEATS[next].voice);
     sound.play(beat === 0 ? "finale" : "success");
     onChange(beat === 0
       ? { finaleCellDocked: true, finaleBeat: next }
       : { finaleBeat: next });
   }
-
-  const speaker: MountainSpeaker = beat <= 1 ? "SCOUT" : beat === 2 ? "NOVA" : beat === 3 ? "YOU" : "NOVA";
-  const line = beat === 0
-    ? "The dock is open. Bring the cell home!"
-    : beat === 1
-      ? "Cell docked! Power is back at Ridge Shelter!"
-      : beat === 2
-        ? "Look—the windows are warming. Pip found the cosy corner."
-        : beat === 3
-          ? "And the sky… the aurora came to watch."
-          : "One postcard for your journal. Tomorrow, a new star starts glowing.";
 
   return (
     <section
@@ -1980,17 +2000,14 @@ function MountainFinale({
 
       <div className="signal-action-deck">
         <MountainComicLine
-          speaker={speaker}
-          line={line}
-          onHear={() => {
-            const voice = MOUNTAIN_FINALE_BEATS[Math.max(0, beat - 1)].voice;
-            if (voice) playVoice(voice());
-          }}
+          speaker={current.speaker}
+          line={current.line}
+          onHear={() => playVoice(current.voice)}
         />
         {beat === 3 && (
           <div className="mountain-postcard">
-            <b>{postcard.title}</b>
-            <p>{personalize(postcard.detail, heroName)}</p>
+            <b>{MOUNTAIN_POSTCARD.title}</b>
+            <p>{personalize(MOUNTAIN_POSTCARD.detail, heroName)}</p>
           </div>
         )}
         <button
@@ -1998,7 +2015,7 @@ function MountainFinale({
           type="button"
           onClick={beat >= MOUNTAIN_FINALE_BEATS.length - 1 ? onChapterComplete : advance}
         >
-          {personalize(MOUNTAIN_FINALE_BEATS[beat].action, heroName)}
+          {personalize(current.action, heroName)}
         </button>
       </div>
     </section>

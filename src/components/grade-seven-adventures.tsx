@@ -58,9 +58,14 @@ export const conceptBeats: Record<GradeSevenAdventureId, readonly string[]> = {
   cricket: ["Watch me read a bar!", "Ira’s bar stops at 21.", "Asha’s bar climbs to 42—twice as tall!", "Taller bar means a bigger number.", "The chart never guesses."],
 };
 
+// mountain's copy below is a separate hand-written match for the finale in
+// mountain-rescue-adventure.tsx (docked cell, warm shelter, Pip, aurora) —
+// this module can't import that file's own copy without a circular import.
+// Phase 5's journal work should extract a single shared, import-free copy
+// module so the two can't drift apart.
 export const finaleCopy: Record<GradeSevenAdventureId, { title: string; detail: string; art: string }> = {
   moonbase: { title: "Comet captured!", detail: "\"Exact found Blink, {hero}, and your estimate aimed the telescope fast. Look at that dome photo!\"", art: "🌙📷☄️" },
-  mountain: { title: "Pod safe!", detail: "\"You found it, {hero}! Your number trail led us to −4. The beacons are lighting up!\"", art: "🚁⛰️☀️" },
+  mountain: { title: "Ridge Shelter is warm!", detail: "\"The energy cell is docked, {hero}! Pip found his cosy corner, and the aurora came out to watch.\"", art: "🦊🌌🏔️" },
   balance: { title: "Crate open!", detail: "\"Seven glowing blocks, {hero}! It worked because you kept both sides fair!\"", art: "📦✨⚖️" },
   shop: { title: "Deal done!", detail: "\"₹60 off, ₹180 paid—you saved us real coins, {hero}! Kit packed!\"", art: "🎒🏮🪙" },
   skatepark: { title: "Night run complete!", detail: "\"We cracked it, {hero}! The mirror riders matched across, and the exit stayed straight.\"", art: "🛹🌆✨" },

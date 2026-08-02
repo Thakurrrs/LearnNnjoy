@@ -9,6 +9,7 @@ import {
   type GradeSevenActivityMode,
   type GradeSevenAdventureId,
   type GradeSevenInteractionState,
+  type MountainState,
   type SkateparkState,
 } from "@/lib/grade-seven-progress";
 
@@ -439,6 +440,40 @@ describe("continuous Grade 7 story worlds", () => {
     expect(MOUNTAIN_FINALE_BEATS).toHaveLength(5);
     expect(MOUNTAIN_FINALE_BEATS[0].action).toMatch(/Dock the energy cell/);
     expect(MOUNTAIN_FINALE_BEATS[3].action).toMatch(/Save the postcard/);
+
+    const finaleBase = {
+      ...createGradeSevenState("mountain"),
+      step: 3,
+      chapterMapOpen: false,
+      activeQuest: "rescue-winch" as const,
+      completedQuests: ["signal-below-zero", "cliff-checkpoints", "storm-moves"] as MountainState["completedQuests"],
+      q4OpeningComplete: true,
+      questStep: 4,
+    };
+    const openingHtml = renderToStaticMarkup(React.createElement(GradeSevenActivity, {
+      id: "mountain",
+      state: { ...finaleBase, finaleBeat: 0, finaleCellDocked: false },
+      mode: "live",
+      firstTime: true,
+      heroName: "Aanya",
+      avatar: "explorer",
+      onChange: () => {},
+      onFinish: () => {},
+    }));
+    expect(openingHtml).toContain("Mountain Rescue finale");
+    expect(openingHtml).toContain("Dock the energy cell");
+
+    const postcardHtml = renderToStaticMarkup(React.createElement(GradeSevenActivity, {
+      id: "mountain",
+      state: { ...finaleBase, finaleBeat: 3, finaleCellDocked: true },
+      mode: "live",
+      firstTime: true,
+      heroName: "Aanya",
+      avatar: "explorer",
+      onChange: () => {},
+      onFinish: () => {},
+    }));
+    expect(postcardHtml).toContain("Postcard from Ridge Shelter");
   });
 
   it("makes Keep It Level show the physical beam before the equality symbol", () => {
