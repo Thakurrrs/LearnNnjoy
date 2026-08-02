@@ -798,5 +798,11 @@ describe("Grade 7 adventure progress", () => {
       expect(s.winchPosition).toBe(2);
       expect(s.reversePosition).toBe(-4);
     });
+
+    it("seeds a fresh Rescue Winch replay at the same lower-then-lift positions", () => {
+      const s = createGradeSevenState("mountain", 3);
+      expect(s.winchPosition).toBe(2);
+      expect(s.reversePosition).toBe(-4);
+    });
   });
 });
