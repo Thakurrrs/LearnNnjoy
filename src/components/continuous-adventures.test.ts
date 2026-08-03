@@ -97,7 +97,39 @@ describe("continuous Grade 7 story worlds", () => {
     expect(html).toContain("Its <b>place</b> changed");
   });
 
-  it("opens Mountain Rescue as one world with four connected integer quests", () => {
+  it("opens Mountain Rescue as one world with four connected integer quests (return visit)", () => {
+    // A first-ever visit lands in the arrival act (see the test below), so the
+    // quest map is only reachable once the world has been entered before —
+    // modeled here with openingComplete: true, same as a deliberate map request.
+    const state = {
+      ...createGradeSevenState("mountain"),
+      openingComplete: true,
+    };
+    const html = renderToStaticMarkup(React.createElement(GradeSevenActivity, {
+      id: "mountain",
+      state,
+      mode: "live",
+      firstTime: true,
+      heroName: "Aanya",
+      avatar: "explorer",
+      onChange: () => {},
+      onFinish: () => {},
+    }));
+
+    expect(html).toContain('aria-label="Mountain Rescue quest map"');
+    expect(html).toContain("Mountain Rescue");
+    expect(html).toContain("Chase the Lost Signal");
+    expect(html).toContain("Cliff Checkpoints");
+    expect(html).toContain("Storm Moves");
+    expect(html).toContain("Rescue Winch");
+    expect(html).toContain("0/4 rescue routes complete");
+    expect(html).not.toContain("Nova needs your help");
+  });
+
+  it("mountain first entry lands in the arrival act, not the quest map", () => {
+    // Fresh state exactly as createGradeSevenState produces it (chapterMapOpen
+    // true is the world-entry default) must still land in the Quest 1 opening
+    // skit, never the card-grid quest map.
     const state = createGradeSevenState("mountain");
     const html = renderToStaticMarkup(React.createElement(GradeSevenActivity, {
       id: "mountain",
@@ -110,13 +142,28 @@ describe("continuous Grade 7 story worlds", () => {
       onFinish: () => {},
     }));
 
-    expect(html).toContain("Mountain Rescue");
-    expect(html).toContain("Chase the Lost Signal");
-    expect(html).toContain("Cliff Checkpoints");
-    expect(html).toContain("Storm Moves");
-    expect(html).toContain("Rescue Winch");
-    expect(html).toContain("0/4 rescue routes complete");
-    expect(html).not.toContain("Nova needs your help");
+    expect(html).not.toContain('aria-label="Mountain Rescue quest map"');
+    expect(html).toContain('aria-label="Signal Below Zero story opening"');
+    expect(html).toContain("Pip! The ribbon goes on the shelter—not your tail!");
+  });
+
+  it("mountain quest map still renders for return visits", () => {
+    const state = {
+      ...createGradeSevenState("mountain"),
+      completedQuests: ["signal-below-zero"] as const,
+    };
+    const html = renderToStaticMarkup(React.createElement(GradeSevenActivity, {
+      id: "mountain",
+      state: { ...state, completedQuests: [...state.completedQuests] },
+      mode: "live",
+      firstTime: true,
+      heroName: "Aanya",
+      avatar: "explorer",
+      onChange: () => {},
+      onFinish: () => {},
+    }));
+
+    expect(html).toContain('aria-label="Mountain Rescue quest map"');
   });
 
   it("starts Signal Below Zero with character dialogue before the interaction", () => {

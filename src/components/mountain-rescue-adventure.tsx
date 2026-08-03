@@ -675,11 +675,21 @@ function SignalOpening({
 
   function next() {
     sound.play("tap");
+    // The very first advance is the earliest real (non-render) state write in
+    // the arrival act, so it's also where we mark the quest as "started":
+    // activeQuest flips from null to "signal-below-zero" and chapterMapOpen
+    // clears, so a deliberate "Mountain quests" nav press mid-opening honors
+    // the map request instead of being swallowed by the first-arrival gate.
     if (beat < OPENING_LINES.length - 1) {
-      onChange({ openingBeat: beat + 1 });
+      onChange({ openingBeat: beat + 1, activeQuest: "signal-below-zero", chapterMapOpen: false });
       return;
     }
-    onChange({ openingComplete: true, questStep: 0 });
+    onChange({
+      openingComplete: true,
+      questStep: 0,
+      activeQuest: "signal-below-zero",
+      chapterMapOpen: false,
+    });
   }
 
   return (
@@ -2225,7 +2235,17 @@ export function MountainRescueAdventure({
     onFinish(finalState);
   }
 
-  if (state.chapterMapOpen && !replay) {
+  // Story before menu: a child's FIRST visit lands in the arrival act, never
+  // the quest map. The map is a rest point for return visits — once the world
+  // has been entered before (a quest completed, or the opening/quest already
+  // under way), chapterMapOpen is honored normally, including a deliberate
+  // "Mountain quests" nav request.
+  const firstArrival = !replay
+    && state.completedQuests.length === 0
+    && !state.openingComplete
+    && state.activeQuest === null;
+
+  if (state.chapterMapOpen && !replay && !firstArrival) {
     return (
       <MountainQuestMap
         state={state}
