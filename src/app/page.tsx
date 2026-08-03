@@ -14,12 +14,13 @@ import { recordDailyQuest } from "@/lib/streak";
 import { chooseAdaptiveNextStep, recoveryPrompt } from "@/lib/adaptive";
 import { snapshotSubjectMission, type ActiveSubject, type SubjectMissionProgress, type SubjectProgress } from "@/lib/subject-progress";
 import { getMissionChapter } from "@/lib/mission-chapters";
-import { GradeSevenActivity, gradeSevenAdventures, gradeSevenComingSoonChapters, type GradeSevenAdventureId, type GradeSevenChapter } from "@/components/grade-seven-adventures";
+import { adventureIntroLine, GradeSevenActivity, gradeSevenAdventures, gradeSevenComingSoonChapters, type GradeSevenAdventureId, type GradeSevenChapter } from "@/components/grade-seven-adventures";
 import {
   canGoToPreviousGradeSevenEvent,
   canReplayGradeSevenEvent,
   createGradeSevenState,
   gradeSevenEventTitles,
+  isGradeSevenAdventureReady,
   openGradeSevenAdventure as openSavedGradeSevenAdventure,
   previousGradeSevenEvent,
   shouldAwardGradeSevenCompletion,
@@ -152,7 +153,7 @@ export default function Home() {
   const explorer = getExplorerLevel(lifetimeDiscoveries);
   const liveAdventureState = gradeSevenProgress[activeAdventure]?.interactionState ?? createGradeSevenState(activeAdventure);
   const activeActivityState = activityMode === "replay" ? replayState : liveAdventureState;
-  const pausedAdventure = grade === 7 && !gradeSevenProgress[activeAdventure]?.completed && gradeSevenProgress[activeAdventure]?.seenEvents.length
+  const pausedAdventure = grade === 7 && isGradeSevenAdventureReady(activeAdventure) && !gradeSevenProgress[activeAdventure]?.completed && gradeSevenProgress[activeAdventure]?.seenEvents.length
     ? gradeSevenProgress[activeAdventure]
     : null;
   const pausedAdventureCopy = gradeSevenAdventures.find((adventure) => adventure.id === activeAdventure);
@@ -399,6 +400,10 @@ export default function Home() {
   }
 
   function openGradeSevenAdventure(id: GradeSevenAdventureId) {
+    // Launch guard: dimmed stars (NOT_READY_ADVENTURE_IDS) have no clickable
+    // path in the UI, but this stays a no-op defensively in case anything
+    // else ever calls it directly.
+    if (!isGradeSevenAdventureReady(id)) return;
     setActiveAdventure(id);
     setSelectedChapter(id);
     setActivityMode("live");
@@ -595,7 +600,7 @@ export default function Home() {
       {petNote && <button type="button" className="pet-note pet-note-dismiss" onClick={() => setPetNote(null)}>⭐ {petNote} ✕</button>}
       <ConstellationMap chapters={gradeSevenChapters} completedIds={completedAdventures} selectedId={selectedChapter} onSelect={setSelectedChapter} />
       {completedAdventures.length === 0 && <p className="start-hint">▶ Tap a bright star to begin!</p>}
-      <section className="star-detail" aria-live="polite"><span className="star-detail-icon">{selected.icon}</span><div><p className="eyebrow">{selectedComingSoon ? "NOVA IS PREPARING THIS WORLD" : selectedCompleted ? "STAR LIT · REPLAY ANYTIME" : selectedAtQuestMap ? "YOUR CHAPTER QUESTS ARE SAFE" : selectedInProgress ? `YOUR STORY WAITS AT EVENT ${(selectedProgress?.lastEvent ?? 0) + 1}` : "READY TO PLAY"}</p><h2>{selected.topic}</h2><p className="story-world">Story world · {selected.title}</p><div className="subtopic-row">{selected.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div><p>{personalize(selected.intro, name)}</p>{selectedComingSoon ? <div className="coming-soon-note"><span>✦</span><b>Coming soon</b><small>This star will brighten when its interactive chapter is ready.</small></div> : <button className="primary" onClick={() => selected.id === "skatepark" && selectedCompleted ? openSkateparkQuestMap() : selected.id === "mountain" && selectedCompleted ? openMountainQuestMap() : selected.id === "moonbase" && selectedCompleted ? openMoonbaseQuestMap() : selected.id === "balance" && selectedCompleted ? openBalanceQuestMap() : selectedCompleted ? replayGradeSevenEvent(selected.id as GradeSevenAdventureId, 0) : openGradeSevenAdventure(selected.id as GradeSevenAdventureId)}>{selected.id === "skatepark" && selectedCompleted ? "Open Skatepark quests →" : selected.id === "mountain" && selectedCompleted ? "Open Mountain quests →" : selected.id === "moonbase" && selectedCompleted ? "Open Moonbase quests →" : selected.id === "balance" && selectedCompleted ? "Open Balance quests →" : selectedCompleted ? "Replay from event 1 →" : selectedAtQuestMap ? selected.id === "mountain" ? "Open Mountain quests →" : selected.id === "moonbase" ? "Open Moonbase quests →" : selected.id === "balance" ? "Open Balance quests →" : "Open Skatepark quests →" : selectedInProgress ? `Resume event ${(selectedProgress?.lastEvent ?? 0) + 1} →` : `${(selected as GradeSevenChapter).action} →`}</button>}</div></section>
+      <section className="star-detail" aria-live="polite"><span className="star-detail-icon">{selected.icon}</span><div><p className="eyebrow">{selectedComingSoon ? "NOVA IS PREPARING THIS WORLD" : selectedCompleted ? "STAR LIT · REPLAY ANYTIME" : selectedAtQuestMap ? "YOUR CHAPTER QUESTS ARE SAFE" : selectedInProgress ? `YOUR STORY WAITS AT EVENT ${(selectedProgress?.lastEvent ?? 0) + 1}` : "READY TO PLAY"}</p><h2>{selected.topic}</h2><p className="story-world">Story world · {selected.title}</p><div className="subtopic-row">{selected.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div><p>{personalize(selectedComingSoon ? selected.intro : adventureIntroLine(selected as GradeSevenChapter, selectedCompleted), name)}</p>{selectedComingSoon ? <div className="coming-soon-note"><span>✦</span><b>Coming soon</b><small>This star will brighten when its interactive chapter is ready.</small></div> : <button className="primary" onClick={() => selected.id === "skatepark" && selectedCompleted ? openSkateparkQuestMap() : selected.id === "mountain" && selectedCompleted ? openMountainQuestMap() : selected.id === "moonbase" && selectedCompleted ? openMoonbaseQuestMap() : selected.id === "balance" && selectedCompleted ? openBalanceQuestMap() : selectedCompleted ? replayGradeSevenEvent(selected.id as GradeSevenAdventureId, 0) : openGradeSevenAdventure(selected.id as GradeSevenAdventureId)}>{selected.id === "skatepark" && selectedCompleted ? "Open Skatepark quests →" : selected.id === "mountain" && selectedCompleted ? "Open Mountain quests →" : selected.id === "moonbase" && selectedCompleted ? "Open Moonbase quests →" : selected.id === "balance" && selectedCompleted ? "Open Balance quests →" : selectedCompleted ? "Replay from event 1 →" : selectedAtQuestMap ? selected.id === "mountain" ? "Open Mountain quests →" : selected.id === "moonbase" ? "Open Moonbase quests →" : selected.id === "balance" ? "Open Balance quests →" : "Open Skatepark quests →" : selectedInProgress ? `Resume event ${(selectedProgress?.lastEvent ?? 0) + 1} →` : `${(selected as GradeSevenChapter).action} →`}</button>}</div></section>
     </main>;
   }
 

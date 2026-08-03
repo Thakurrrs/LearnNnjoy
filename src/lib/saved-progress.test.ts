@@ -103,6 +103,18 @@ describe("sanitizeSavedProgress", () => {
     expect(sanitizeSavedProgress({ grade: 6, screen: "journal" }).screen).toBe("adventures");
   });
 
+  it("gates a stale deep link into a not-ready adventure back to the star map", () => {
+    // Balance Lab, Smart Shopper and Cricket Data Room are owner-gated
+    // (NOT_READY_ADVENTURE_IDS): a save left mid-quest there — or any save
+    // crafted after the gate landed — must not resume straight into the
+    // activity screen for a world the star map won't even let you launch.
+    for (const id of ["balance", "shop", "cricket"] as const) {
+      expect(sanitizeSavedProgress({ grade: 7, screen: "activity", activeAdventure: id }).screen).toBe("adventures");
+    }
+    // Ready adventures are unaffected by the same guard.
+    expect(sanitizeSavedProgress({ grade: 7, screen: "activity", activeAdventure: "mountain" }).screen).toBe("activity");
+  });
+
   it("migrates old completed stars without inventing journal history", () => {
     const clean = sanitizeSavedProgress({ completedAdventures: ["shop"] });
     expect(clean.gradeSevenProgress?.shop?.completed).toBe(true);

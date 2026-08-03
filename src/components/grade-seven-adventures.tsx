@@ -7,10 +7,11 @@ import { MountainRescueAdventure } from "@/components/mountain-rescue-adventure"
 import { MoonbaseTenfoldAdventure } from "@/components/moonbase-tenfold-adventure";
 import { SkateparkAdventure } from "@/components/skatepark-adventure";
 import { SmartShopperAdventure } from "@/components/smart-shopper-adventure";
-import type {
-  GradeSevenActivityMode,
-  GradeSevenAdventureId,
-  GradeSevenInteractionState,
+import {
+  isGradeSevenAdventureReady,
+  type GradeSevenActivityMode,
+  type GradeSevenAdventureId,
+  type GradeSevenInteractionState,
 } from "@/lib/grade-seven-progress";
 
 export type { GradeSevenAdventureId } from "@/lib/grade-seven-progress";
@@ -22,19 +23,38 @@ export type GradeSevenChapter = {
   topic: string;
   subtopics: string[];
   intro: string;
+  // Shown instead of `intro` once the star is lit, so a completed adventure
+  // stops inviting the child to a problem they already solved.
+  revisitIntro: string;
   action: string;
+  // Present (always "soon") only for adventures gated by
+  // NOT_READY_ADVENTURE_IDS; absent entirely for ready ones. The map/detail
+  // card and ConstellationMap both key off `"status" in chapter`, matching
+  // the pattern already used for gradeSevenComingSoonChapters below.
+  status?: "soon";
 };
 
-export const gradeSevenAdventures: GradeSevenChapter[] = [
-  { id: "moonbase", icon: "🌙", title: "Moonbase Tenfold", topic: "Large Numbers", subtopics: ["Place value and tenfold relationships", "Indian and international grouping", "Comparison and estimation"], intro: "{hero}, Blink followed a rare comet beyond our telescope map. Help Nova rebuild the enormous coordinate?", action: "Launch the comet mission" },
-  { id: "mountain", icon: "🏔️", title: "Mountain Rescue", topic: "Integers", subtopics: ["Positive and negative positions", "Number-line movement", "Addition and subtraction"], intro: "{hero}! A storm knocked my rescue pod off the cliff. Help me find it?", action: "Explore integers" },
-  { id: "balance", icon: "⚖️", title: "Balance Lab", topic: "Simple Equations", subtopics: ["Equality", "Inverse operations", "Solving for an unknown"], intro: "{hero}, this crate won't open until the scale balances. I can't do it alone!", action: "Explore equations" },
-  { id: "shop", icon: "🛍️", title: "Smart Shopper", topic: "Comparing Quantities", subtopics: ["Percentages as fractions", "Discounts", "Comparing final prices"], intro: "{hero}, two shops claim they have the better deal. Help me check?", action: "Explore percentages" },
-  { id: "skatepark", icon: "🛹", title: "Nova’s Night Run", topic: "Lines and Angles", subtopics: ["Intersecting lines", "Vertically opposite angles", "Linear pairs"], intro: "{hero}! Two riders want to perform a mirrored glow trick. Help me map their crossing paths?", action: "Plan the glow trick" },
-  { id: "cricket", icon: "🏏", title: "Cricket Data Room", topic: "Data Handling", subtopics: ["Reading bar graphs", "Comparing values", "Making evidence-based choices"], intro: "{hero}, the final starts soon! Help me pick the squad—with real data.", action: "Explore data" },
+const REAL_ADVENTURES: Omit<GradeSevenChapter, "status">[] = [
+  { id: "moonbase", icon: "🌙", title: "Moonbase Tenfold", topic: "Large Numbers", subtopics: ["Place value and tenfold relationships", "Indian and international grouping", "Comparison and estimation"], intro: "{hero}, Blink followed a rare comet beyond our telescope map. Help Nova rebuild the enormous coordinate?", revisitIntro: "Visit the moonbase again →", action: "Launch the comet mission" },
+  { id: "mountain", icon: "🏔️", title: "Mountain Rescue", topic: "Integers", subtopics: ["Positive and negative positions", "Number-line movement", "Addition and subtraction"], intro: "{hero}! A storm knocked my rescue pod off the cliff. Help me find it?", revisitIntro: "Visit the mountain again →", action: "Explore integers" },
+  { id: "balance", icon: "⚖️", title: "Balance Lab", topic: "Simple Equations", subtopics: ["Equality", "Inverse operations", "Solving for an unknown"], intro: "A locked capsule is waiting for steady hands…", revisitIntro: "Visit Balance Lab again →", action: "Explore equations" },
+  { id: "shop", icon: "🛍️", title: "Smart Shopper", topic: "Comparing Quantities", subtopics: ["Percentages as fractions", "Discounts", "Comparing final prices"], intro: "The night market is still setting up its stalls…", revisitIntro: "Visit the market again →", action: "Explore percentages" },
+  { id: "skatepark", icon: "🛹", title: "Nova’s Night Run", topic: "Lines and Angles", subtopics: ["Intersecting lines", "Vertically opposite angles", "Linear pairs"], intro: "{hero}! Two riders want to perform a mirrored glow trick. Help me map their crossing paths?", revisitIntro: "Visit the skatepark again →", action: "Plan the glow trick" },
+  { id: "cricket", icon: "🏏", title: "Cricket Data Room", topic: "Data Handling", subtopics: ["Reading bar graphs", "Comparing values", "Making evidence-based choices"], intro: "The scoreboard is still warming up…", revisitIntro: "Visit the stadium again →", action: "Explore data" },
 ];
 
-export type GradeSevenComingSoonChapter = Omit<GradeSevenChapter, "id" | "action"> & { id: string; status: "coming" };
+export const gradeSevenAdventures: GradeSevenChapter[] = REAL_ADVENTURES.map((chapter): GradeSevenChapter =>
+  isGradeSevenAdventureReady(chapter.id) ? chapter : { ...chapter, status: "soon" as const },
+);
+
+// Shows the pre-play invite until the star is lit, then switches to a short
+// revisit line — fixes the stale "help me!" invite that used to linger on
+// completed adventures' detail cards (kid-lens finding #12/#30).
+export function adventureIntroLine(chapter: GradeSevenChapter, completed: boolean): string {
+  return completed ? chapter.revisitIntro : chapter.intro;
+}
+
+export type GradeSevenComingSoonChapter = Omit<GradeSevenChapter, "id" | "action" | "status" | "revisitIntro"> & { id: string; status: "coming" };
 
 export const gradeSevenComingSoonChapters: GradeSevenComingSoonChapter[] = [
   { id: "fractions-decimals", status: "coming", icon: "🍲", title: "Recipe Lab", topic: "Fractions and Decimals", subtopics: ["Equivalent parts", "Decimal place value", "Comparing quantities"], intro: "Mix ingredients precisely enough to power Nova’s portable kitchen." },

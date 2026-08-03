@@ -272,6 +272,17 @@ export function isGradeSevenAdventureId(value: unknown): value is GradeSevenAdve
   return typeof value === "string" && GRADE_SEVEN_ADVENTURE_IDS.includes(value as GradeSevenAdventureId);
 }
 
+// Owner-gated (2026-08-03, docs/qa/experience-holes-2026-08-02): these three
+// adventures are built and playable in code, but don't meet the quality bar
+// yet. Their stars stay dim and unlaunchable everywhere in the app until
+// each one's phase finishes — this is the single source of truth every
+// launch guard (map, resume card, saved-progress hydration) checks against.
+export const NOT_READY_ADVENTURE_IDS: readonly GradeSevenAdventureId[] = ["balance", "shop", "cricket"];
+
+export function isGradeSevenAdventureReady(id: GradeSevenAdventureId): boolean {
+  return !NOT_READY_ADVENTURE_IDS.includes(id);
+}
+
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, Math.floor(value)));
 const stringOrNull = (value: unknown) => typeof value === "string" ? value : null;
 const boolOr = (value: unknown, fallback: boolean) => typeof value === "boolean" ? value : fallback;

@@ -2,6 +2,7 @@ import type { Grade } from "./learning";
 import { readSubjectProgress, type ActiveSubject, type SubjectProgress } from "./subject-progress";
 import {
   isGradeSevenAdventureId,
+  isGradeSevenAdventureReady,
   sanitizeGradeSevenProgress,
   type GradeSevenAdventureId,
   type GradeSevenProgress,
@@ -55,6 +56,10 @@ export function sanitizeSavedProgress(saved: Partial<SavedProgress>): SanitizedP
   if (saved.screen && saved.screen !== "welcome") {
     if (saved.screen === "story" && saved.grade !== 4) out.screen = "diagnostic";
     else if ((saved.screen === "activity" || saved.screen === "journal") && saved.grade !== 7) out.screen = "adventures";
+    // Deep-link guard: a save left mid-quest on a not-ready adventure (or any
+    // save crafted/replayed after it was gated) lands back on the star map
+    // instead of resuming a world the owner pulled from rotation.
+    else if (saved.screen === "activity" && isGradeSevenAdventureId(saved.activeAdventure) && !isGradeSevenAdventureReady(saved.activeAdventure)) out.screen = "adventures";
     else out.screen = saved.screen;
   }
   if (typeof saved.diagnosticIndex === "number") out.diagnosticIndex = Math.min(saved.diagnosticIndex, 2);
