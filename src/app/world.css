@@ -2121,6 +2121,325 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
 }
 .mountain-opening-nova { left: 9%; }
 .mountain-opening-kid { left: 26%; }
+
+/* Mountain Rescue Q1 arrival act — beat-keyed choreography ("Light the
+   Stage"). Layered stage art keyed off the shared engine's scene-beat-N /
+   scene-speaker-N hooks (quest-story-scene.tsx) so the 8-beat opening
+   performs the incident instead of narrating it over static art. Every beat
+   is a readable static pose on its own (position/opacity swap); motion is
+   layered on top only when reduced motion is not requested. Directing
+   table: 0-1 calm (ribbon sway, warm windows) · 2 storm hits (dim, snow
+   speeds up, windows flicker) · 3 power dies (windows dark, Pip curls +
+   shivers) · 4-5 pod launches then falls PAST the zero line and off below
+   (integer premise: it never bounces back up) · 6 signal fades (tracker
+   dims) · 7 handoff (sled slides in, team mounts). */
+.arrival-sky-tint {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(8, 20, 36, 0) 0%, rgba(6, 16, 30, .55) 100%);
+  opacity: 0;
+  transition: opacity 1.1s ease;
+  pointer-events: none;
+}
+.mountain-arrival-scene.scene-beat-2 .arrival-sky-tint,
+.mountain-arrival-scene.scene-beat-3 .arrival-sky-tint,
+.mountain-arrival-scene.scene-beat-4 .arrival-sky-tint,
+.mountain-arrival-scene.scene-beat-5 .arrival-sky-tint,
+.mountain-arrival-scene.scene-beat-6 .arrival-sky-tint,
+.mountain-arrival-scene.scene-beat-7 .arrival-sky-tint { opacity: 1; }
+
+.arrival-snowfall { position: absolute; z-index: 6; inset: 0; overflow: hidden; pointer-events: none; }
+.arrival-snowfall i {
+  position: absolute;
+  top: -8%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: .85;
+  animation: arrival-snow-fall 6s linear infinite;
+}
+.arrival-snowfall i:nth-child(1) { left: 8%; animation-delay: 0s; }
+.arrival-snowfall i:nth-child(2) { left: 22%; width: 4px; height: 4px; animation-delay: -1.4s; }
+.arrival-snowfall i:nth-child(3) { left: 38%; animation-delay: -3.2s; }
+.arrival-snowfall i:nth-child(4) { left: 55%; width: 5px; height: 5px; animation-delay: -.8s; }
+.arrival-snowfall i:nth-child(5) { left: 71%; animation-delay: -2.5s; }
+.arrival-snowfall i:nth-child(6) { left: 88%; width: 4px; height: 4px; animation-delay: -4s; }
+.mountain-arrival-scene.scene-beat-2 .arrival-snowfall i,
+.mountain-arrival-scene.scene-beat-3 .arrival-snowfall i,
+.mountain-arrival-scene.scene-beat-4 .arrival-snowfall i,
+.mountain-arrival-scene.scene-beat-5 .arrival-snowfall i,
+.mountain-arrival-scene.scene-beat-6 .arrival-snowfall i,
+.mountain-arrival-scene.scene-beat-7 .arrival-snowfall i {
+  animation-name: arrival-snow-storm;
+  animation-duration: 1.9s;
+}
+
+.arrival-shelter {
+  position: absolute;
+  z-index: 2;
+  bottom: 8%;
+  left: 4%;
+  width: 168px;
+  height: 108px;
+  border-radius: 10px 10px 3px 3px;
+  background: #24314f;
+}
+.arrival-shelter-window {
+  position: absolute;
+  top: 20px;
+  width: 32px;
+  height: 28px;
+  border-radius: 4px;
+  background: #2a3a5c;
+  transition: background .8s ease, box-shadow .8s ease;
+}
+.arrival-shelter-window.w1 { left: 20px; }
+.arrival-shelter-window.w2 { right: 20px; }
+.arrival-shelter-heater {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  width: 46px;
+  height: 10px;
+  border-radius: 6px;
+  background: #ff9a52;
+  box-shadow: 0 0 14px rgba(255, 154, 82, .67);
+  transform: translateX(-50%);
+  transition: background .8s ease, box-shadow .8s ease, opacity .8s ease;
+}
+.mountain-arrival-scene.scene-beat-0 .arrival-shelter-window,
+.mountain-arrival-scene.scene-beat-1 .arrival-shelter-window,
+.mountain-arrival-scene.scene-beat-2 .arrival-shelter-window {
+  background: #ffd98a;
+  box-shadow: 0 0 18px rgba(255, 217, 138, .6);
+}
+.mountain-arrival-scene.scene-beat-2 .arrival-shelter-window {
+  animation: arrival-window-flicker 1s steps(6) infinite;
+}
+.mountain-arrival-scene.scene-beat-3 .arrival-shelter-heater,
+.mountain-arrival-scene.scene-beat-4 .arrival-shelter-heater,
+.mountain-arrival-scene.scene-beat-5 .arrival-shelter-heater,
+.mountain-arrival-scene.scene-beat-6 .arrival-shelter-heater,
+.mountain-arrival-scene.scene-beat-7 .arrival-shelter-heater { opacity: 0; }
+
+.arrival-ribbon {
+  position: absolute;
+  z-index: 4;
+  bottom: 15%;
+  left: 17%;
+  width: 6px;
+  height: 46px;
+  border-radius: 3px;
+  background: linear-gradient(#ff9a52, #ffd98a);
+  transform-origin: top center;
+  animation: arrival-ribbon-sway 2.6s ease-in-out infinite alternate;
+}
+.mountain-arrival-scene.scene-beat-2 .arrival-ribbon,
+.mountain-arrival-scene.scene-beat-3 .arrival-ribbon,
+.mountain-arrival-scene.scene-beat-4 .arrival-ribbon,
+.mountain-arrival-scene.scene-beat-5 .arrival-ribbon,
+.mountain-arrival-scene.scene-beat-6 .arrival-ribbon,
+.mountain-arrival-scene.scene-beat-7 .arrival-ribbon {
+  animation-name: arrival-ribbon-storm;
+  animation-duration: 1s;
+}
+
+.arrival-pip {
+  position: absolute;
+  z-index: 4;
+  bottom: 9%;
+  left: 12%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 10px rgba(4, 22, 35, .35));
+  transition: transform .6s ease;
+}
+.mountain-arrival-scene.scene-beat-3 .arrival-pip,
+.mountain-arrival-scene.scene-beat-4 .arrival-pip,
+.mountain-arrival-scene.scene-beat-5 .arrival-pip,
+.mountain-arrival-scene.scene-beat-6 .arrival-pip,
+.mountain-arrival-scene.scene-beat-7 .arrival-pip {
+  transform: scale(.82) rotate(-4deg) translateY(6px);
+  animation: arrival-pip-shiver 220ms ease-in-out infinite;
+}
+
+.arrival-service-deck {
+  position: absolute;
+  z-index: 6;
+  top: 9%;
+  right: 8%;
+  display: grid;
+  gap: 2px;
+  padding: 7px 11px;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 10px;
+  background: rgba(7, 26, 44, .68);
+  color: #fff;
+  text-align: center;
+  backdrop-filter: blur(6px);
+}
+.arrival-service-deck span { font-size: .56rem; font-weight: 900; letter-spacing: .1em; }
+.arrival-service-deck b { color: #ffe38d; font-size: .95rem; }
+
+.arrival-zero-line {
+  position: absolute;
+  z-index: 3;
+  top: 48%;
+  right: -4%;
+  left: -4%;
+  border-top: 3px dashed rgba(255, 216, 107, .55);
+  transition: border-color .5s ease, box-shadow .5s ease;
+}
+.arrival-zero-line span {
+  position: absolute;
+  top: -11px;
+  left: 6%;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(8, 31, 50, .78);
+  color: #ffe18a;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+.mountain-arrival-scene.scene-beat-5 .arrival-zero-line {
+  border-color: #ffe98d;
+  box-shadow: 0 2px 16px rgba(255, 216, 107, .5);
+}
+
+.arrival-pod {
+  position: absolute;
+  z-index: 7;
+  top: 16%;
+  right: 12%;
+  width: 118px;
+  animation: arrival-pod-dock-bob 2.4s ease-in-out infinite alternate;
+  transition:
+    top 1.1s cubic-bezier(.4, 0, .2, 1),
+    right 1.1s cubic-bezier(.4, 0, .2, 1),
+    transform 1.1s cubic-bezier(.4, 0, .2, 1),
+    opacity .6s ease;
+}
+.arrival-pod-trail {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  width: 3px;
+  height: 26px;
+  border-radius: 3px;
+  background: linear-gradient(#6fd4ff, transparent);
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity .5s ease;
+}
+.mountain-arrival-scene.scene-beat-4 .arrival-pod {
+  top: 6%;
+  right: 20%;
+  animation: none;
+}
+.mountain-arrival-scene.scene-beat-4 .arrival-pod-trail,
+.mountain-arrival-scene.scene-beat-5 .arrival-pod-trail,
+.mountain-arrival-scene.scene-beat-6 .arrival-pod-trail { opacity: .8; }
+.mountain-arrival-scene.scene-beat-5 .arrival-pod,
+.mountain-arrival-scene.scene-beat-6 .arrival-pod,
+.mountain-arrival-scene.scene-beat-7 .arrival-pod {
+  top: 112%;
+  right: 34%;
+  animation: none;
+  transform: rotate(24deg) scale(.82);
+  opacity: .55;
+}
+.mountain-arrival-scene.scene-beat-6 .arrival-pod,
+.mountain-arrival-scene.scene-beat-7 .arrival-pod { opacity: .18; }
+
+.arrival-tracker {
+  position: absolute;
+  z-index: 8;
+  right: 6%;
+  bottom: 8%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(8, 31, 50, .72);
+  color: #d8ebf2;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+.arrival-tracker i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #7bf0c2;
+  box-shadow: 0 0 0 5px rgba(123, 240, 194, .22);
+  animation: beacon-pulse 1.1s ease-in-out infinite;
+}
+.mountain-arrival-scene.scene-beat-6 .arrival-tracker i,
+.mountain-arrival-scene.scene-beat-7 .arrival-tracker i {
+  background: #6d8195;
+  box-shadow: 0 0 0 5px rgba(109, 129, 149, .16);
+  animation-duration: 2.6s;
+  opacity: .6;
+}
+
+.arrival-sled {
+  position: absolute;
+  z-index: 9;
+  right: -6%;
+  bottom: 4%;
+  display: flex;
+  align-items: flex-end;
+  width: 260px;
+  opacity: 0;
+  transform: translateX(60%);
+  transition: transform .9s cubic-bezier(.3, 0, .2, 1), opacity .7s ease;
+  pointer-events: none;
+}
+.arrival-sled-art { position: relative; width: 150px; height: auto; object-fit: contain; }
+.arrival-sled-nova,
+.arrival-sled-kid {
+  position: absolute;
+  bottom: 8px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 10px rgba(4, 22, 35, .35));
+}
+.arrival-sled-nova { left: -6px; }
+.arrival-sled-kid { left: 58px; }
+.mountain-arrival-scene.scene-beat-7 .arrival-sled { opacity: 1; transform: translateX(0); }
+
+/* Speaker emphasis: the active speaker's own sprite in this scene lifts and
+   glows. Nova and the kid have no sprite on stage until they mount the sled
+   at beat 7 (avoids doubling up with the standing portraits the old static
+   template used, which visually collided with the shelter/Pip group); SCOUT
+   has no sprite at all here (radio voice only). Both are intentional no-ops
+   until/unless a sprite exists to react. */
+.mountain-arrival-scene .arrival-sled-nova,
+.mountain-arrival-scene .arrival-sled-kid {
+  transition: transform .35s ease, filter .35s ease;
+}
+.mountain-arrival-scene.scene-speaker-nova .arrival-sled-nova {
+  transform: scale(1.06);
+  filter: drop-shadow(0 0 14px rgba(157, 219, 255, .55));
+}
+.mountain-arrival-scene.scene-speaker-you .arrival-sled-kid {
+  transform: scale(1.06);
+  filter: drop-shadow(0 0 14px rgba(255, 216, 107, .5));
+}
+
+@keyframes arrival-snow-fall { from { top: -8%; opacity: .9; } to { top: 104%; opacity: .4; } }
+@keyframes arrival-snow-storm {
+  from { top: -8%; opacity: .95; transform: translateX(0); }
+  to { top: 104%; opacity: .3; transform: translateX(-26px); }
+}
+@keyframes arrival-ribbon-sway { from { transform: rotate(-8deg); } to { transform: rotate(8deg); } }
+@keyframes arrival-ribbon-storm { from { transform: rotate(-26deg); } to { transform: rotate(22deg); } }
+@keyframes arrival-window-flicker { 0%, 40%, 60%, 100% { opacity: 1; } 45%, 55% { opacity: .35; } }
+@keyframes arrival-pip-shiver { 0%, 100% { translate: 0 0; } 50% { translate: 1.5px 0; } }
+@keyframes arrival-pod-dock-bob { to { transform: translateY(6px); } }
+
 .mountain-comic-line {
   display: grid;
   gap: 4px;
@@ -2956,6 +3275,17 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
   .mountain-storm-proof strong { font-size: .92rem; }
   .mountain-gust-button { width: 100%; }
   .mountain-chapter-proof { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .arrival-shelter { width: 132px; height: 88px; left: 2%; bottom: 6%; }
+  .arrival-shelter-window { top: 15px; width: 26px; height: 22px; }
+  .arrival-pip { left: 6%; bottom: 7%; width: 84px; height: 58px; }
+  .arrival-ribbon { left: 12%; bottom: 12%; height: 34px; }
+  .arrival-service-deck { top: 7%; right: 3%; padding: 6px 9px; }
+  .arrival-zero-line { top: 46%; }
+  .arrival-pod { top: 13%; right: 4%; width: 92px; }
+  .arrival-tracker { right: 3%; bottom: 6%; padding: 5px 8px; font-size: .53rem; }
+  .arrival-sled { width: 210px; }
+  .arrival-sled-art { width: 120px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2970,8 +3300,21 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
   .recap-running .signal-pod-control,
   .recap-running .mountain-travelling-team,
   .mountain-route-stage.route-running .signal-pod-control,
-  .mountain-route-stage.route-running .mountain-travelling-team {
+  .mountain-route-stage.route-running .mountain-travelling-team,
+  .arrival-snowfall i,
+  .arrival-ribbon,
+  .arrival-pip,
+  .arrival-pod,
+  .arrival-tracker i {
     animation: none !important;
+  }
+  .arrival-sky-tint,
+  .arrival-shelter-window,
+  .arrival-shelter-heater,
+  .arrival-zero-line,
+  .arrival-pod,
+  .arrival-pod-trail,
+  .arrival-sled {
     transition: none !important;
   }
 }

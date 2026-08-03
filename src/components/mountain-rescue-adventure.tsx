@@ -682,28 +682,67 @@ function SignalOpening({
           activeQuest: "signal-below-zero",
           chapterMapOpen: false,
         })}
-        className="mountain-opening-scene"
+        className="mountain-opening-scene mountain-arrival-scene"
       >
         <div className="mountain-opening-ridge" aria-hidden />
-        <div className="mountain-opening-pod" aria-hidden>
+        <div className="arrival-sky-tint" aria-hidden />
+        <div className="arrival-snowfall" aria-hidden>
+          <i /><i /><i /><i /><i /><i />
+        </div>
+
+        <div className="arrival-shelter" aria-hidden>
+          <i className="arrival-shelter-window w1" />
+          <i className="arrival-shelter-window w2" />
+          <i className="arrival-shelter-heater" />
+        </div>
+        <div className="arrival-ribbon" aria-hidden />
+        <Image
+          className="arrival-pip"
+          src="/images/mountain-rescue/pip-snow-fox.png"
+          alt="Pip the snow fox plays with a ribbon outside the shelter"
+          width={116}
+          height={78}
+        />
+
+        <div className="arrival-service-deck" aria-hidden>
+          <span>SERVICE DECK</span>
+          <b>+3</b>
+        </div>
+        <div className="arrival-zero-line" aria-hidden>
+          <span>BASE CAMP · 0</span>
+        </div>
+        <div className="arrival-pod" aria-hidden>
+          <i className="arrival-pod-trail" />
           <MountainPod label="+3" />
         </div>
-        <Image
-          className="mountain-opening-nova"
-          src="/images/skatepark-night-run/nova-curious.png"
-          alt="Nova reacts to the lost rescue signal"
-          width={190}
-          height={190}
-          priority
-        />
-        <Image
-          className="mountain-opening-kid"
-          src={heroAsset(avatar)}
-          alt="Your explorer joins Nova at the mountain"
-          width={150}
-          height={190}
-          priority
-        />
+        <div className="arrival-tracker" aria-hidden>
+          <i />
+          <span>POD SIGNAL</span>
+        </div>
+
+        <div className="arrival-sled" aria-hidden>
+          <Image
+            className="arrival-sled-art"
+            src="/images/mountain-rescue/vertical-rescue-sled.png"
+            alt=""
+            width={150}
+            height={225}
+          />
+          <Image
+            className="arrival-sled-nova"
+            src="/images/skatepark-night-run/nova-curious.png"
+            alt=""
+            width={80}
+            height={80}
+          />
+          <Image
+            className="arrival-sled-kid"
+            src={heroAsset(avatar)}
+            alt=""
+            width={72}
+            height={92}
+          />
+        </div>
       </QuestStoryScene>
     </section>
   );
