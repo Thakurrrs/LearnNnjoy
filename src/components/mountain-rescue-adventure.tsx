@@ -453,6 +453,7 @@ function SignalCliffStage({
   state,
   avatar,
   interactive,
+  recapRunning = false,
   onMove,
   onBrush,
   onPull,
@@ -461,6 +462,7 @@ function SignalCliffStage({
   state: MountainState;
   avatar: string;
   interactive: boolean;
+  recapRunning?: boolean;
   onMove: (position: number) => void;
   onBrush: () => void;
   onPull: () => void;
@@ -512,7 +514,7 @@ function SignalCliffStage({
 
   return (
     <div
-      className={`signal-cliff-stage signal-rescue-stage phase-${phase}${state.signalFound ? " signal-found" : ""}${state.podRecovered ? " pod-recovered" : ""}`}
+      className={`signal-cliff-stage signal-rescue-stage phase-${phase}${state.signalFound ? " signal-found" : ""}${state.podRecovered ? " pod-recovered" : ""}${recapRunning ? " recap-running" : ""}`}
       style={{
         "--signal-strength": signalStrength,
         "--snow-left": `${100 - state.snowCleared}%`,
@@ -599,7 +601,13 @@ function SignalCliffStage({
         className={`signal-pod-site${state.signalFound ? " found" : ""}${state.podRecovered ? " recovered" : ""}${state.podFlagPlaced ? " flag-placed" : ""}`}
         disabled={state.questStep !== 3 || state.podFlagPlaced}
         onClick={() => onTarget("pod")}
-        aria-label="Secured pod at minus four"
+        aria-label={
+          state.podRecovered
+            ? "Secured pod at minus four"
+            : state.signalFound
+              ? "Pod found under the snowdrift at minus four"
+              : "Hidden pod signal at minus four"
+        }
       >
         <span className="signal-snowdrift" aria-hidden />
         <MountainPod label="−4" />
@@ -1024,14 +1032,17 @@ function SignalBelowZeroQuest({
     sound.play("tap");
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduceMotion) {
-      onChange({ recapPlayed: true });
+      // No pose/position/trace to play under reduced motion, so the concept
+      // payoff (route glow + positive/zero/negative overlay) reveals right
+      // away instead of gating on an animation that will never run.
+      onChange({ recapPlayed: true, routeRevealed: true });
       sound.play("success");
       return;
     }
     setRecapRunning(true);
     recapTimerRef.current = setTimeout(() => {
       setRecapRunning(false);
-      onChange({ recapPlayed: true });
+      onChange({ recapPlayed: true, routeRevealed: true });
       sound.play("success");
     }, 3600);
   }
@@ -1093,6 +1104,7 @@ function SignalBelowZeroQuest({
         state={state}
         avatar={avatar}
         interactive={interactive}
+        recapRunning={recapRunning}
         onMove={movePod}
         onBrush={brushSnow}
         onPull={pullPod}
