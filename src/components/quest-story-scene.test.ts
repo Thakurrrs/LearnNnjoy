@@ -295,3 +295,51 @@ describe("QuestStoryScene render output", () => {
     expect(html.indexOf('class="test-art"')).toBeLessThan(html.indexOf("First line of the scene."));
   });
 });
+
+describe("QuestStoryScene stage hooks (per-beat and speaker classes)", () => {
+  // These are controlled props (beat is owned by the caller), so re-rendering
+  // at a different `beat` value is exactly what advancing playback looks
+  // like from the stage wrapper's point of view — no DOM/timers required.
+
+  it("puts the current beat index and speaker on the stage wrapper, with a matching data attribute", () => {
+    const html = renderScene(0);
+    expect(html).toMatch(
+      /<div class="quest-story-scene-stage scene-beat-0 scene-speaker-nova" data-scene-beat="0">/,
+    );
+  });
+
+  it("updates the beat and speaker classes as the controlled beat advances", () => {
+    const html = renderScene(1);
+    expect(html).toMatch(
+      /<div class="quest-story-scene-stage scene-beat-1 scene-speaker-you" data-scene-beat="1">/,
+    );
+  });
+
+  it("keeps the speaker class matched to the current beat's speaker, not the previous one", () => {
+    // TWO_BEATS is NOVA then YOU — beat 0 must never carry "scene-speaker-you"
+    // and beat 1 must never carry "scene-speaker-nova".
+    expect(renderScene(0)).not.toContain("scene-speaker-you");
+    expect(renderScene(1)).not.toContain("scene-speaker-nova");
+  });
+
+  it("appends the caller's className after the stage hooks, keeping it backward compatible", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(QuestStoryScene, {
+        beats: TWO_BEATS,
+        beat: 0,
+        onBeat: () => {},
+        onComplete: () => {},
+        className: "mountain-opening-scene",
+      }),
+    );
+    expect(html).toContain(
+      'class="quest-story-scene-stage scene-beat-0 scene-speaker-nova mountain-opening-scene"',
+    );
+  });
+
+  it("clamps the beat classes to the last beat when the controlled beat prop overshoots", () => {
+    const html = renderScene(5);
+    expect(html).toContain('class="quest-story-scene-stage scene-beat-1 scene-speaker-you"');
+    expect(html).toContain('data-scene-beat="1"');
+  });
+});

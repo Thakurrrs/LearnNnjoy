@@ -25,7 +25,12 @@ export type QuestStorySceneProps = {
   skipLabel?: string;
   /** Extra class name appended to the stage wrapper (art + caption), so a
    * caller can hang its own background/sizing rules off the same element
-   * its scene art already expects (e.g. "mountain-opening-scene"). */
+   * its scene art already expects (e.g. "mountain-opening-scene"). The
+   * wrapper always also carries "scene-beat-<index>" and
+   * "scene-speaker-<lowercased speaker>" (plus a matching
+   * data-scene-beat attribute), updated as the controlled beat advances,
+   * so a caller's scene art can be choreographed per beat/speaker purely
+   * in CSS — see the Mountain arrival act for the reference usage. */
   className?: string;
   /** The scene art/stage, rendered behind the caption bubble. */
   children?: ReactNode;
@@ -267,9 +272,15 @@ export function QuestStoryScene({
     onComplete();
   }
 
+  const beatClass = `scene-beat-${safeBeat}`;
+  const speakerClass = `scene-speaker-${current.speaker.toLowerCase()}`;
+
   return (
     <>
-      <div className={`quest-story-scene-stage${className ? ` ${className}` : ""}`}>
+      <div
+        className={`quest-story-scene-stage ${beatClass} ${speakerClass}${className ? ` ${className}` : ""}`}
+        data-scene-beat={safeBeat}
+      >
         {children}
         <div
           className={`quest-story-scene-bubble speaker-${current.speaker.toLowerCase()}`}
