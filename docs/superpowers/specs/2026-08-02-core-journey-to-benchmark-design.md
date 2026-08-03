@@ -45,6 +45,14 @@ The three core stories, held at one kid-clear sentence each:
 
 Rebuilds add richer *actions*, never plot complexity.
 
+- **World Arrival rule (owner directive):** every world has a 30–40 second
+  World Arrival Act — the acted incident — and on the child's FIRST entry to
+  a world they land directly in it, flowing straight into Quest 1. No quest
+  cards, locks, counters, or labels before the child knows why they care.
+  The quest map is a rest-point surface: it appears only when returning to a
+  world already started. Story first, menu later — otherwise the world page
+  reads as a lesson index.
+
 ## Goal
 
 Bring the entire core journey to the quality bar Night Run Q1–4 set, measured
@@ -91,6 +99,10 @@ tests; save migration safety.
 5. **Ergonomics:** brush/strap micro-interactions get a pulsing affordance, a
    hint after two failed attempts, and a button alternative (live capture
    showed the strap pull was undiscoverable).
+6. **World Arrival flow:** first entry to Mountain Rescue bypasses the quest
+   map and lands in the Quest 1 opening act directly; the map appears only on
+   return visits. (Night Run and Moonbase get the same flow in their phases;
+   the map-as-rest-point becomes the Phase 5 standard.)
 
 **Acceptance:** full chapter playthrough desktop + 375px; finale visibly
 resolves the opening problem; audio audible in every scene; asset test green;

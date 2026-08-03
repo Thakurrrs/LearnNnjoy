@@ -797,6 +797,40 @@ git commit -m "fix(mountain): discoverable brush/strap with pulse, hint, and dec
 
 ---
 
+### Task 8.5: World Arrival flow — story before menu (owner directive)
+
+**Files:**
+- Modify: `src/components/mountain-rescue-adventure.tsx` (render gate in `MountainRescueAdventure`)
+- Test: `src/components/continuous-adventures.test.ts`
+
+On the child's FIRST entry to Mountain Rescue (no quest completed, Quest 1
+opening never finished), the quest map must not render — the child lands
+directly in the Quest 1 opening act (the World Arrival Act) and flows into
+the quest. The map renders only for return visits (any quest completed, or
+Quest 1 previously entered past its opening).
+
+- [ ] **Step 1: Failing test** — fresh mountain state renders the opening
+  scene (assert the opening's aria/copy), NOT the quest map aria-label;
+  a state with `completedQuests: ["signal-below-zero"]` and
+  `chapterMapOpen: true` still renders the map.
+- [ ] **Step 2: Implement** — in `MountainRescueAdventure`, treat
+  `chapterMapOpen` as honored only when the world has history:
+  `const firstArrival = state.completedQuests.length === 0 && !state.openingComplete && state.activeQuest === null;`
+  When `firstArrival && !replay`, bypass the map branch and render the
+  Quest 1 flow with an effect-free inline start (same state patch
+  `startQuest("signal-below-zero")` applies). Preserve all resume paths:
+  mid-quest saves, return visits, and the "Mountain quests" nav button must
+  behave exactly as before.
+- [ ] **Step 3: Verify + commit** — tsc clean, suite green, live check:
+  fresh profile lands in the opening skit with no card grid; finishing
+  Quest 1 then pressing "Mountain quests" shows the map as before.
+
+```bash
+git commit -m "feat(mountain): first entry lands in the arrival act, map becomes rest point"
+```
+
+---
+
 ### Task 9: Phase acceptance verification
 
 - [ ] **Step 1: Full suite + lint**
