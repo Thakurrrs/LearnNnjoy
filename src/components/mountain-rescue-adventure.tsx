@@ -1104,7 +1104,7 @@ function SignalBelowZeroQuest({
                   : MOUNTAIN_AUDIO.q1SignalNova
                 : state.questStep === 2
                   ? state.podRecovered
-                    ? MOUNTAIN_AUDIO.q1RevealNova
+                    ? MOUNTAIN_AUDIO.q1RecoveredKid
                     : state.snowCleared < 100
                       ? MOUNTAIN_AUDIO.q1BrushNova
                       : MOUNTAIN_AUDIO.q1FoundNova
@@ -2039,7 +2039,11 @@ export function MountainRescueAdventure({
     audioRef.current = audio;
     audio.preload = "auto";
     audio.muted = sound.isMuted();
-    void audio.play().catch(() => undefined);
+    void audio.play().catch((error) => {
+      // Autoplay refusals are expected before first user gesture; a missing
+      // file is not. Either way the captioned line keeps the scene readable.
+      console.warn(`[mountain-rescue] voice failed for ${source}`, error);
+    });
   }, []);
 
   useEffect(() => () => audioRef.current?.pause(), []);
