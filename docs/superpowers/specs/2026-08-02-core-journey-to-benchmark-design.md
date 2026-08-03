@@ -174,11 +174,21 @@ counters reflect real beats; chapter contract fully covered.
 
 ### Phase 5 — Cross-cutting experience pass
 
-1. **One scene engine:** generalise the Night Run voiced auto-skit component
-   into a shared `QuestStoryScene`; scenes become data (speaker, line, audio,
-   pose/prop state per beat). All openings/closings across the three worlds
-   migrate to it. Captions, replay, skip, reduced-motion come free with the
-   engine. New lines generated via existing TTS scripts.
+1. **One scene engine — continuous playback (owner directive, pulled
+   forward to Phase 1 for Mountain):** generalise the Night Run voiced
+   auto-skit component into a shared `QuestStoryScene`; scenes become data
+   (speaker, line, audio, pose/prop state per beat). Playback rules:
+   - Lines play continuously — audio ends → short beat gap → next line.
+     Never a "Next" button between dialogue lines.
+   - Subtitles always on: the comic bubble is the live caption.
+   - Player controls: pause/resume, back-one-line (rewind + replay),
+     replay-current-line, skip story. Keyboard accessible.
+   - Muted/failed audio falls back to reading-speed timers so subtitles
+     carry the scene.
+   - Beats that require a child action pause playback until the child acts
+     (interactive-cutscene pattern); then the story flows on.
+   All openings/closings across the three worlds migrate to it. New lines
+   generated via existing TTS scripts.
 2. **Delayed concept labels:** quest cards and world pages show each quest's
    one-sentence story promise instead of concept names; formal names appear
    only in post-reveal recaps and the journal. Star-map topic stars show
