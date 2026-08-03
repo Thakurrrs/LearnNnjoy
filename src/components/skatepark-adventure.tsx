@@ -3408,7 +3408,7 @@ export function SkateparkAdventure({
                   }
                 }}
               >
-                {replay ? "Return to my journal →" : "Back to Skatepark quests →"}
+                {replay ? "Return to my journal →" : "Next: Rails That Never Meet →"}
               </button>
             </div>
           )}

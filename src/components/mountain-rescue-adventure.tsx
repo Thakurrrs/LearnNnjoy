@@ -1943,7 +1943,7 @@ export const MOUNTAIN_FINALE_BEATS = [
   },
   {
     speaker: "NOVA",
-    line: "One postcard for your journal. Tomorrow, a new star starts glowing.",
+    line: "One postcard for your journal. Look—a new star just started glowing.",
     action: "Back to the star map →",
     voice: MOUNTAIN_AUDIO.finale04Nova,
   },

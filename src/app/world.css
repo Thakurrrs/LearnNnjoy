@@ -2253,6 +2253,11 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
   display: flex;
   justify-content: space-between;
   gap: 10px;
+  /* Purely informational (quest title + phase/step label) — must never eat
+     taps meant for tap targets underneath it (e.g. the Ridge Shelter flag
+     button in Quest 1, which has no dedicated stacking context of its own
+     and otherwise loses the click to this chip). */
+  pointer-events: none;
 }
 .signal-stage-hud span,
 .signal-stage-hud b {

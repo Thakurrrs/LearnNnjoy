@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -279,6 +281,43 @@ describe("continuous Grade 7 story worlds", () => {
     expect(afterHtml).toContain("3 − 7 = −4");
   });
 
+  it("keeps the Quest 1 HUD chip from swallowing taps meant for the shelter/pod flags", () => {
+    // Regression guard for the flag-tap softlock: `.signal-stage-hud` is an
+    // absolutely-positioned, full-width title chip with no interactive
+    // children, so it must stay click-through. The shelter/pod flag buttons
+    // it used to sit on top of have no dedicated stacking context of their
+    // own, so a click at their coordinates lands on the chip instead of the
+    // button underneath unless the chip explicitly ignores pointer events.
+    const worldCss = readFileSync(join(process.cwd(), "src/app/world.css"), "utf8");
+    const rule = worldCss.match(/\.signal-stage-hud\s*\{[^}]*\}/);
+    expect(rule, "no .signal-stage-hud rule found in world.css").not.toBeNull();
+    expect(rule?.[0]).toMatch(/pointer-events:\s*none/);
+
+    const state = {
+      ...createGradeSevenState("mountain"),
+      chapterMapOpen: false,
+      activeQuest: "signal-below-zero" as const,
+      openingComplete: true,
+      questStep: 3,
+      signalFound: true,
+      position: -4,
+      flightPath: [3, 2, 1, 0, -1, -2, -3, -4],
+    };
+    const html = renderToStaticMarkup(React.createElement(GradeSevenActivity, {
+      id: "mountain",
+      state,
+      mode: "live",
+      firstTime: true,
+      heroName: "Aanya",
+      avatar: "explorer",
+      onChange: () => {},
+      onFinish: () => {},
+    }));
+
+    expect(html).toContain('aria-label="Ridge Shelter at plus two"');
+    expect(html).toContain("signal-stage-hud");
+  });
+
   it("unlocks Cliff Checkpoints on the same Mountain map after Quest 1", () => {
     const state = {
       ...createGradeSevenState("mountain"),
@@ -491,6 +530,10 @@ describe("continuous Grade 7 story worlds", () => {
     expect(MOUNTAIN_FINALE_BEATS).toHaveLength(5);
     expect(MOUNTAIN_FINALE_BEATS[0].action).toMatch(/Dock the energy cell/);
     expect(MOUNTAIN_FINALE_BEATS[3].action).toMatch(/Save the postcard/);
+    // Regression guard: the next star glows immediately (the map is one tap
+    // away), so the closing line must never promise it arrives "tomorrow".
+    expect(MOUNTAIN_FINALE_BEATS[4].line).not.toMatch(/tomorrow/i);
+    expect(MOUNTAIN_FINALE_BEATS[4].line).toMatch(/new star just started glowing/i);
 
     const finaleBase = {
       ...createGradeSevenState("mountain"),

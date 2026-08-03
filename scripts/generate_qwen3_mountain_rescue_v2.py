@@ -122,8 +122,8 @@ NOVA_LINES = (
     },
     {
         "name": "finale-04-nova",
-        "text": "One postcard for your journal. Tomorrow, a new star starts glowing.",
-        "emotion": "Wrap up a shared adventure with warm satisfaction, then add a light, teasing hint about tomorrow — playful, never a narrator's sign-off.",
+        "text": "One postcard for your journal. Look—a new star just started glowing.",
+        "emotion": "Wrap up a shared adventure with warm satisfaction, then point out something exciting happening right now — playful, never a narrator's sign-off.",
     },
 )
 
