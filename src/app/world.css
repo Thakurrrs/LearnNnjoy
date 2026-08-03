@@ -7797,3 +7797,97 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
 @keyframes strap-pulse { 50% { transform: scale(1.12); box-shadow: 0 0 18px #6fd4ffb0; } }
 @media (prefers-reduced-motion: reduce) { .signal-recovery-strap.pulse { animation: none; outline: 3px solid #6fd4ff; } }
 .signal-hint { color: #ffd98a; font-size: 14px; }
+
+/* Quest Story Scene — shared continuous-playback engine (Phase 1: Mountain).
+   The stage wrapper carries no position of its own so a caller's className
+   (e.g. "mountain-opening-scene") can stay the positioned ancestor for its
+   own absolutely-positioned art, with the caption bubble positioned against
+   that same ancestor. Inside a two-column action deck (.signal-action-deck)
+   the stage and controls simply become the grid's two cells, matching the
+   existing comic-line + button layout used by every other quest screen. */
+.quest-story-scene-stage { position: relative; }
+.signal-action-deck > .quest-story-scene-stage {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+}
+.quest-story-scene-bubble {
+  display: grid;
+  gap: 4px;
+  padding: 13px 15px 12px;
+  border: 2px solid #223c4f;
+  border-radius: 18px;
+  background: rgba(255, 253, 244, .96);
+  color: #183148;
+  box-shadow: 0 12px 28px rgba(5, 26, 41, .22);
+}
+.mountain-opening-scene > .quest-story-scene-bubble {
+  position: absolute;
+  z-index: 12;
+  top: 12%;
+  left: 7%;
+  width: min(430px, 48%);
+}
+.quest-story-scene-bubble small {
+  color: #8b4d2f;
+  font-size: .59rem;
+  font-weight: 950;
+  letter-spacing: .13em;
+}
+.quest-story-scene-bubble p {
+  margin: 0;
+  font-size: clamp(.96rem, 2vw, 1.15rem);
+  font-weight: 800;
+  line-height: 1.4;
+}
+.quest-story-scene-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 24px 24px;
+  background: linear-gradient(135deg, #102f49, #0a2035);
+}
+.signal-action-deck > .quest-story-scene-controls {
+  padding: 0;
+  background: none;
+  justify-content: flex-end;
+}
+.quest-story-scene-progress { display: flex; gap: 7px; }
+.quest-story-scene-progress i {
+  display: block;
+  width: 42px;
+  height: 7px;
+  border-radius: 999px;
+  background: #38566c;
+}
+.quest-story-scene-progress i.lit {
+  background: #ffd66b;
+  box-shadow: 0 0 10px rgba(255, 214, 107, .45);
+}
+.quest-story-scene-prompt {
+  margin: 0;
+  color: #ffe79a;
+  font-size: .78rem;
+  font-weight: 850;
+}
+.quest-story-scene-buttons { display: flex; gap: 8px; }
+.quest-story-scene-buttons button {
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #1c3f5c;
+  color: #fff;
+  font-weight: 900;
+  font-size: 1rem;
+  line-height: 1;
+  box-shadow: 0 4px 0 #0a2035;
+}
+.quest-story-scene-buttons button:disabled { opacity: .4; box-shadow: none; }
+.quest-story-scene-buttons button:last-child {
+  padding: 11px 18px;
+  background: #ef7b3d;
+  font-size: .78rem;
+  box-shadow: 0 6px 0 #914322;
+}

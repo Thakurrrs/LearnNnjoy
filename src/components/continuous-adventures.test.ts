@@ -185,7 +185,11 @@ describe("continuous Grade 7 story worlds", () => {
 
     expect(html).toContain("Pip! The ribbon goes on the shelter—not your tail!");
     expect(html).toContain("%2Fimages%2Fmountain-rescue%2Frescue-pod.png");
-    expect(html).toContain("Next line");
+    // Lines play continuously now — no "Next line" click-through between
+    // dialogue beats. The shared scene engine renders transport controls
+    // (pause/back/replay/skip) instead.
+    expect(html).not.toContain("Next line");
+    expect(html).toContain('aria-label="Skip story"');
   });
 
   it("keeps formal integer words hidden until the child finds the signal", () => {
@@ -521,6 +525,104 @@ describe("continuous Grade 7 story worlds", () => {
       onFinish: () => {},
     }));
     expect(postcardHtml).toContain("Postcard from Ridge Shelter");
+  });
+
+  it("plays the mountain finale's watch beats through the scene engine, not a click-through", () => {
+    const finaleBase = {
+      ...createGradeSevenState("mountain"),
+      step: 3,
+      chapterMapOpen: false,
+      activeQuest: "rescue-winch" as const,
+      completedQuests: ["signal-below-zero", "cliff-checkpoints", "storm-moves"] as MountainState["completedQuests"],
+      q4OpeningComplete: true,
+      questStep: 4,
+    };
+    const dockedHtml = renderToStaticMarkup(React.createElement(GradeSevenActivity, {
+      id: "mountain",
+      state: { ...finaleBase, finaleBeat: 1, finaleCellDocked: true },
+      mode: "live",
+      firstTime: true,
+      heroName: "Aanya",
+      avatar: "explorer",
+      onChange: () => {},
+      onFinish: () => {},
+    }));
+    expect(dockedHtml).toContain("Cell docked! Power is back at Ridge Shelter!");
+    expect(dockedHtml).not.toContain("Watch the shelter wake");
+    expect(dockedHtml).toContain("Skip ahead");
+    expect(dockedHtml).toContain('aria-label="Pause story"');
+
+    const warmingHtml = renderToStaticMarkup(React.createElement(GradeSevenActivity, {
+      id: "mountain",
+      state: { ...finaleBase, finaleBeat: 2, finaleCellDocked: true },
+      mode: "live",
+      firstTime: true,
+      heroName: "Aanya",
+      avatar: "explorer",
+      onChange: () => {},
+      onFinish: () => {},
+    }));
+    expect(warmingHtml).toContain("Look—the windows are warming. Pip found the cosy corner.");
+    expect(warmingHtml).not.toContain("Trace our whole rescue");
+  });
+
+  it("plays every Mountain opening act continuously — no Next line click-through", () => {
+    const q2Html = renderToStaticMarkup(React.createElement(GradeSevenActivity, {
+      id: "mountain",
+      state: {
+        ...createGradeSevenState("mountain"),
+        chapterMapOpen: false,
+        activeQuest: "cliff-checkpoints" as const,
+        completedQuests: ["signal-below-zero"] as MountainState["completedQuests"],
+      },
+      mode: "live",
+      firstTime: true,
+      heroName: "Aanya",
+      avatar: "explorer",
+      onChange: () => {},
+      onFinish: () => {},
+    }));
+    expect(q2Html).toContain("Four checkpoint lights are blinking out of order!");
+    expect(q2Html).not.toContain("Next line");
+    expect(q2Html).not.toContain("Start Cliff Checkpoints");
+    expect(q2Html).toContain('aria-label="Back one line"');
+    expect(q2Html).toContain('aria-label="Replay this line"');
+
+    const q3Html = renderToStaticMarkup(React.createElement(GradeSevenActivity, {
+      id: "mountain",
+      state: {
+        ...createGradeSevenState("mountain"),
+        chapterMapOpen: false,
+        activeQuest: "storm-moves" as const,
+        completedQuests: ["signal-below-zero", "cliff-checkpoints"] as MountainState["completedQuests"],
+      },
+      mode: "live",
+      firstTime: true,
+      heroName: "Aanya",
+      avatar: "explorer",
+      onChange: () => {},
+      onFinish: () => {},
+    }));
+    expect(q3Html).toContain("Wind burst incoming! The winch hook is swinging loose!");
+    expect(q3Html).not.toContain("Next line");
+
+    const q4Html = renderToStaticMarkup(React.createElement(GradeSevenActivity, {
+      id: "mountain",
+      state: {
+        ...createGradeSevenState("mountain"),
+        chapterMapOpen: false,
+        activeQuest: "rescue-winch" as const,
+        completedQuests: ["signal-below-zero", "cliff-checkpoints", "storm-moves"] as MountainState["completedQuests"],
+      },
+      mode: "live",
+      firstTime: true,
+      heroName: "Aanya",
+      avatar: "explorer",
+      onChange: () => {},
+      onFinish: () => {},
+    }));
+    expect(q4Html).toContain("Signal found—but the pod is still trapped at minus four!");
+    expect(q4Html).not.toContain("Next line");
   });
 
   it("replays the Mountain Rescue Finale journal event instead of Quest 4", () => {

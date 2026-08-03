@@ -24,6 +24,7 @@ import {
 } from "@/lib/grade-seven-progress";
 import { personalize } from "@/lib/personalize";
 import { sound } from "@/lib/sound";
+import { QuestStoryScene, type SceneBeat } from "./quest-story-scene";
 
 type MountainRescueAdventureProps = {
   state: MountainState;
@@ -655,46 +656,34 @@ function SignalOpening({
   state,
   onChange,
   avatar,
-  playVoice,
 }: {
   state: MountainState;
   onChange: (patch: Partial<MountainState>) => void;
   avatar: string;
-  playVoice: (source: string) => void;
 }) {
-  const beat = Math.min(state.openingBeat, OPENING_LINES.length - 1);
-  const current = OPENING_LINES[beat];
-  const autoPlayedRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (autoPlayedRef.current === beat) return;
-    autoPlayedRef.current = beat;
-    const timer = setTimeout(() => playVoice(current.voice), 260);
-    return () => clearTimeout(timer);
-  }, [beat, current.voice, playVoice]);
-
-  function next() {
-    sound.play("tap");
-    // The very first advance is the earliest real (non-render) state write in
-    // the arrival act, so it's also where we mark the quest as "started":
-    // activeQuest flips from null to "signal-below-zero" and chapterMapOpen
-    // clears, so a deliberate "Mountain quests" nav press mid-opening honors
-    // the map request instead of being swallowed by the first-arrival gate.
-    if (beat < OPENING_LINES.length - 1) {
-      onChange({ openingBeat: beat + 1, activeQuest: "signal-below-zero", chapterMapOpen: false });
-      return;
-    }
-    onChange({
-      openingComplete: true,
-      questStep: 0,
-      activeQuest: "signal-below-zero",
-      chapterMapOpen: false,
-    });
-  }
-
   return (
     <section className="mountain-story-opening" aria-label="Signal Below Zero story opening">
-      <div className="mountain-opening-scene">
+      <QuestStoryScene
+        beats={OPENING_LINES}
+        beat={state.openingBeat}
+        onBeat={(openingBeat) => onChange({ openingBeat })}
+        onStart={() => {
+          // The very first playback attempt is the earliest real (non-render)
+          // state write in the arrival act, so it's also where we mark the
+          // quest as "started": activeQuest flips from null to
+          // "signal-below-zero" and chapterMapOpen clears, so a deliberate
+          // "Mountain quests" nav press mid-opening honors the map request
+          // instead of being swallowed by the first-arrival gate.
+          onChange({ activeQuest: "signal-below-zero", chapterMapOpen: false });
+        }}
+        onComplete={() => onChange({
+          openingComplete: true,
+          questStep: 0,
+          activeQuest: "signal-below-zero",
+          chapterMapOpen: false,
+        })}
+        className="mountain-opening-scene"
+      >
         <div className="mountain-opening-ridge" aria-hidden />
         <div className="mountain-opening-pod" aria-hidden>
           <MountainPod label="+3" />
@@ -715,22 +704,7 @@ function SignalOpening({
           height={190}
           priority
         />
-        <MountainComicLine
-          speaker={current.speaker}
-          line={current.line}
-          onHear={() => playVoice(current.voice)}
-        />
-      </div>
-      <footer className="mountain-opening-controls">
-        <div aria-label={`Story line ${beat + 1} of ${OPENING_LINES.length}`}>
-          {OPENING_LINES.map((line, index) => (
-            <i key={line.speaker + index} className={index <= beat ? "lit" : ""} />
-          ))}
-        </div>
-        <button type="button" onClick={next}>
-          {beat < OPENING_LINES.length - 1 ? "Next line →" : "Follow the signal →"}
-        </button>
-      </footer>
+      </QuestStoryScene>
     </section>
   );
 }
@@ -743,7 +717,6 @@ function ConnectedMountainOpening({
   onComplete,
   avatar,
   podLabel,
-  playVoice,
   traveller = "pod",
 }: {
   label: string;
@@ -753,32 +726,17 @@ function ConnectedMountainOpening({
   onComplete: () => void;
   avatar: string;
   podLabel: string;
-  playVoice: (source: string) => void;
   traveller?: MountainTraveller;
 }) {
-  const currentBeat = Math.min(beat, lines.length - 1);
-  const current = lines[currentBeat];
-  const autoPlayedRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (autoPlayedRef.current === currentBeat) return;
-    autoPlayedRef.current = currentBeat;
-    const timer = setTimeout(() => playVoice(current.voice), 260);
-    return () => clearTimeout(timer);
-  }, [current.voice, currentBeat, playVoice]);
-
-  function next() {
-    sound.play("tap");
-    if (currentBeat < lines.length - 1) {
-      onBeat(currentBeat + 1);
-      return;
-    }
-    onComplete();
-  }
-
   return (
     <section className="mountain-story-opening" aria-label={`${label} story opening`}>
-      <div className="mountain-opening-scene">
+      <QuestStoryScene
+        beats={lines}
+        beat={beat}
+        onBeat={onBeat}
+        onComplete={onComplete}
+        className="mountain-opening-scene"
+      >
         <div className="mountain-opening-ridge" aria-hidden />
         <div className="mountain-opening-pod" aria-hidden>
           {traveller === "hook"
@@ -806,22 +764,7 @@ function ConnectedMountainOpening({
           height={190}
           priority
         />
-        <MountainComicLine
-          speaker={current.speaker}
-          line={current.line}
-          onHear={() => playVoice(current.voice)}
-        />
-      </div>
-      <footer className="mountain-opening-controls">
-        <div aria-label={`Story line ${currentBeat + 1} of ${lines.length}`}>
-          {lines.map((line, index) => (
-            <i key={line.speaker + index} className={index <= currentBeat ? "lit" : ""} />
-          ))}
-        </div>
-        <button type="button" onClick={next}>
-          {currentBeat < lines.length - 1 ? "Next line →" : `Start ${label} →`}
-        </button>
-      </footer>
+      </QuestStoryScene>
     </section>
   );
 }
@@ -2006,6 +1949,26 @@ export const MOUNTAIN_FINALE_BEATS = [
   },
 ] as const;
 
+// Beats 1-2 ("Cell docked!" / "Look-the windows are warming...") are pure
+// watch-beats: once the child docks the cell (beat 0's action), they flow on
+// their own through the shared scene engine instead of a "Watch the shelter
+// wake ->" click-through. Beats 0, 3 and 4 stay action-gated (dock, save the
+// postcard, return to the map) and keep the plain comic-line + button
+// pattern, since the engine only owns lines that play with no action needed
+// in between.
+const FINALE_WATCH_BEATS: readonly SceneBeat[] = [
+  {
+    speaker: MOUNTAIN_FINALE_BEATS[1].speaker,
+    line: MOUNTAIN_FINALE_BEATS[1].line,
+    voice: MOUNTAIN_FINALE_BEATS[1].voice,
+  },
+  {
+    speaker: MOUNTAIN_FINALE_BEATS[2].speaker,
+    line: MOUNTAIN_FINALE_BEATS[2].line,
+    voice: MOUNTAIN_FINALE_BEATS[2].voice,
+  },
+];
+
 function MountainFinale({
   state,
   onChange,
@@ -2024,10 +1987,12 @@ function MountainFinale({
   const beat = state.finaleBeat;
   const current = MOUNTAIN_FINALE_BEATS[beat];
   const autoPlayedIntroRef = useRef(false);
+  const isWatchPhase = beat === 1 || beat === 2;
 
-  // Beat 0's line never plays on its own otherwise — later beats already
-  // voice on advance(), so this only ever needs to fire once, and only when
-  // the finale actually mounts at beat 0 (not on a replay resumed later).
+  // Beat 0's line never plays on its own otherwise — the watch phase (beats
+  // 1-2) voices itself through the engine, and savePostcard() voices beat 3
+  // on the way in — so this only ever needs to fire once, and only when the
+  // finale actually mounts at beat 0 (not on a replay resumed later).
   useEffect(() => {
     if (beat !== 0 || autoPlayedIntroRef.current) return;
     autoPlayedIntroRef.current = true;
@@ -2035,17 +2000,26 @@ function MountainFinale({
     return () => clearTimeout(timer);
   }, [beat, playVoice]);
 
-  function advance() {
-    const next = Math.min(beat + 1, MOUNTAIN_FINALE_BEATS.length - 1);
-    playVoice(MOUNTAIN_FINALE_BEATS[next].voice);
-    sound.play(beat === 0 ? "finale" : "success");
-    onChange(beat === 0
-      ? { finaleCellDocked: true, finaleBeat: next }
-      : { finaleBeat: next });
+  function dockCell() {
+    sound.play("finale");
+    onChange({ finaleCellDocked: true, finaleBeat: 1 });
+  }
+
+  // Fired when the watch phase (beats 1-2) finishes playing on its own.
+  function completeWatch() {
+    playVoice(MOUNTAIN_FINALE_BEATS[3].voice);
+    sound.play("success");
+    onChange({ finaleBeat: 3 });
+  }
+
+  function savePostcard() {
+    playVoice(MOUNTAIN_FINALE_BEATS[4].voice);
+    sound.play("success");
+    onChange({ finaleBeat: 4 });
   }
 
   const isLastBeat = beat >= MOUNTAIN_FINALE_BEATS.length - 1;
-  const finish = isLastBeat ? (onReplayComplete ?? onChapterComplete) : advance;
+  const finish = isLastBeat ? (onReplayComplete ?? onChapterComplete) : undefined;
   const buttonLabel = isLastBeat && onReplayComplete
     ? "Return to my journal →"
     : personalize(current.action, heroName);
@@ -2075,26 +2049,38 @@ function MountainFinale({
         )}
       </div>
 
-      <div className="signal-action-deck">
-        <MountainComicLine
-          speaker={current.speaker}
-          line={current.line}
-          onHear={() => playVoice(current.voice)}
-        />
-        {beat === 3 && (
-          <div className="mountain-postcard">
-            <b>{MOUNTAIN_POSTCARD.title}</b>
-            <p>{personalize(MOUNTAIN_POSTCARD.detail, heroName)}</p>
-          </div>
-        )}
-        <button
-          className="signal-primary"
-          type="button"
-          onClick={finish}
-        >
-          {buttonLabel}
-        </button>
-      </div>
+      {isWatchPhase ? (
+        <div className="signal-action-deck">
+          <QuestStoryScene
+            beats={FINALE_WATCH_BEATS}
+            beat={beat - 1}
+            onBeat={(local) => onChange({ finaleBeat: local + 1 })}
+            onComplete={completeWatch}
+            skipLabel="Skip ahead"
+          />
+        </div>
+      ) : (
+        <div className="signal-action-deck">
+          <MountainComicLine
+            speaker={current.speaker}
+            line={current.line}
+            onHear={() => playVoice(current.voice)}
+          />
+          {beat === 3 && (
+            <div className="mountain-postcard">
+              <b>{MOUNTAIN_POSTCARD.title}</b>
+              <p>{personalize(MOUNTAIN_POSTCARD.detail, heroName)}</p>
+            </div>
+          )}
+          <button
+            className="signal-primary"
+            type="button"
+            onClick={beat === 0 ? dockCell : beat === 3 ? savePostcard : finish}
+          >
+            {buttonLabel}
+          </button>
+        </div>
+      )}
     </section>
   );
 }
@@ -2301,7 +2287,6 @@ export function MountainRescueAdventure({
         state={state}
         onChange={set}
         avatar={avatar}
-        playVoice={playVoice}
       />
     );
   }
@@ -2316,7 +2301,6 @@ export function MountainRescueAdventure({
         onComplete={() => set({ q2OpeningComplete: true, questStep: 0 })}
         avatar={avatar}
         podLabel="0"
-        playVoice={playVoice}
       />
     );
   }
@@ -2331,7 +2315,6 @@ export function MountainRescueAdventure({
         onComplete={() => set({ q3OpeningComplete: true, questStep: 0 })}
         avatar={avatar}
         podLabel="−2"
-        playVoice={playVoice}
         traveller="hook"
       />
     );
@@ -2347,7 +2330,6 @@ export function MountainRescueAdventure({
         onComplete={() => set({ q4OpeningComplete: true, questStep: 0 })}
         avatar={avatar}
         podLabel="−4"
-        playVoice={playVoice}
       />
     );
   }
