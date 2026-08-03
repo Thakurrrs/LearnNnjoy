@@ -39,24 +39,23 @@ type MountainSpeaker = "SCOUT" | "NOVA" | "YOU";
 type MountainTraveller = "pod" | "hook";
 
 const MOUNTAIN_AUDIO_ROOT = "/audio/mountain-rescue";
-const MOUNTAIN_AUDIO = {
-  q1Opening01Nova: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-opening-01-nova.mp3`,
-  q1Opening02Kid: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-opening-02-kid.mp3`,
-  q1Opening03Scout: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-opening-03-scout.mp3`,
-  q1Opening04Nova: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-opening-04-nova.mp3`,
-  q1Opening05Scout: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-opening-05-scout.mp3`,
-  q1Opening06Kid: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-opening-06-kid.mp3`,
-  q1Opening07Scout: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-opening-07-scout.mp3`,
-  q1Opening08Nova: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-opening-08-nova.mp3`,
-  q1LatchNova: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-latch-nova.mp3`,
-  q1SignalNova: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-signal-nova.mp3`,
-  q1ZeroKid: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-zero-kid.mp3`,
-  q1FoundNova: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-found-nova.mp3`,
-  q1RecoveredKid: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-recovered-kid.mp3`,
-  q1RevealNova: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-reveal-nova.mp3`,
-  q1FlagNova: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-flag-nova.mp3`,
-  q1HandoffScout: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-handoff-scout.mp3`,
-  q1HandoffNova: `${MOUNTAIN_AUDIO_ROOT}/q1-v3-handoff-nova.mp3`,
+export const MOUNTAIN_AUDIO = {
+  q1Opening01Nova: `${MOUNTAIN_AUDIO_ROOT}/q1-opening-01-nova.mp3`,
+  q1Opening02Kid: `${MOUNTAIN_AUDIO_ROOT}/q1-opening-02-kid.mp3`,
+  q1Opening03Scout: `${MOUNTAIN_AUDIO_ROOT}/q1-opening-03-scout.mp3`,
+  q1Opening04Nova: `${MOUNTAIN_AUDIO_ROOT}/q1-opening-04-nova.mp3`,
+  q1Opening05Scout: `${MOUNTAIN_AUDIO_ROOT}/q1-opening-05-scout.mp3`,
+  q1Opening06Kid: `${MOUNTAIN_AUDIO_ROOT}/q1-opening-06-kid.mp3`,
+  q1Opening07Scout: `${MOUNTAIN_AUDIO_ROOT}/q1-opening-07-scout.mp3`,
+  q1Opening08Nova: `${MOUNTAIN_AUDIO_ROOT}/q1-opening-08-nova.mp3`,
+  q1LatchNova: `${MOUNTAIN_AUDIO_ROOT}/q1-latch-nova.mp3`,
+  q1SignalNova: `${MOUNTAIN_AUDIO_ROOT}/q1-signal-nova.mp3`,
+  q1ZeroKid: `${MOUNTAIN_AUDIO_ROOT}/q1-zero-kid.mp3`,
+  q1FoundNova: `${MOUNTAIN_AUDIO_ROOT}/q1-found-nova.mp3`,
+  q1BrushNova: `${MOUNTAIN_AUDIO_ROOT}/q1-brush-nova.mp3`,
+  q1RecoveredKid: `${MOUNTAIN_AUDIO_ROOT}/q1-recovered-kid.mp3`,
+  q1RevealNova: `${MOUNTAIN_AUDIO_ROOT}/q1-reveal-nova.mp3`,
+  q1FlagNova: `${MOUNTAIN_AUDIO_ROOT}/q1-flag-nova.mp3`,
   q2OpeningScout: `${MOUNTAIN_AUDIO_ROOT}/q2-opening-01-scout.mp3`,
   q2OpeningNova: `${MOUNTAIN_AUDIO_ROOT}/q2-opening-02-nova.mp3`,
   q2OpeningKid: `${MOUNTAIN_AUDIO_ROOT}/q2-opening-03-kid.mp3`,
@@ -74,8 +73,8 @@ const MOUNTAIN_AUDIO = {
   q4OpeningScout: `${MOUNTAIN_AUDIO_ROOT}/q4-opening-01-scout.mp3`,
   q4OpeningNova: `${MOUNTAIN_AUDIO_ROOT}/q4-opening-02-nova.mp3`,
   q4OpeningKid: `${MOUNTAIN_AUDIO_ROOT}/q4-opening-03-kid.mp3`,
-  q4LowerKid: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-01-kid.mp3`,
-  q4LiftNova: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-02-nova.mp3`,
+  q4LowerKid: `${MOUNTAIN_AUDIO_ROOT}/q4-lower-kid.mp3`,
+  q4LiftNova: `${MOUNTAIN_AUDIO_ROOT}/q4-lift-nova.mp3`,
   q4RevealNova: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-03-nova.mp3`,
   q4FinalScout: `${MOUNTAIN_AUDIO_ROOT}/q4-stage-04-scout.mp3`,
   finale00Scout: `${MOUNTAIN_AUDIO_ROOT}/finale-00-scout.mp3`,
@@ -1106,7 +1105,9 @@ function SignalBelowZeroQuest({
                 : state.questStep === 2
                   ? state.podRecovered
                     ? MOUNTAIN_AUDIO.q1RevealNova
-                    : MOUNTAIN_AUDIO.q1FoundNova
+                    : state.snowCleared < 100
+                      ? MOUNTAIN_AUDIO.q1BrushNova
+                      : MOUNTAIN_AUDIO.q1FoundNova
                   : MOUNTAIN_AUDIO.q1FlagNova,
           )}
         />
