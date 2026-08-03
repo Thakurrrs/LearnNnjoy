@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LIFETIME_DISCOVERIES_CAP, sanitizeSavedProgress, type SavedProgress } from "./saved-progress";
+import { createGradeSevenState } from "./grade-seven-progress";
 
 describe("sanitizeSavedProgress", () => {
   it("clamps a corrupt giant lifetimeDiscoveries so level math cannot hang", () => {
@@ -62,14 +63,26 @@ describe("sanitizeSavedProgress", () => {
           lastEvent: 1,
           completed: false,
           interactionState: {
+            ...createGradeSevenState("mountain"),
             kind: "mountain",
-            step: 1,
+            storyVersion: 2,
+            step: 0,
             showDemo: false,
             successChoice: null,
-            position: -4,
+            chapterMapOpen: false,
+            activeQuest: "signal-below-zero",
+            completedQuests: [],
+            questStep: 1,
+            openingBeat: 2,
+            openingComplete: true,
+            signalPrediction: "below",
+            signalRunStarted: true,
+            signalFound: false,
+            recapPlayed: false,
+            position: -2,
             returnPosition: -4,
             briefingBeat: 3,
-            flightPath: [3, 2, 1, 0, -1, -2, -3, -4],
+            flightPath: [3, 2, 1, 0, -1, -2],
             direction: null,
             equation: null,
           },
@@ -78,10 +91,28 @@ describe("sanitizeSavedProgress", () => {
     });
     expect(valid.screen).toBe("activity");
     expect(valid.activeAdventure).toBe("mountain");
-    expect(valid.gradeSevenProgress?.mountain?.interactionState).toMatchObject({ step: 1, position: -4 });
+    expect(valid.gradeSevenProgress?.mountain?.interactionState).toMatchObject({
+      step: 0,
+      questStep: 1,
+      position: -2,
+      signalPrediction: "below",
+      signalRunStarted: true,
+    });
 
     expect(sanitizeSavedProgress({ grade: 7, screen: "activity" }).screen).toBe("adventures");
     expect(sanitizeSavedProgress({ grade: 6, screen: "journal" }).screen).toBe("adventures");
+  });
+
+  it("gates a stale deep link into a not-ready adventure back to the star map", () => {
+    // Balance Lab, Smart Shopper and Cricket Data Room are owner-gated
+    // (NOT_READY_ADVENTURE_IDS): a save left mid-quest there — or any save
+    // crafted after the gate landed — must not resume straight into the
+    // activity screen for a world the star map won't even let you launch.
+    for (const id of ["balance", "shop", "cricket"] as const) {
+      expect(sanitizeSavedProgress({ grade: 7, screen: "activity", activeAdventure: id }).screen).toBe("adventures");
+    }
+    // Ready adventures are unaffected by the same guard.
+    expect(sanitizeSavedProgress({ grade: 7, screen: "activity", activeAdventure: "mountain" }).screen).toBe("activity");
   });
 
   it("migrates old completed stars without inventing journal history", () => {

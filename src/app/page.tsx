@@ -14,11 +14,13 @@ import { recordDailyQuest } from "@/lib/streak";
 import { chooseAdaptiveNextStep, recoveryPrompt } from "@/lib/adaptive";
 import { snapshotSubjectMission, type ActiveSubject, type SubjectMissionProgress, type SubjectProgress } from "@/lib/subject-progress";
 import { getMissionChapter } from "@/lib/mission-chapters";
-import { GradeSevenActivity, gradeSevenAdventures, gradeSevenComingSoonChapters, type GradeSevenAdventureId, type GradeSevenChapter } from "@/components/grade-seven-adventures";
+import { adventureIntroLine, GradeSevenActivity, gradeSevenAdventures, gradeSevenComingSoonChapters, type GradeSevenAdventureId, type GradeSevenChapter } from "@/components/grade-seven-adventures";
 import {
+  canGoToPreviousGradeSevenEvent,
   canReplayGradeSevenEvent,
   createGradeSevenState,
   gradeSevenEventTitles,
+  isGradeSevenAdventureReady,
   openGradeSevenAdventure as openSavedGradeSevenAdventure,
   previousGradeSevenEvent,
   shouldAwardGradeSevenCompletion,
@@ -151,10 +153,16 @@ export default function Home() {
   const explorer = getExplorerLevel(lifetimeDiscoveries);
   const liveAdventureState = gradeSevenProgress[activeAdventure]?.interactionState ?? createGradeSevenState(activeAdventure);
   const activeActivityState = activityMode === "replay" ? replayState : liveAdventureState;
-  const pausedAdventure = grade === 7 && !gradeSevenProgress[activeAdventure]?.completed && gradeSevenProgress[activeAdventure]?.seenEvents.length
+  const pausedAdventure = grade === 7 && isGradeSevenAdventureReady(activeAdventure) && !gradeSevenProgress[activeAdventure]?.completed && gradeSevenProgress[activeAdventure]?.seenEvents.length
     ? gradeSevenProgress[activeAdventure]
     : null;
   const pausedAdventureCopy = gradeSevenAdventures.find((adventure) => adventure.id === activeAdventure);
+  const pausedAtChapterMap = (
+    pausedAdventure?.interactionState.kind === "skatepark"
+    || pausedAdventure?.interactionState.kind === "mountain"
+    || pausedAdventure?.interactionState.kind === "moonbase"
+    || pausedAdventure?.interactionState.kind === "balance"
+  ) && pausedAdventure.interactionState.chapterMapOpen;
 
   function applySavedProgress(saved: Partial<SavedProgress>) {
     const clean = sanitizeSavedProgress(saved);
@@ -392,10 +400,80 @@ export default function Home() {
   }
 
   function openGradeSevenAdventure(id: GradeSevenAdventureId) {
+    // Launch guard: dimmed stars (NOT_READY_ADVENTURE_IDS) have no clickable
+    // path in the UI, but this stays a no-op defensively in case anything
+    // else ever calls it directly.
+    if (!isGradeSevenAdventureReady(id)) return;
     setActiveAdventure(id);
     setSelectedChapter(id);
     setActivityMode("live");
     setGradeSevenProgress((progress) => openSavedGradeSevenAdventure(progress, id));
+    setScreen("activity");
+  }
+
+  function openSkateparkQuestMap() {
+    setActiveAdventure("skatepark");
+    setSelectedChapter("skatepark");
+    setActivityMode("live");
+    setGradeSevenProgress((progress) => {
+      const opened = openSavedGradeSevenAdventure(progress, "skatepark");
+      const record = opened.skatepark;
+      if (!record || record.interactionState.kind !== "skatepark") return opened;
+      return updateGradeSevenAdventure(opened, "skatepark", {
+        ...record.interactionState,
+        chapterMapOpen: true,
+        activeQuest: null,
+      }, record.completed);
+    });
+    setScreen("activity");
+  }
+
+  function openMountainQuestMap() {
+    setActiveAdventure("mountain");
+    setSelectedChapter("mountain");
+    setActivityMode("live");
+    setGradeSevenProgress((progress) => {
+      const opened = openSavedGradeSevenAdventure(progress, "mountain");
+      const record = opened.mountain;
+      if (!record || record.interactionState.kind !== "mountain") return opened;
+      return updateGradeSevenAdventure(opened, "mountain", {
+        ...record.interactionState,
+        chapterMapOpen: true,
+      }, record.completed);
+    });
+    setScreen("activity");
+  }
+
+  function openMoonbaseQuestMap() {
+    setActiveAdventure("moonbase");
+    setSelectedChapter("moonbase");
+    setActivityMode("live");
+    setGradeSevenProgress((progress) => {
+      const opened = openSavedGradeSevenAdventure(progress, "moonbase");
+      const record = opened.moonbase;
+      if (!record || record.interactionState.kind !== "moonbase") return opened;
+      return updateGradeSevenAdventure(opened, "moonbase", {
+        ...record.interactionState,
+        chapterMapOpen: true,
+        activeQuest: null,
+      }, record.completed);
+    });
+    setScreen("activity");
+  }
+
+  function openBalanceQuestMap() {
+    setActiveAdventure("balance");
+    setSelectedChapter("balance");
+    setActivityMode("live");
+    setGradeSevenProgress((progress) => {
+      const opened = openSavedGradeSevenAdventure(progress, "balance");
+      const record = opened.balance;
+      if (!record || record.interactionState.kind !== "balance") return opened;
+      return updateGradeSevenAdventure(opened, "balance", {
+        ...record.interactionState,
+        chapterMapOpen: true,
+      }, record.completed);
+    });
     setScreen("activity");
   }
 
@@ -431,19 +509,36 @@ export default function Home() {
   }
 
   function previousGradeSevenScene() {
-    if (activityMode !== "live" || activeActivityState.step <= 0) return;
+    if (activityMode !== "live" || !canGoToPreviousGradeSevenEvent(activeActivityState)) return;
     const previous = previousGradeSevenEvent(activeActivityState);
     setGradeSevenProgress((progress) => updateGradeSevenAdventure(progress, activeAdventure, previous));
   }
 
-  function finishGradeSevenAdventure() {
+  function openCurrentAdventureMap() {
+    if (
+      activityMode === "live"
+      && (
+        activeActivityState.kind === "skatepark"
+        || activeActivityState.kind === "mountain"
+        || activeActivityState.kind === "moonbase"
+        || activeActivityState.kind === "balance"
+      )
+      && !activeActivityState.chapterMapOpen
+    ) {
+      changeGradeSevenActivity({ ...activeActivityState, chapterMapOpen: true });
+      return;
+    }
+    setScreen("adventures");
+  }
+
+  function finishGradeSevenAdventure(finalState: GradeSevenInteractionState = activeActivityState) {
     if (activityMode === "replay") {
       setScreen("journal");
       return;
     }
     sound.play("finale");
     const alreadyCompleted = completedAdventures.includes(activeAdventure);
-    setGradeSevenProgress((progress) => updateGradeSevenAdventure(progress, activeAdventure, activeActivityState, true));
+    setGradeSevenProgress((progress) => updateGradeSevenAdventure(progress, activeAdventure, finalState, true));
     if (shouldAwardGradeSevenCompletion(activityMode, alreadyCompleted)) {
       setCompletedAdventures((items) => [...items, activeAdventure]);
       setCoins((value) => value + 25);
@@ -494,12 +589,18 @@ export default function Home() {
     const selectedCompleted = !selectedComingSoon && completedAdventures.includes(selected.id as GradeSevenAdventureId);
     const selectedProgress = selectedComingSoon ? undefined : gradeSevenProgress[selected.id as GradeSevenAdventureId];
     const selectedInProgress = !!selectedProgress && !selectedProgress.completed && selectedProgress.seenEvents.length > 0;
+    const selectedAtQuestMap = (
+      selectedProgress?.interactionState.kind === "skatepark"
+      || selectedProgress?.interactionState.kind === "mountain"
+      || selectedProgress?.interactionState.kind === "moonbase"
+      || selectedProgress?.interactionState.kind === "balance"
+    ) && selectedProgress.interactionState.chapterMapOpen;
     return <main className="shell adventure-shell theme-pathfinder"><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><HeroDuo avatar={avatar} name={name} equippedCosmetic={equippedCosmetic} level={explorer.level} pet={pet} size="sm" /><button className="text-button" aria-label={muted ? "Turn sounds on" : "Turn sounds off"} onClick={() => setMuted(sound.toggleMuted())}>{muted ? "🔇" : "🔊"}</button><button className="text-button journal-button" onClick={() => openGradeSevenJournal()}>📖 My story journal</button><button className="text-button home-button" onClick={goHome}>⌂ Home</button><button className="text-button" onClick={() => setScreen("world")}>Avatar world</button><button className="text-button" onClick={openGradePicker}>Switch grade</button></div></nav>
       <section className="adventure-hero"><p className="eyebrow">GRADE 7 · MATHS CONSTELLATION</p><h1>Light every star in the Lumina sky.</h1><p>Each Grade 7 topic is a star on Nova&apos;s trail. Bright stars are ready to play; dim stars wait on the horizon.</p><p className="adventure-progress">{completedAdventures.length}/{gradeSevenAdventures.length} stars lit · more stars on the horizon</p></section>
       {petNote && <button type="button" className="pet-note pet-note-dismiss" onClick={() => setPetNote(null)}>⭐ {petNote} ✕</button>}
       <ConstellationMap chapters={gradeSevenChapters} completedIds={completedAdventures} selectedId={selectedChapter} onSelect={setSelectedChapter} />
       {completedAdventures.length === 0 && <p className="start-hint">▶ Tap a bright star to begin!</p>}
-      <section className="star-detail" aria-live="polite"><span className="star-detail-icon">{selected.icon}</span><div><p className="eyebrow">{selectedComingSoon ? "NOVA IS PREPARING THIS WORLD" : selectedCompleted ? "STAR LIT · REPLAY ANYTIME" : selectedInProgress ? `YOUR STORY WAITS AT EVENT ${(selectedProgress?.lastEvent ?? 0) + 1}` : "READY TO PLAY"}</p><h2>{selected.topic}</h2><p className="story-world">Story world · {selected.title}</p><div className="subtopic-row">{selected.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div><p>{personalize(selected.intro, name)}</p>{selectedComingSoon ? <div className="coming-soon-note"><span>✦</span><b>Coming soon</b><small>This star will brighten when its interactive chapter is ready.</small></div> : <button className="primary" onClick={() => selectedCompleted ? replayGradeSevenEvent(selected.id as GradeSevenAdventureId, 0) : openGradeSevenAdventure(selected.id as GradeSevenAdventureId)}>{selectedCompleted ? "Replay from event 1 →" : selectedInProgress ? `Resume event ${(selectedProgress?.lastEvent ?? 0) + 1} →` : `${(selected as GradeSevenChapter).action} →`}</button>}</div></section>
+      <section className="star-detail" aria-live="polite"><span className="star-detail-icon">{selected.icon}</span><div><p className="eyebrow">{selectedComingSoon ? "NOVA IS PREPARING THIS WORLD" : selectedCompleted ? "STAR LIT · REPLAY ANYTIME" : selectedAtQuestMap ? "YOUR CHAPTER QUESTS ARE SAFE" : selectedInProgress ? `YOUR STORY WAITS AT EVENT ${(selectedProgress?.lastEvent ?? 0) + 1}` : "READY TO PLAY"}</p><h2>{selected.topic}</h2><p className="story-world">Story world · {selected.title}</p><div className="subtopic-row">{selected.subtopics.map((subtopic) => <span key={subtopic}>{subtopic}</span>)}</div><p>{personalize(selectedComingSoon ? selected.intro : adventureIntroLine(selected as GradeSevenChapter, selectedCompleted), name)}</p>{selectedComingSoon ? <div className="coming-soon-note"><span>✦</span><b>Coming soon</b><small>This star will brighten when its interactive chapter is ready.</small></div> : <button className="primary" onClick={() => selected.id === "skatepark" && selectedCompleted ? openSkateparkQuestMap() : selected.id === "mountain" && selectedCompleted ? openMountainQuestMap() : selected.id === "moonbase" && selectedCompleted ? openMoonbaseQuestMap() : selected.id === "balance" && selectedCompleted ? openBalanceQuestMap() : selectedCompleted ? replayGradeSevenEvent(selected.id as GradeSevenAdventureId, 0) : openGradeSevenAdventure(selected.id as GradeSevenAdventureId)}>{selected.id === "skatepark" && selectedCompleted ? "Open Skatepark quests →" : selected.id === "mountain" && selectedCompleted ? "Open Mountain quests →" : selected.id === "moonbase" && selectedCompleted ? "Open Moonbase quests →" : selected.id === "balance" && selectedCompleted ? "Open Balance quests →" : selectedCompleted ? "Replay from event 1 →" : selectedAtQuestMap ? selected.id === "mountain" ? "Open Mountain quests →" : selected.id === "moonbase" ? "Open Moonbase quests →" : selected.id === "balance" ? "Open Balance quests →" : "Open Skatepark quests →" : selectedInProgress ? `Resume event ${(selectedProgress?.lastEvent ?? 0) + 1} →` : `${(selected as GradeSevenChapter).action} →`}</button>}</div></section>
     </main>;
   }
 
@@ -515,7 +616,11 @@ export default function Home() {
   }
 
   if (screen === "activity") {
-    return <main className={`shell activity-shell theme-pathfinder world-theme-${activeAdventure}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><HeroDuo avatar={avatar} equippedCosmetic={equippedCosmetic} level={explorer.level} pet={pet} size="sm" /><button className="text-button" aria-label={muted ? "Turn sounds on" : "Turn sounds off"} onClick={() => setMuted(sound.toggleMuted())}>{muted ? "🔇" : "🔊"}</button>{activityMode === "live" && activeActivityState.step > 0 && <button className="text-button previous-scene" onClick={previousGradeSevenScene}>← Previous scene</button>}<button className="text-button home-button" onClick={goHome}>⌂ Home</button><button className="text-button" onClick={() => activityMode === "replay" ? openGradeSevenJournal(activeAdventure) : setScreen("adventures")}>{activityMode === "replay" ? "Story journal" : "Adventure map"}</button></div></nav><GradeSevenActivity id={activeAdventure} state={activeActivityState} mode={activityMode} firstTime={shouldAwardGradeSevenCompletion(activityMode, completedAdventures.includes(activeAdventure))} heroName={name} avatar={avatar} equippedCosmetic={equippedCosmetic} onChange={changeGradeSevenActivity} onFinish={finishGradeSevenAdventure} /></main>;
+    const onSkateparkQuestMap = activeActivityState.kind === "skatepark" && activeActivityState.chapterMapOpen;
+    const onMountainQuestMap = activeActivityState.kind === "mountain" && activeActivityState.chapterMapOpen;
+    const onMoonbaseQuestMap = activeActivityState.kind === "moonbase" && activeActivityState.chapterMapOpen;
+    const onBalanceQuestMap = activeActivityState.kind === "balance" && activeActivityState.chapterMapOpen;
+    return <main className={`shell activity-shell theme-pathfinder world-theme-${activeAdventure}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="quest-stats"><HeroDuo avatar={avatar} equippedCosmetic={equippedCosmetic} level={explorer.level} pet={pet} size="sm" /><button className="text-button" aria-label={muted ? "Turn sounds on" : "Turn sounds off"} onClick={() => setMuted(sound.toggleMuted())}>{muted ? "🔇" : "🔊"}</button>{activityMode === "live" && canGoToPreviousGradeSevenEvent(activeActivityState) && <button className="text-button previous-scene" onClick={previousGradeSevenScene}>← Previous scene</button>}<button className="text-button home-button" onClick={goHome}>⌂ Home</button><button className="text-button" onClick={() => activityMode === "replay" ? openGradeSevenJournal(activeAdventure) : openCurrentAdventureMap()}>{activityMode === "replay" ? "Story journal" : onSkateparkQuestMap || onMountainQuestMap || onMoonbaseQuestMap || onBalanceQuestMap ? "Maths star map" : activeAdventure === "skatepark" ? "Skatepark quests" : activeAdventure === "mountain" ? "Mountain quests" : activeAdventure === "moonbase" ? "Moonbase quests" : activeAdventure === "balance" ? "Balance quests" : "Adventure map"}</button></div></nav><GradeSevenActivity id={activeAdventure} state={activeActivityState} mode={activityMode} firstTime={shouldAwardGradeSevenCompletion(activityMode, completedAdventures.includes(activeAdventure))} heroName={name} avatar={avatar} equippedCosmetic={equippedCosmetic} onChange={changeGradeSevenActivity} onFinish={finishGradeSevenAdventure} /></main>;
   }
 
   if (screen === "world") {
@@ -530,7 +635,7 @@ export default function Home() {
   if (screen === "map") {
     return <main className={`shell dashboard-shell ${gradeTheme}`}><nav className="topbar"><div className="brand"><span>✦</span> LearnNnjoy</div><div className="nav-actions"><button className="text-button" onClick={openGradePicker}>Switch grade</button><button className="text-button" onClick={() => setScreen(grade === 7 ? "adventures" : "quest")}>Continue adventure</button></div></nav>
       <section className="dashboard-heading"><p className="eyebrow">HOME BASE · LEARNING ATLAS</p><h1>Choose the world you want to explore today.</h1><p>Grade {grade} · Four worlds to explore. Pick where today&apos;s adventure happens.</p></section>
-      {pausedAdventure && pausedAdventureCopy && <section className="resume-adventure-card"><span>{pausedAdventureCopy.icon}</span><div><p className="eyebrow">YOUR STORY IS SAFE</p><h2>Resume {pausedAdventureCopy.title}</h2><p>Event {pausedAdventure.lastEvent + 1} is waiting exactly where you left it.</p></div><button className="primary" onClick={() => openGradeSevenAdventure(activeAdventure)}>Resume event {pausedAdventure.lastEvent + 1} →</button></section>}
+      {pausedAdventure && pausedAdventureCopy && <section className="resume-adventure-card"><span>{pausedAdventureCopy.icon}</span><div><p className="eyebrow">YOUR STORY IS SAFE</p><h2>Resume {pausedAdventureCopy.title}</h2><p>{pausedAtChapterMap ? "Your connected chapter quests are waiting exactly where you left them." : `Event ${pausedAdventure.lastEvent + 1} is waiting exactly where you left it.`}</p></div><button className="primary" onClick={() => openGradeSevenAdventure(activeAdventure)}>{pausedAtChapterMap ? activeAdventure === "mountain" ? "Open Mountain quests →" : activeAdventure === "moonbase" ? "Open Moonbase quests →" : activeAdventure === "balance" ? "Open Balance quests →" : "Open Skatepark quests →" : `Resume event ${pausedAdventure.lastEvent + 1} →`}</button></section>}
       <section className="atlas-grid">{gradeRoadmap.map((subject) => <article key={subject.id} className={subject.pilotStatus === "live" ? "atlas-card live" : "atlas-card"}><div className="atlas-card-top"><span className="atlas-icon">{subject.icon}</span><span className={subject.pilotStatus === "live" ? "atlas-status live" : "atlas-status"}>{subject.pilotStatus === "live" ? "PLAY NOW" : "COMING SOON"}</span></div><p className="eyebrow">{subject.questWorld}</p><h2>{subject.label}</h2><ul>{subject.topics.map((topic) => <li key={topic}>{topic}</li>)}</ul>{subject.pilotStatus === "live" ? <button className="primary" onClick={() => startSubjectMission(subject.id)}>{subject.id === "science" ? "Begin Earthkeepers mission" : subject.id === "english" ? "Open Story Studio" : subject.id === "social" ? "Enter Mapmakers’ Camp" : "Continue Maths mission"}</button> : <p className="atlas-note">Nova is still building this world. It opens soon!</p>}</article>)}</section>
     </main>;
   }

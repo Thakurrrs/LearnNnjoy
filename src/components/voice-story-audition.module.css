@@ -1,0 +1,729 @@
+.wrapper {
+  width: min(960px, 100%);
+  margin: 42px auto 0;
+}
+
+.adventureWrapper {
+  width: 100%;
+  margin: 0;
+}
+
+.stage {
+  position: relative;
+  min-height: 680px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgba(137, 230, 255, .38);
+  border-radius: 28px;
+  outline: none;
+  background: #100d3d url("/images/skatepark-night-run/rooftop-night.png") center 44% / cover no-repeat;
+  box-shadow: 0 28px 75px rgba(0, 0, 0, .32);
+}
+
+.stage:focus-visible {
+  outline: 4px solid #fff2a2;
+  outline-offset: 5px;
+}
+
+.phase-play {
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.shade {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(8, 6, 38, .52), rgba(8, 6, 38, .03) 39%, rgba(7, 5, 31, .7)),
+    radial-gradient(circle at 50% 58%, transparent 0 29%, rgba(8, 6, 38, .26) 82%);
+  pointer-events: none;
+}
+
+.hud {
+  position: absolute;
+  z-index: 20;
+  top: 16px;
+  right: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 72px;
+  padding: 12px 15px;
+  border: 1px solid rgba(125, 231, 255, .4);
+  border-radius: 17px;
+  background: rgba(17, 12, 61, .88);
+  box-shadow: 0 8px 26px rgba(5, 3, 30, .25);
+  backdrop-filter: blur(14px);
+}
+
+.hud > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.hud small {
+  color: #a9edf7;
+  font-size: .68rem;
+  font-weight: 850;
+  letter-spacing: .09em;
+}
+
+.hud strong {
+  font-size: clamp(1.08rem, 3vw, 1.45rem);
+}
+
+.progress {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+  width: min(190px, 35%);
+}
+
+.progress span {
+  color: #dff8fc;
+  font-size: .73rem;
+  font-weight: 850;
+}
+
+.progress progress {
+  width: 100%;
+  height: 7px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 99px;
+  color: #6beef8;
+  background: rgba(255, 255, 255, .18);
+  accent-color: #6beef8;
+}
+
+.progress progress::-webkit-progress-bar {
+  border-radius: 99px;
+  background: rgba(255, 255, 255, .18);
+}
+
+.progress progress::-webkit-progress-value {
+  border-radius: 99px;
+  background: linear-gradient(90deg, #64eff8, #f56bd8);
+}
+
+.trails {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.novaSkater,
+.novaParked,
+.player,
+.rider {
+  position: absolute;
+  z-index: 8;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 16px 17px rgba(5, 3, 25, .54));
+}
+
+.novaSkater img,
+.novaParked img,
+.player img,
+.rider img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.novaSkater {
+  top: 48%;
+  left: 9%;
+  width: clamp(160px, 21%, 205px);
+  transform: translate(-50%, -83%);
+}
+
+.phase-nova-hello .novaSkater {
+  animation: novaArrives .7s cubic-bezier(.18, .82, .2, 1) both;
+}
+
+.phase-nova-watch .novaSkater {
+  animation: readyLean .55s ease-in-out infinite alternate;
+}
+
+.phase-nova-demo .novaSkater {
+  left: 90%;
+  transition: left 2.6s linear;
+  animation: groundedRoll .32s ease-in-out infinite alternate;
+}
+
+.novaParked {
+  z-index: 9;
+  top: 42%;
+  left: 92%;
+  width: clamp(155px, 20%, 194px);
+  transform: translate(-50%, -50%);
+  animation: parkIn .44s cubic-bezier(.18, .82, .2, 1) both;
+}
+
+.novaParked > img {
+  transform: scaleX(-1);
+}
+
+.phase-nova-prompt .novaParked,
+.phase-nova-clear .novaParked {
+  filter:
+    drop-shadow(0 16px 17px rgba(5, 3, 25, .54))
+    drop-shadow(0 0 12px rgba(255, 239, 135, .22));
+}
+
+.player {
+  width: clamp(184px, 24%, 232px);
+  transform-origin: 50% 82%;
+  transition:
+    left .11s linear,
+    top .11s linear,
+    transform .11s linear;
+}
+
+.phase-idle .player,
+.phase-nova-hello .player,
+.phase-kid-hello .player,
+.phase-nova-watch .player {
+  animation: boardReady .55s ease-in-out infinite alternate;
+}
+
+.phase-play .player {
+  z-index: 11;
+  filter:
+    drop-shadow(0 16px 17px rgba(5, 3, 25, .54))
+    drop-shadow(0 0 13px rgba(255, 101, 220, .28));
+}
+
+.rider {
+  top: 72%;
+  left: 105%;
+  width: clamp(170px, 20%, 205px);
+  opacity: 0;
+  transform: translate(-50%, -84%);
+  transition:
+    left .72s cubic-bezier(.18, .82, .2, 1),
+    opacity .24s ease;
+}
+
+.riderPresent {
+  left: 72%;
+  opacity: 1;
+  animation: groundedRoll .34s .72s ease-in-out infinite alternate;
+}
+
+.guideStar {
+  position: absolute;
+  z-index: 5;
+  width: clamp(23px, 3.5vw, 34px);
+  height: auto;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 8px rgba(255, 239, 132, .78));
+  pointer-events: none;
+  transition:
+    opacity .2s ease,
+    filter .2s ease,
+    transform .2s ease;
+}
+
+.guideStarPassed {
+  opacity: .32;
+  filter: drop-shadow(0 0 3px rgba(255, 239, 132, .4));
+}
+
+.guideStarFocus {
+  z-index: 6;
+  animation: focusStar 1.05s ease-in-out infinite alternate;
+}
+
+.trailLabel {
+  position: absolute;
+  z-index: 7;
+  padding: 5px 9px;
+  transform: translate(-50%, calc(-100% - 13px));
+  border: 1px solid rgba(129, 240, 255, .64);
+  border-radius: 999px;
+  color: #e9fcff;
+  background: rgba(10, 22, 66, .83);
+  box-shadow: 0 0 18px rgba(71, 237, 255, .27);
+  font-size: .72rem;
+  font-weight: 850;
+  letter-spacing: .01em;
+  pointer-events: none;
+}
+
+.bubble {
+  position: absolute;
+  z-index: 16;
+  width: max-content;
+  max-width: min(235px, 32vw);
+  padding: 12px 15px;
+  border: 2px solid #8cebf4;
+  border-radius: 19px;
+  color: #231947;
+  background: #fffaf0;
+  box-shadow: 0 12px 26px rgba(7, 4, 33, .3);
+  font-size: clamp(1.03rem, 2.2vw, 1.2rem);
+  font-weight: 830;
+  line-height: 1.32;
+  letter-spacing: -.012em;
+  filter: none;
+  animation: bubbleIn .2s ease-out both;
+}
+
+.bubble::after {
+  position: absolute;
+  bottom: -10px;
+  width: 16px;
+  height: 16px;
+  content: "";
+  transform: rotate(45deg);
+  border-right: 2px solid #8cebf4;
+  border-bottom: 2px solid #8cebf4;
+  background: #fffaf0;
+}
+
+.novaSkater .bubble {
+  top: -9%;
+  left: 67%;
+}
+
+.novaSkater .bubble::after {
+  left: 20px;
+}
+
+.novaParked .bubble {
+  top: -3%;
+  right: 74%;
+}
+
+.novaParked .bubble::after {
+  right: 20px;
+}
+
+.player .bubble {
+  top: -7%;
+  left: 63%;
+  border-color: #ffd17a;
+}
+
+.player .bubble::after {
+  left: 24px;
+  border-color: #ffd17a;
+}
+
+.rider .bubble {
+  top: -7%;
+  right: 72%;
+  border-color: #f39bdc;
+}
+
+.rider .bubble::after {
+  right: 22px;
+  border-color: #f39bdc;
+}
+
+.concept {
+  position: absolute;
+  z-index: 18;
+  top: 102px;
+  left: 18px;
+  display: grid;
+  gap: 3px;
+  max-width: 270px;
+  padding: 11px 15px;
+  border: 1px solid rgba(255, 242, 158, .72);
+  border-radius: 15px;
+  background: rgba(18, 12, 62, .93);
+  box-shadow: 0 0 28px rgba(255, 235, 112, .25);
+  animation: conceptIn .28s ease-out both;
+}
+
+.concept strong {
+  color: #fff3a8;
+  font-size: .94rem;
+}
+
+.concept span {
+  color: #e8f8fa;
+  font-size: .8rem;
+  line-height: 1.38;
+}
+
+.actionCard,
+.gameControls,
+.resultCard {
+  position: absolute;
+  z-index: 21;
+  right: 18px;
+  bottom: 56px;
+  left: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 14px 16px;
+  border: 1px solid rgba(131, 233, 255, .42);
+  border-radius: 19px;
+  background: rgba(17, 12, 61, .95);
+  box-shadow: 0 18px 40px rgba(5, 3, 27, .42);
+  backdrop-filter: blur(15px);
+}
+
+.actionCard > div,
+.gameControls > div,
+.resultCard > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.actionCard strong,
+.gameControls strong,
+.resultCard strong {
+  font-size: 1rem;
+}
+
+.actionCard small,
+.gameControls small,
+.resultCard small {
+  color: #c7edf3;
+  font-size: .78rem;
+  line-height: 1.42;
+}
+
+.actionCard button,
+.gameControls button,
+.resultCard button {
+  min-height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, #28d9e8, #7a58ed 62%, #ef50d1);
+  font: inherit;
+  font-weight: 900;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.gameControls button:disabled {
+  cursor: not-allowed;
+  opacity: .46;
+  filter: grayscale(.35);
+}
+
+.resultCard > div:last-child {
+  display: flex;
+  gap: 8px;
+}
+
+.resultCard button:last-child {
+  border: 1px solid rgba(138, 235, 245, .42);
+  color: #e8fbff;
+  background: rgba(255, 255, 255, .09);
+}
+
+.actionCard button:focus-visible,
+.gameControls button:focus-visible,
+.resultCard button:focus-visible,
+.footer button:focus-visible {
+  outline: 3px solid #fff3a8;
+  outline-offset: 3px;
+}
+
+.playing {
+  position: absolute;
+  z-index: 18;
+  bottom: 67px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 13px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(128, 235, 255, .42);
+  border-radius: 999px;
+  background: rgba(17, 12, 61, .9);
+  font-size: .76rem;
+  font-weight: 820;
+  white-space: nowrap;
+}
+
+.playing i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6ff3ff;
+  box-shadow: 0 0 13px #6ff3ff;
+  animation: speaking .5s ease-in-out infinite alternate;
+}
+
+.footer {
+  position: absolute;
+  z-index: 22;
+  right: 18px;
+  bottom: 14px;
+  left: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #d8f2f6;
+  font-size: .71rem;
+  font-weight: 760;
+}
+
+.footer button {
+  min-height: 32px;
+  border: 0;
+  color: #f2fbfd;
+  background: transparent;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes novaArrives {
+  from {
+    opacity: 0;
+    transform: translate(-70%, -78%) rotate(-5deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -83%) rotate(0);
+  }
+}
+
+@keyframes readyLean {
+  from { transform: translate(-50%, -83%) rotate(-1deg); }
+  to { transform: translate(-50%, -83%) rotate(1.6deg); }
+}
+
+@keyframes groundedRoll {
+  from { transform: translate(-50%, -83%) rotate(-.7deg); }
+  to { transform: translate(-50%, -83%) rotate(.8deg); }
+}
+
+@keyframes parkIn {
+  from {
+    opacity: 0;
+    transform: translate(-32%, -50%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes boardReady {
+  from { margin-top: 0; }
+  to { margin-top: -3px; }
+}
+
+@keyframes focusStar {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+    filter: drop-shadow(0 0 8px rgba(255, 239, 132, .78));
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.24);
+    filter:
+      drop-shadow(0 0 12px rgba(255, 239, 132, 1))
+      drop-shadow(0 0 22px rgba(84, 234, 255, .82));
+  }
+}
+
+@keyframes bubbleIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes conceptIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes speaking {
+  from {
+    opacity: .42;
+    transform: scale(.78);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@media (max-width: 680px) {
+  .wrapper {
+    margin-top: 30px;
+  }
+
+  .stage {
+    min-height: 720px;
+    border-radius: 22px;
+    background-position: center 45%;
+  }
+
+  .hud {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    min-height: 68px;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .hud small {
+    font-size: .58rem;
+  }
+
+  .progress {
+    width: 29%;
+  }
+
+  .novaSkater {
+    width: 150px;
+  }
+
+  .novaParked {
+    top: 40%;
+    left: 92%;
+    width: 150px;
+  }
+
+  .player {
+    width: 174px;
+  }
+
+  .rider {
+    width: 157px;
+  }
+
+  .riderPresent {
+    left: 73%;
+  }
+
+  .guideStar {
+    width: 25px;
+  }
+
+  .trailLabel {
+    padding: 4px 7px;
+    font-size: .65rem;
+  }
+
+  .bubble {
+    max-width: min(178px, 47vw);
+    padding: 10px 12px;
+    border-radius: 16px;
+    font-size: 1.02rem;
+  }
+
+  .novaSkater .bubble {
+    top: -14%;
+    left: 45%;
+  }
+
+  .novaParked .bubble {
+    top: -12%;
+    right: 48%;
+  }
+
+  .player .bubble {
+    top: -13%;
+    left: 44%;
+  }
+
+  .rider .bubble {
+    top: -14%;
+    right: 48%;
+  }
+
+  .concept {
+    top: 92px;
+    left: 10px;
+    max-width: 220px;
+  }
+
+  .actionCard,
+  .gameControls,
+  .resultCard {
+    right: 10px;
+    bottom: 51px;
+    left: 10px;
+    display: grid;
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .actionCard button,
+  .gameControls button {
+    width: 100%;
+  }
+
+  .resultCard > div:last-child {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .resultCard button {
+    width: 100%;
+    padding-inline: 12px;
+  }
+
+  .playing {
+    bottom: 59px;
+  }
+
+  .footer {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+  }
+
+  .footer span {
+    max-width: 72%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage *,
+  .stage *::before,
+  .stage *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
