@@ -7791,3 +7791,9 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
 .mountain-postcard { border: 2px solid #ffd98a; border-radius: 14px; padding: 14px 16px; background: #14203ccc; color: #d6e9f1; }
 .mountain-postcard b { display: block; margin-bottom: 6px; color: #ffd98a; font-size: 1rem; }
 .mountain-postcard p { margin: 0; line-height: 1.45; }
+
+/* Signal Below Zero: discoverable brush/strap affordances */
+.signal-recovery-strap.pulse { animation: strap-pulse 1.6s ease-in-out infinite; }
+@keyframes strap-pulse { 50% { transform: scale(1.12); box-shadow: 0 0 18px #6fd4ffb0; } }
+@media (prefers-reduced-motion: reduce) { .signal-recovery-strap.pulse { animation: none; outline: 3px solid #6fd4ff; } }
+.signal-hint { color: #ffd98a; font-size: 14px; }

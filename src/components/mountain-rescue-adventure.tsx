@@ -53,6 +53,7 @@ export const MOUNTAIN_AUDIO = {
   q1ZeroKid: `${MOUNTAIN_AUDIO_ROOT}/q1-zero-kid.mp3`,
   q1FoundNova: `${MOUNTAIN_AUDIO_ROOT}/q1-found-nova.mp3`,
   q1BrushNova: `${MOUNTAIN_AUDIO_ROOT}/q1-brush-nova.mp3`,
+  q1StrapNova: `${MOUNTAIN_AUDIO_ROOT}/q1-strap-nova.mp3`,
   q1RecoveredKid: `${MOUNTAIN_AUDIO_ROOT}/q1-recovered-kid.mp3`,
   q1RevealNova: `${MOUNTAIN_AUDIO_ROOT}/q1-reveal-nova.mp3`,
   q1FlagNova: `${MOUNTAIN_AUDIO_ROOT}/q1-flag-nova.mp3`,
@@ -620,9 +621,8 @@ function SignalCliffStage({
       )}
 
       {state.questStep === 2 && state.snowCleared >= 100 && !state.podRecovered && (
-        <button type="button" className="signal-recovery-strap" onClick={onPull}>
-          <span aria-hidden />
-          <b>Pull together</b>
+        <button type="button" className="signal-recovery-strap pulse" onClick={onPull}>
+          <b>PULL</b>
           <small>{state.podRecoveryProgress}%</small>
         </button>
       )}
@@ -987,6 +987,17 @@ function SignalBelowZeroQuest({
   const recapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const interactive = state.questStep === 1 && !state.signalFound && !recapRunning;
 
+  const [stepHint, setStepHint] = useState<"brush" | "strap" | null>(null);
+  useEffect(() => {
+    if (state.questStep !== 2 || state.podRecovered) return;
+    const kind = state.snowCleared < 100 ? "brush" : "strap";
+    const timer = setTimeout(() => setStepHint(kind), 6000);
+    return () => {
+      clearTimeout(timer);
+      setStepHint(null);
+    };
+  }, [state.questStep, state.snowCleared, state.podRecoveryProgress, state.podRecovered]);
+
   useEffect(() => () => {
     if (recapTimerRef.current) clearTimeout(recapTimerRef.current);
   }, []);
@@ -1069,7 +1080,7 @@ function SignalBelowZeroQuest({
         ? state.podRecovered
           ? "We secured the cell right here. Now look at where every part of the search happened."
           : state.snowCleared >= 100
-            ? "There it is! Pull the recovery strap with us."
+            ? "There it is! Pull the rescue strap with us."
             : "The signal is under this drift. Brush the snow away."
         : state.recapPlayed
           ? "Our pod moved seven levels: plus three, through zero, to minus four."
@@ -1107,7 +1118,7 @@ function SignalBelowZeroQuest({
                     ? MOUNTAIN_AUDIO.q1RecoveredKid
                     : state.snowCleared < 100
                       ? MOUNTAIN_AUDIO.q1BrushNova
-                      : MOUNTAIN_AUDIO.q1FoundNova
+                      : MOUNTAIN_AUDIO.q1StrapNova
                   : MOUNTAIN_AUDIO.q1FlagNova,
           )}
         />
@@ -1170,13 +1181,20 @@ function SignalBelowZeroQuest({
           <div className={state.podRecovered ? "signal-concept-reveal" : "signal-prediction"}>
             <div>
               <small>{state.podRecovered ? "NOVA NAMES WHAT YOU FOUND" : "SECURE THE REAL POD"}</small>
-              <h2>{state.podRecovered ? "The cliff continues on both sides of zero." : state.snowCleared < 100 ? "Brush away the snowdrift." : "Pull the recovery strap together."}</h2>
+              <h2>{state.podRecovered ? "The cliff continues on both sides of zero." : state.snowCleared < 100 ? "Brush away the snowdrift." : "Pull the rescue strap together."}</h2>
               <p>{state.podRecovered
                 ? <>Positions above zero are <b>positive</b>. Positions below zero are <b>negative</b>. Zero is the reference point between them.</>
                 : state.snowCleared < 100
                   ? `${state.snowCleared}% cleared`
                   : `${state.podRecoveryProgress}% secured`}</p>
             </div>
+            {stepHint === "brush" && <p className="signal-hint">Rub the snowdrift near the ravine to clear it.</p>}
+            {stepHint === "strap" && <p className="signal-hint">Tap the glowing PULL strap—four pulls frees the cell.</p>}
+            {!state.podRecovered && state.snowCleared >= 100 && (
+              <button className="signal-primary" type="button" onClick={pullPod}>
+                Pull the rescue strap together →
+              </button>
+            )}
             {state.podRecovered && <>
               <div className="signal-number-strip" aria-label="Positive three through zero to negative four">
                 <span className="positive">+3</span><i /><span className="zero">0</span><i /><span className="negative">−4</span>

@@ -73,6 +73,11 @@ NOVA_LINES = (
         "emotion": "Point out a hidden discovery with gentle, curious excitement — inviting a friend to dig in together.",
     },
     {
+        "name": "q1-strap-nova",
+        "text": "There it is! Pull the rescue strap with us.",
+        "emotion": "Spot the goal and invite a shared effort — eager and warm, never bossy.",
+    },
+    {
         "name": "q1-reveal-nova",
         "text": "Positions above zero are positive. Positions below zero are negative. Zero is the reference point between them.",
         "emotion": "Share a just-noticed pattern with delighted clarity, like pointing at a map with a friend — never a lecture.",

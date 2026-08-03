@@ -1,4 +1,5 @@
 """Generate the Signal Below Zero character dialogue with local Qwen3-TTS."""
+# Superseded by generate_qwen3_mountain_rescue_v2.py for q1/q3/q4-stage/finale lines; only the q2-* and q4-opening-* recordings remain canonical here.
 
 import gc
 import subprocess
