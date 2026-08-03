@@ -2020,7 +2020,10 @@ function MountainFinale({
 
   return (
     <section
-      className={`mountain-finale beat-${beat}${state.finaleCellDocked ? " cell-docked" : ""}`}
+      // "mountain-finale-act": the bare "mountain-finale" class is owned by a
+      // legacy overlay-card rule earlier in world.css (dead markup, live CSS)
+      // that force-shrinks the section to a 500px centred card.
+      className={`mountain-finale-act beat-${beat}${state.finaleCellDocked ? " cell-docked" : ""}`}
       aria-label="Mountain Rescue finale"
     >
       <div className="mountain-finale-scene" aria-hidden>

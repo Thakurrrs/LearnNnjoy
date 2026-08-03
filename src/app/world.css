@@ -7763,29 +7763,29 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
 .mountain-opening-hook .mountain-hook-glyph { font-size: 96px; }
 
 /* Mountain Rescue finale */
-.mountain-finale { position: relative; display: grid; gap: 16px; }
+.mountain-finale-act { position: relative; display: grid; gap: 16px; }
 .mountain-finale-scene { position: relative; min-height: 300px; border-radius: 18px; overflow: hidden; background: linear-gradient(#0e1a33, #1d2c4d); }
-.mountain-finale .finale-aurora { position: absolute; inset: -20% -10% auto; height: 55%; opacity: 0; filter: blur(24px); transition: opacity 1.2s ease; }
-.mountain-finale .finale-aurora.band-one { background: linear-gradient(100deg, #3ef2b0, transparent 70%); }
-.mountain-finale .finale-aurora.band-two { background: linear-gradient(80deg, transparent 30%, #7f7bffa8); }
-.mountain-finale.beat-3 .finale-aurora, .mountain-finale.beat-4 .finale-aurora { opacity: 1; }
-.mountain-finale .finale-shelter { position: absolute; right: 12%; bottom: 14%; width: 180px; height: 120px; border-radius: 12px 12px 4px 4px; background: #223154; }
-.mountain-finale .finale-window { position: absolute; width: 34px; height: 30px; border-radius: 4px; background: #2c3c63; transition: background .9s ease, box-shadow .9s ease; }
-.mountain-finale .finale-window.w1 { left: 18px; top: 24px; } .mountain-finale .finale-window.w2 { right: 18px; top: 24px; }
-.mountain-finale.beat-2 .finale-window, .mountain-finale.beat-3 .finale-window, .mountain-finale.beat-4 .finale-window { background: #ffd98a; box-shadow: 0 0 22px #ffd98a88; }
-.mountain-finale .finale-dock { position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); width: 56px; height: 26px; border: 2px dashed #6fd4ff; border-radius: 6px; }
+.mountain-finale-act .finale-aurora { position: absolute; inset: -20% -10% auto; height: 55%; opacity: 0; filter: blur(24px); transition: opacity 1.2s ease; }
+.mountain-finale-act .finale-aurora.band-one { background: linear-gradient(100deg, #3ef2b0, transparent 70%); }
+.mountain-finale-act .finale-aurora.band-two { background: linear-gradient(80deg, transparent 30%, #7f7bffa8); }
+.mountain-finale-act.beat-3 .finale-aurora, .mountain-finale-act.beat-4 .finale-aurora { opacity: 1; }
+.mountain-finale-act .finale-shelter { position: absolute; right: 12%; bottom: 14%; width: 180px; height: 120px; border-radius: 12px 12px 4px 4px; background: #223154; }
+.mountain-finale-act .finale-window { position: absolute; width: 34px; height: 30px; border-radius: 4px; background: #2c3c63; transition: background .9s ease, box-shadow .9s ease; }
+.mountain-finale-act .finale-window.w1 { left: 18px; top: 24px; } .mountain-finale-act .finale-window.w2 { right: 18px; top: 24px; }
+.mountain-finale-act.beat-2 .finale-window, .mountain-finale-act.beat-3 .finale-window, .mountain-finale-act.beat-4 .finale-window { background: #ffd98a; box-shadow: 0 0 22px #ffd98a88; }
+.mountain-finale-act .finale-dock { position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); width: 56px; height: 26px; border: 2px dashed #6fd4ff; border-radius: 6px; }
 /* right offset couples to .finale-shelter (right: 12%, width: 180px) and this
    element's own width (54px) so the pod's resting spot roughly centers over
    the shelter's dock — retune together if either width changes. */
-.mountain-finale .finale-pod { position: absolute; right: calc(12% + 62px); bottom: 34%; width: 54px; transition: bottom .9s ease, filter .9s ease; }
-.mountain-finale.cell-docked .finale-pod { bottom: 15%; filter: drop-shadow(0 0 14px #6fd4ff); }
-.mountain-finale.cell-docked .finale-dock { border-style: solid; }
-.mountain-finale .finale-pip { position: absolute; right: 6%; bottom: 10%; width: 64px; transition: transform 1s ease; transform: scale(.92) rotate(6deg); }
-.mountain-finale.beat-2 .finale-pip, .mountain-finale.beat-3 .finale-pip, .mountain-finale.beat-4 .finale-pip { transform: scale(1) rotate(0deg); }
-.mountain-finale .finale-route polyline { stroke: #ffd75e; stroke-width: 2; stroke-dasharray: 240; stroke-dashoffset: 240; animation: finale-route-trace 2.4s ease forwards; }
+.mountain-finale-act .finale-pod { position: absolute; right: calc(12% + 62px); bottom: 34%; width: 54px; transition: bottom .9s ease, filter .9s ease; }
+.mountain-finale-act.cell-docked .finale-pod { bottom: 15%; filter: drop-shadow(0 0 14px #6fd4ff); }
+.mountain-finale-act.cell-docked .finale-dock { border-style: solid; }
+.mountain-finale-act .finale-pip { position: absolute; right: 6%; bottom: 10%; width: 64px; transition: transform 1s ease; transform: scale(.92) rotate(6deg); }
+.mountain-finale-act.beat-2 .finale-pip, .mountain-finale-act.beat-3 .finale-pip, .mountain-finale-act.beat-4 .finale-pip { transform: scale(1) rotate(0deg); }
+.mountain-finale-act .finale-route polyline { stroke: #ffd75e; stroke-width: 2; stroke-dasharray: 240; stroke-dashoffset: 240; animation: finale-route-trace 2.4s ease forwards; }
 @media (prefers-reduced-motion: reduce) {
-  .mountain-finale .finale-route polyline { animation: none; stroke-dashoffset: 0; }
-  .mountain-finale .mountain-finale-scene * { transition: none; }
+  .mountain-finale-act .finale-route polyline { animation: none; stroke-dashoffset: 0; }
+  .mountain-finale-act .mountain-finale-scene * { transition: none; }
 }
 @keyframes finale-route-trace { to { stroke-dashoffset: 0; } }
 .mountain-postcard { border: 2px solid #ffd98a; border-radius: 14px; padding: 14px 16px; background: #14203ccc; color: #d6e9f1; }
