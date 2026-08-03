@@ -189,7 +189,7 @@ describe("continuous Grade 7 story worlds", () => {
     // dialogue beats. The shared scene engine renders transport controls
     // (pause/back/replay/skip) instead.
     expect(html).not.toContain("Next line");
-    expect(html).toContain('aria-label="Skip story"');
+    expect(html).toContain("Skip story");
   });
 
   it("keeps formal integer words hidden until the child finds the signal", () => {

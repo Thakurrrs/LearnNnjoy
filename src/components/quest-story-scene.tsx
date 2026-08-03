@@ -94,6 +94,10 @@ export function beginBeatPlayback(
   let audio: HTMLAudioElement | null = null;
 
   function scheduleAdvance(delayMs: number) {
+    // A broken source can fire both the play() rejection handler and
+    // onerror; clearing any pending timer first keeps that a single
+    // scheduled advance instead of two racing ones.
+    if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
       timer = null;
       if (!disposed) handlers.onAdvance();
@@ -149,6 +153,17 @@ export function beginBeatPlayback(
  * Resume semantics: resuming (or replaying) always restarts the CURRENT
  * line from its start — there is no audio seek/resume-from-position. This
  * keeps the engine simple and is inaudible in practice (lines are short).
+ *
+ * Two more intentional nuances:
+ * - Pause is UI-only state, not persisted: a reload always resumes at the
+ *   saved beat in the "attempting to play" state (see the autoplay-policy
+ *   note above), never still paused from a prior session. A muted scene
+ *   left "playing" therefore keeps auto-advancing on its own via the
+ *   reading-speed timers even though no audio is audible.
+ * - Muting mid-line does not interrupt the line already in flight (audio
+ *   keeps playing to its natural end); `sound.isMuted()` is only read again
+ *   when the NEXT beat starts, so that is the first line the timer fallback
+ *   applies to.
  */
 export function QuestStoryScene({
   beats,
@@ -224,8 +239,21 @@ export function QuestStoryScene({
   }
 
   function handleReplay() {
+    if (paused) {
+      // Paused (an explicit pause, or still awaiting a gesture): clear the
+      // hold and let the driving effect start playback fresh, exactly like
+      // the Play control. Also calling beginBeatPlayback here would
+      // double-start the line the instant the effect reacts to `paused`
+      // flipping to false — an audible stutter — and, worse, leave
+      // `internalPaused` true while audio plays, so `advance()` silently
+      // no-ops (via pausedRef) once the line ends and the scene stalls.
+      setAwaitingGesture(false);
+      setInternalPaused(false);
+      return;
+    }
+    // Already playing: `paused` isn't changing, so the driving effect won't
+    // retrigger on its own — restart the current line manually.
     cancelRef.current?.();
-    setAwaitingGesture(false);
     cancelRef.current = beginBeatPlayback(current, sound.isMuted(), {
       onAdvance: advance,
       onAwaitingGesture: () => setAwaitingGesture(true),
@@ -284,7 +312,12 @@ export function QuestStoryScene({
           <button type="button" onClick={handleReplay} aria-label="Replay this line">
             ↻
           </button>
-          <button type="button" onClick={handleSkip} aria-label="Skip story">
+          {/* No aria-label here: the visible text already names the button
+              (skipLabel varies per caller, e.g. "Skip ahead"), and WCAG
+              2.5.3 Label in Name requires the accessible name to contain the
+              visible label — a mismatched hardcoded aria-label would violate
+              that the moment skipLabel differs from it. */}
+          <button type="button" onClick={handleSkip}>
             {skipLabel}
           </button>
         </div>

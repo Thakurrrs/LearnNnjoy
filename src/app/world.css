@@ -2159,27 +2159,6 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
   font-size: .68rem;
   font-weight: 850;
 }
-.mountain-opening-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 20px 24px 24px;
-  background: linear-gradient(135deg, #102f49, #0a2035);
-}
-.mountain-opening-controls > div { display: flex; gap: 7px; }
-.mountain-opening-controls i {
-  display: block;
-  width: 42px;
-  height: 7px;
-  border-radius: 999px;
-  background: #38566c;
-}
-.mountain-opening-controls i.lit {
-  background: #ffd66b;
-  box-shadow: 0 0 10px rgba(255, 214, 107, .45);
-}
-.mountain-opening-controls > button,
 .signal-primary {
   padding: 13px 18px;
   border: 0;
@@ -2921,9 +2900,6 @@ main.activity-shell .mini-discovery { border-left: 4px solid var(--world-accent,
   .mountain-opening-pod { top: 28%; right: 1%; width: 175px; }
   .mountain-opening-nova { left: 0; bottom: 9%; width: 140px; height: 150px; }
   .mountain-opening-kid { left: auto; right: 6%; bottom: 6%; width: 120px; height: 150px; }
-  .mountain-opening-controls { padding: 17px 14px 22px; }
-  .mountain-opening-controls i { width: 28px; }
-  .mountain-opening-controls > button { padding: 12px 14px; }
   .signal-cliff-stage { min-height: 620px; }
   .signal-stage-hud { top: 10px; left: 10px; right: 10px; }
   .signal-stage-hud span,

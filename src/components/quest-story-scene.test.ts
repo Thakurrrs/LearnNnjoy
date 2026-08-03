@@ -90,6 +90,125 @@ describe("beginBeatPlayback (muted / no-voice path — this repo's test env has 
   });
 });
 
+// A minimal stand-in for HTMLAudioElement: this repo's test environment has
+// no DOM (no jsdom/happy-dom), so `new Audio(...)` isn't available here —
+// the `createAudio` injection seam lets these tests exercise the audio-path
+// wiring (onended/onerror/play() rejection) without it.
+type StubAudio = {
+  preload: string;
+  muted: boolean;
+  onended: (() => void) | null;
+  onerror: (() => void) | null;
+  play: () => Promise<void>;
+  pause: () => void;
+};
+
+function createStubAudio(play: () => Promise<void> = () => Promise.resolve()): StubAudio {
+  return { preload: "", muted: false, onended: null, onerror: null, play, pause: () => {} };
+}
+
+describe("beginBeatPlayback (stub audio path)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("advances SCENE_GAP_MS after the stub audio's onended fires", () => {
+    vi.useFakeTimers();
+    const onAdvance = vi.fn();
+    const stub = createStubAudio();
+    const beat: SceneBeat = { speaker: "NOVA", line: "Hooked on!", voice: "/audio/mountain-rescue/x.mp3" };
+    beginBeatPlayback(beat, false, { onAdvance }, () => stub as unknown as HTMLAudioElement);
+
+    stub.onended?.();
+    vi.advanceTimersByTime(SCENE_GAP_MS - 1);
+    expect(onAdvance).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(onAdvance).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back to the reading timer when the stub audio's onerror fires", () => {
+    vi.useFakeTimers();
+    const onAdvance = vi.fn();
+    const stub = createStubAudio();
+    const beat: SceneBeat = {
+      speaker: "NOVA",
+      line: "This line's audio file failed to load on the way in.",
+      voice: "/audio/mountain-rescue/broken.mp3",
+    };
+    beginBeatPlayback(beat, false, { onAdvance }, () => stub as unknown as HTMLAudioElement);
+
+    stub.onerror?.();
+    vi.advanceTimersByTime(readingTimeMs(beat.line) - 1);
+    expect(onAdvance).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(onAdvance).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not double-schedule when both onerror and a play() rejection fire", () => {
+    // The two paths races scheduleAdvance twice with the same delay; the
+    // timer-hygiene fix (clear-before-set) must collapse that to one.
+    vi.useFakeTimers();
+    const onAdvance = vi.fn();
+    const rejection = new Error("network error");
+    const playPromise = Promise.reject(rejection);
+    const stub = createStubAudio(() => playPromise);
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const beat: SceneBeat = {
+      speaker: "NOVA",
+      line: "This line's audio file failed to load on the way in.",
+      voice: "/audio/mountain-rescue/broken.mp3",
+    };
+    beginBeatPlayback(beat, false, { onAdvance }, () => stub as unknown as HTMLAudioElement);
+
+    stub.onerror?.();
+    return playPromise.catch(() => {}).then(() => {
+      vi.advanceTimersByTime(readingTimeMs(beat.line));
+      expect(onAdvance).toHaveBeenCalledTimes(1);
+      warnSpy.mockRestore();
+    });
+  });
+
+  it("fires onAwaitingGesture and does not advance when play() rejects with NotAllowedError", async () => {
+    const onAdvance = vi.fn();
+    const onAwaitingGesture = vi.fn();
+    const rejection = new DOMException("Autoplay refused", "NotAllowedError");
+    const playPromise = Promise.reject(rejection);
+    const stub = createStubAudio(() => playPromise);
+    const beat: SceneBeat = { speaker: "NOVA", line: "Hooked on!", voice: "/audio/mountain-rescue/x.mp3" };
+    beginBeatPlayback(beat, false, { onAdvance, onAwaitingGesture }, () => stub as unknown as HTMLAudioElement);
+
+    await playPromise.catch(() => {});
+    await playPromise.catch(() => {});
+    expect(onAwaitingGesture).toHaveBeenCalledTimes(1);
+    expect(onAdvance).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the reading timer when play() rejects with a different error", async () => {
+    vi.useFakeTimers();
+    const onAdvance = vi.fn();
+    const onAwaitingGesture = vi.fn();
+    const rejection = new Error("some other playback failure");
+    const playPromise = Promise.reject(rejection);
+    const stub = createStubAudio(() => playPromise);
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const beat: SceneBeat = {
+      speaker: "NOVA",
+      line: "Some other playback failure happened here.",
+      voice: "/audio/mountain-rescue/x.mp3",
+    };
+    beginBeatPlayback(beat, false, { onAdvance, onAwaitingGesture }, () => stub as unknown as HTMLAudioElement);
+
+    await playPromise.catch(() => {});
+    await playPromise.catch(() => {});
+    expect(onAwaitingGesture).not.toHaveBeenCalled();
+    expect(onAdvance).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(readingTimeMs(beat.line));
+    expect(onAdvance).toHaveBeenCalledTimes(1);
+    warnSpy.mockRestore();
+  });
+});
+
 const TWO_BEATS: readonly SceneBeat[] = [
   { speaker: "NOVA", line: "First line of the scene." },
   { speaker: "YOU", line: "Second and final line." },
@@ -143,8 +262,25 @@ describe("QuestStoryScene render output", () => {
   it("always renders Replay and Skip controls", () => {
     const html = renderScene(0);
     expect(html).toContain('aria-label="Replay this line"');
-    expect(html).toContain('aria-label="Skip story"');
     expect(html).toContain("Skip story");
+  });
+
+  it("names the Skip button from its own visible text, not a mismatched aria-label", () => {
+    // WCAG 2.5.3 Label in Name: skipLabel varies by caller (e.g. "Skip
+    // ahead" for the finale), so the button relies on its visible text for
+    // its accessible name instead of a hardcoded aria-label that could
+    // drift from it.
+    const html = renderToStaticMarkup(
+      React.createElement(QuestStoryScene, {
+        beats: TWO_BEATS,
+        beat: 0,
+        onBeat: () => {},
+        onComplete: () => {},
+        skipLabel: "Skip ahead",
+      }),
+    );
+    expect(html).toContain("Skip ahead");
+    expect(html).not.toContain("aria-label=\"Skip");
   });
 
   it("renders scene art passed as children ahead of the caption", () => {
