@@ -1100,7 +1100,8 @@ function SignalBelowZeroQuest({
           ? "Our pod moved seven levels: plus three, through zero, to minus four."
           : "Replay the rescue path. Watch where the sign changes.";
 
-  const speaker: MountainSpeaker = state.questStep === 1 && (state.signalFound || state.position === 0)
+  const speaker: MountainSpeaker = (state.questStep === 1 && (state.signalFound || state.position === 0))
+    || (state.questStep === 2 && state.podRecovered)
     ? "YOU"
     : "NOVA";
 
@@ -1537,28 +1538,34 @@ function StormMovesQuest({
       if (!gust) return;
       const nextPosition = state.stormPosition + gust.delta;
       const nextIndex = state.gustIndex + 1;
-      sound.play(nextIndex === PRIMARY_GUSTS.length ? "success" : "tap");
+      const runComplete = nextIndex === PRIMARY_GUSTS.length;
+      sound.play(runComplete ? "success" : "tap");
       onChange({
         stormPosition: nextPosition,
         stormTrail: appendAltitudeTrail(state.stormTrail, state.stormPosition, nextPosition),
         gustIndex: nextIndex,
-        stormRunComplete: nextIndex === PRIMARY_GUSTS.length,
+        stormRunComplete: runComplete,
       });
-      playVoice(MOUNTAIN_AUDIO.q3MoveNova);
+      // q3MoveNova is the run's completion line ("We rode every gust...."),
+      // so it must only play on the gust that finishes the run — not on
+      // every gust, or the child hears a false position mid-run.
+      if (runComplete) playVoice(MOUNTAIN_AUDIO.q3MoveNova);
       return;
     }
     const gust = TRANSFER_GUSTS[state.transferGustIndex];
     if (!gust) return;
     const nextPosition = state.stormPosition + gust.delta;
     const nextIndex = state.transferGustIndex + 1;
-    sound.play(nextIndex === TRANSFER_GUSTS.length ? "success" : "tap");
+    const transferComplete = nextIndex === TRANSFER_GUSTS.length;
+    sound.play(transferComplete ? "success" : "tap");
     onChange({
       stormPosition: nextPosition,
       stormTrail: appendAltitudeTrail(state.stormTrail, state.stormPosition, nextPosition),
       transferGustIndex: nextIndex,
-      stormTransferComplete: nextIndex === TRANSFER_GUSTS.length,
+      stormTransferComplete: transferComplete,
     });
-    playVoice(MOUNTAIN_AUDIO.q3TransferKid);
+    // Same rule for the transfer run's completion line.
+    if (transferComplete) playVoice(MOUNTAIN_AUDIO.q3TransferKid);
   }
 
   function playStormRecap() {
@@ -1747,7 +1754,10 @@ function RescueWinchQuest({
 }) {
   const [routeRunning, setRouteRunning] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const position = state.questStep === 1 ? state.reversePosition : state.winchPosition;
+  // Step 0 is the lowering leg (hook +2 → −4, tracked by winchPosition).
+  // Steps 1-3 are all after the lift completed, so they must keep showing
+  // the pod resting at +2 (reversePosition) — never re-descend to winchPosition.
+  const position = state.questStep === 0 ? state.winchPosition : state.reversePosition;
   const interactive = (state.questStep === 0 && !state.winchReached)
     || (state.questStep === 1 && !state.reverseComplete);
 
@@ -1817,9 +1827,9 @@ function RescueWinchQuest({
         questNumber={4}
         questStep={state.questStep}
         position={position}
-        trail={state.questStep === 1
-          ? integerPath(-4, state.reversePosition)
-          : integerPath(2, state.winchPosition)}
+        trail={state.questStep === 0
+          ? integerPath(2, state.winchPosition)
+          : integerPath(-4, state.reversePosition)}
         avatar={avatar}
         markers={[
           { value: -4, label: "SECURED POD", complete: state.winchReached },
@@ -1830,6 +1840,7 @@ function RescueWinchQuest({
         onMove={moveWinch}
         conceptLabels={state.questStep >= 2}
         routeRunning={routeRunning}
+        traveller={state.questStep === 0 ? "hook" : "pod"}
       />
       <div className="signal-action-deck">
         <MountainComicLine
@@ -1851,7 +1862,9 @@ function RescueWinchQuest({
             <div>
               <small>{state.questStep === 0 ? "LOWER THE EMPTY HOOK" : "YOUR RESCUE WINCH"}</small>
               <h2>{state.questStep === 0 ? "Drop +2 down to the pod at −4." : "Lift −4 up to the +2 safe ledge."}</h2>
-              <p>Drag the real pod on the cliff, or move one level at a time.</p>
+              <p>{state.questStep === 0
+                ? "Drag the hook on the cliff, or move one level at a time."
+                : "Drag the real pod on the cliff, or move one level at a time."}</p>
             </div>
             <div className="signal-nudge-row">
               <button
@@ -1999,15 +2012,28 @@ function MountainFinale({
   heroName,
   playVoice,
   onChapterComplete,
+  onReplayComplete,
 }: {
   state: MountainState;
   onChange: (patch: Partial<MountainState>) => void;
   heroName: string;
   playVoice: (source: string) => void;
   onChapterComplete: () => void;
+  onReplayComplete?: () => void;
 }) {
   const beat = state.finaleBeat;
   const current = MOUNTAIN_FINALE_BEATS[beat];
+  const autoPlayedIntroRef = useRef(false);
+
+  // Beat 0's line never plays on its own otherwise — later beats already
+  // voice on advance(), so this only ever needs to fire once, and only when
+  // the finale actually mounts at beat 0 (not on a replay resumed later).
+  useEffect(() => {
+    if (beat !== 0 || autoPlayedIntroRef.current) return;
+    autoPlayedIntroRef.current = true;
+    const timer = setTimeout(() => playVoice(MOUNTAIN_FINALE_BEATS[0].voice), 260);
+    return () => clearTimeout(timer);
+  }, [beat, playVoice]);
 
   function advance() {
     const next = Math.min(beat + 1, MOUNTAIN_FINALE_BEATS.length - 1);
@@ -2017,6 +2043,12 @@ function MountainFinale({
       ? { finaleCellDocked: true, finaleBeat: next }
       : { finaleBeat: next });
   }
+
+  const isLastBeat = beat >= MOUNTAIN_FINALE_BEATS.length - 1;
+  const finish = isLastBeat ? (onReplayComplete ?? onChapterComplete) : advance;
+  const buttonLabel = isLastBeat && onReplayComplete
+    ? "Return to my journal →"
+    : personalize(current.action, heroName);
 
   return (
     <section
@@ -2058,9 +2090,9 @@ function MountainFinale({
         <button
           className="signal-primary"
           type="button"
-          onClick={beat >= MOUNTAIN_FINALE_BEATS.length - 1 ? onChapterComplete : advance}
+          onClick={finish}
         >
-          {personalize(current.action, heroName)}
+          {buttonLabel}
         </button>
       </div>
     </section>
@@ -2350,7 +2382,7 @@ export function MountainRescueAdventure({
     );
   }
 
-  if (activeQuest === "rescue-winch" && state.questStep === 4 && !replay) {
+  if (activeQuest === "rescue-winch" && state.questStep === 4) {
     return (
       <MountainFinale
         state={state}
@@ -2358,6 +2390,7 @@ export function MountainRescueAdventure({
         heroName={heroName}
         playVoice={playVoice}
         onChapterComplete={finishMountainChapter}
+        onReplayComplete={replay ? () => onFinish(state) : undefined}
       />
     );
   }

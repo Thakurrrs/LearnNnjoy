@@ -3,6 +3,7 @@ import {
   canGoToPreviousGradeSevenEvent,
   canReplayGradeSevenEvent,
   createGradeSevenState,
+  MOUNTAIN_QUEST_IDS,
   type MountainState,
   openGradeSevenAdventure,
   previousGradeSevenEvent,
@@ -137,6 +138,22 @@ describe("Grade 7 adventure progress", () => {
       position: -4,
       returnPosition: -4,
       flightPath: [3, 2, 1, 0, -1, -2, -3, -4],
+    });
+  });
+
+  it("seeds the Mountain Rescue Finale journal event with every quest already complete", () => {
+    expect(createGradeSevenState("mountain", 4)).toMatchObject({
+      step: 4,
+      chapterMapOpen: false,
+      activeQuest: "rescue-winch",
+      completedQuests: [...MOUNTAIN_QUEST_IDS],
+      questStep: 4,
+      finaleBeat: 0,
+      finaleCellDocked: false,
+      q4OpeningComplete: true,
+      openingComplete: true,
+      q2OpeningComplete: true,
+      q3OpeningComplete: true,
     });
   });
 

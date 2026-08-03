@@ -523,6 +523,37 @@ describe("continuous Grade 7 story worlds", () => {
     expect(postcardHtml).toContain("Postcard from Ridge Shelter");
   });
 
+  it("replays the Mountain Rescue Finale journal event instead of Quest 4", () => {
+    const state = createGradeSevenState("mountain", 4) as MountainState;
+    const replayHtml = renderToStaticMarkup(React.createElement(GradeSevenActivity, {
+      id: "mountain",
+      state,
+      mode: "replay",
+      firstTime: true,
+      heroName: "Aanya",
+      avatar: "explorer",
+      onChange: () => {},
+      onFinish: () => {},
+    }));
+
+    expect(replayHtml).toContain('aria-label="Mountain Rescue finale"');
+    expect(replayHtml).not.toContain('aria-label="Rescue Winch quest"');
+    expect(replayHtml).toContain("Dock the energy cell");
+
+    const lastBeatHtml = renderToStaticMarkup(React.createElement(GradeSevenActivity, {
+      id: "mountain",
+      state: { ...state, finaleBeat: MOUNTAIN_FINALE_BEATS.length - 1, finaleCellDocked: true },
+      mode: "replay",
+      firstTime: true,
+      heroName: "Aanya",
+      avatar: "explorer",
+      onChange: () => {},
+      onFinish: () => {},
+    }));
+
+    expect(lastBeatHtml).toContain("Return to my journal");
+  });
+
   it("makes Keep It Level show the physical beam before the equality symbol", () => {
     const base = {
       ...createGradeSevenState("balance"),

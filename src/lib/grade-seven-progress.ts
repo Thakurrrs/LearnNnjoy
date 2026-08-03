@@ -378,6 +378,10 @@ export function createGradeSevenState(id: GradeSevenAdventureId, step?: number):
 export function createGradeSevenState(id: GradeSevenAdventureId, step = 0): GradeSevenInteractionState {
   const shared = { step: clamp(step, 0, 5), showDemo: true, successChoice: null };
   if (id === "mountain") {
+    // Mirrors the moonbase finaleReady pattern: journal event 4 ("Mountain
+    // Rescue Finale") must seed every quest complete and land questStep on 4
+    // so the component's finale gate renders instead of replaying Quest 4.
+    const finaleReady = step >= 4;
     const position = step >= 2 ? -4 : 3;
     return {
       ...shared,
@@ -387,10 +391,10 @@ export function createGradeSevenState(id: GradeSevenAdventureId, step = 0): Grad
       activeQuest: step === 0
         ? null
         : MOUNTAIN_QUEST_IDS[Math.min(step, MOUNTAIN_QUEST_IDS.length - 1)],
-      completedQuests: [],
-      questStep: 0,
+      completedQuests: finaleReady ? [...MOUNTAIN_QUEST_IDS] : [],
+      questStep: finaleReady ? 4 : 0,
       openingBeat: 0,
-      openingComplete: false,
+      openingComplete: finaleReady,
       signalPrediction: null,
       safetyLatchPulled: false,
       signalRunStarted: false,
@@ -404,13 +408,13 @@ export function createGradeSevenState(id: GradeSevenAdventureId, step = 0): Grad
       podFlagPlaced: false,
       recapPlayed: false,
       q2OpeningBeat: 0,
-      q2OpeningComplete: false,
+      q2OpeningComplete: finaleReady,
       higherCheckpoint: null,
       checkpointOrder: [],
       checkpointRunTested: false,
       orderRunTested: false,
       q3OpeningBeat: 0,
-      q3OpeningComplete: false,
+      q3OpeningComplete: finaleReady,
       stormPosition: -2,
       stormTrail: [-2],
       gustIndex: 0,
@@ -419,7 +423,7 @@ export function createGradeSevenState(id: GradeSevenAdventureId, step = 0): Grad
       stormTransferComplete: false,
       stormRecapPlayed: false,
       q4OpeningBeat: 0,
-      q4OpeningComplete: false,
+      q4OpeningComplete: finaleReady,
       // Lower-then-lift order: hook starts at +2, lift starts at −4.
       winchPosition: 2,
       winchRunStarted: false,
