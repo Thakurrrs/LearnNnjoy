@@ -51,7 +51,8 @@ export const MOUNTAIN_AUDIO = {
   q1LatchNova: `${MOUNTAIN_AUDIO_ROOT}/q1-latch-nova.mp3`,
   q1SignalNova: `${MOUNTAIN_AUDIO_ROOT}/q1-signal-nova.mp3`,
   q1ZeroKid: `${MOUNTAIN_AUDIO_ROOT}/q1-zero-kid.mp3`,
-  q1FoundNova: `${MOUNTAIN_AUDIO_ROOT}/q1-found-nova.mp3`,
+  q1BelowNova: `${MOUNTAIN_AUDIO_ROOT}/q1-below-nova.mp3`,
+  q1FoundKid: `${MOUNTAIN_AUDIO_ROOT}/q1-found-kid.mp3`,
   q1BrushNova: `${MOUNTAIN_AUDIO_ROOT}/q1-brush-nova.mp3`,
   q1StrapNova: `${MOUNTAIN_AUDIO_ROOT}/q1-strap-nova.mp3`,
   q1RecoveredKid: `${MOUNTAIN_AUDIO_ROOT}/q1-recovered-kid.mp3`,
@@ -987,6 +988,9 @@ function SignalBelowZeroQuest({
   const recapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const interactive = state.questStep === 1 && !state.signalFound && !recapRunning;
 
+  // podRecoveryProgress is a dep purely to restart the 6s idle timer on every
+  // pull; the cleanup below hides the hint immediately whenever any of these
+  // values change, i.e. the instant the player interacts again.
   const [stepHint, setStepHint] = useState<"brush" | "strap" | null>(null);
   useEffect(() => {
     if (state.questStep !== 2 || state.podRecovered) return;
@@ -1014,7 +1018,7 @@ function SignalBelowZeroQuest({
     });
     sound.play(signalFound ? "success" : "tap");
     if (nextPosition === 0 && previous !== 0) playVoice(MOUNTAIN_AUDIO.q1ZeroKid);
-    if (signalFound) playVoice(MOUNTAIN_AUDIO.q1FoundNova);
+    if (signalFound) playVoice(MOUNTAIN_AUDIO.q1FoundKid);
   }
 
   function nudge(amount: number) {
@@ -1086,7 +1090,7 @@ function SignalBelowZeroQuest({
           ? "Our pod moved seven levels: plus three, through zero, to minus four."
           : "Replay the rescue path. Watch where the sign changes.";
 
-  const speaker: MountainSpeaker = state.questStep === 1 && state.signalFound
+  const speaker: MountainSpeaker = state.questStep === 1 && (state.signalFound || state.position === 0)
     ? "YOU"
     : "NOVA";
 
@@ -1111,8 +1115,12 @@ function SignalBelowZeroQuest({
               ? MOUNTAIN_AUDIO.q1LatchNova
               : state.questStep === 1
                 ? state.signalFound
-                  ? MOUNTAIN_AUDIO.q1FoundNova
-                  : MOUNTAIN_AUDIO.q1SignalNova
+                  ? MOUNTAIN_AUDIO.q1FoundKid
+                  : state.position === 0
+                    ? MOUNTAIN_AUDIO.q1ZeroKid
+                    : state.position < 0
+                      ? MOUNTAIN_AUDIO.q1BelowNova
+                      : MOUNTAIN_AUDIO.q1SignalNova
                 : state.questStep === 2
                   ? state.podRecovered
                     ? MOUNTAIN_AUDIO.q1RecoveredKid
@@ -1168,7 +1176,7 @@ function SignalBelowZeroQuest({
               type="button"
               disabled={!state.signalFound}
               onClick={() => {
-                playVoice(MOUNTAIN_AUDIO.q1FoundNova);
+                playVoice(MOUNTAIN_AUDIO.q1FoundKid);
                 onChange({ questStep: 2 });
               }}
             >
@@ -1188,8 +1196,13 @@ function SignalBelowZeroQuest({
                   ? `${state.snowCleared}% cleared`
                   : `${state.podRecoveryProgress}% secured`}</p>
             </div>
-            {stepHint === "brush" && <p className="signal-hint">Rub the snowdrift near the ravine to clear it.</p>}
-            {stepHint === "strap" && <p className="signal-hint">Tap the glowing PULL strap—four pulls frees the cell.</p>}
+            {stepHint === "brush" && <p className="signal-hint">Brush the snowdrift near the ravine to clear it.</p>}
+            {stepHint === "strap" && <p className="signal-hint">Four pulls and the cell is free.</p>}
+            {!state.podRecovered && state.snowCleared < 100 && (
+              <button className="signal-primary" type="button" onClick={brushSnow}>
+                Brush the snow →
+              </button>
+            )}
             {!state.podRecovered && state.snowCleared >= 100 && (
               <button className="signal-primary" type="button" onClick={pullPod}>
                 Pull the rescue strap together →
@@ -2058,9 +2071,14 @@ export function MountainRescueAdventure({
     audio.preload = "auto";
     audio.muted = sound.isMuted();
     void audio.play().catch((error) => {
-      // Autoplay refusals are expected before first user gesture; a missing
-      // file is not. Either way the captioned line keeps the scene readable.
-      console.warn(`[mountain-rescue] voice failed for ${source}`, error);
+      // Autoplay refusals (NotAllowedError) are expected before the first
+      // user gesture, so they're just debug noise; a missing or broken file
+      // is not, so that stays a warning. Either way the captioned line keeps
+      // the scene readable.
+      const log = error instanceof DOMException && error.name === "NotAllowedError"
+        ? console.debug
+        : console.warn;
+      log(`[mountain-rescue] voice failed for ${source}`, error);
     });
   }, []);
 

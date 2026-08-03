@@ -11,7 +11,7 @@ describe("referenced audio assets exist on disk", () => {
       it(`${mapName}: ${key} → ${publicPath}`, () => {
         const p = join(process.cwd(), "public", publicPath);
         expect(existsSync(p), `missing audio asset: ${p}`).toBe(true);
-        expect(statSync(p).size).toBeGreaterThan(1000);
+        expect(statSync(p).size, `empty audio asset: ${p}`).toBeGreaterThan(1000);
       });
     }
   }
@@ -21,6 +21,7 @@ describe("every recorded audio file is referenced by a map", () => {
   for (const [mapName, audioMap] of Object.entries(AUDIO_MAPS)) {
     const publicPaths = Object.values(audioMap);
     const relativeDir = dirname(publicPaths[0]);
+    expect(publicPaths.every((p) => dirname(p) === relativeDir), `${mapName}: map paths span more than one directory`).toBe(true);
 
     it(`${mapName}: no orphaned files under public${relativeDir}`, () => {
       const absoluteDir = join(process.cwd(), "public", relativeDir);

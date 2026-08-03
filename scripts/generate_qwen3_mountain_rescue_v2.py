@@ -63,9 +63,9 @@ NOVA_LINES = (
         "emotion": "Coach a friend through a live search with calm, focused encouragement — present and steady, not anxious.",
     },
     {
-        "name": "q1-found-nova",
-        "text": "Found it—four levels below zero!",
-        "emotion": "Burst out with a genuine discovery during an active search — bright relief and excitement, shared in the moment.",
+        "name": "q1-below-nova",
+        "text": "We crossed zero. The pod is now below base camp.",
+        "emotion": "Track a friend moving into new territory — steady, alert, and encouraging, never worried.",
     },
     {
         "name": "q1-brush-nova",
@@ -167,6 +167,13 @@ CLONED_LINES = (
     {
         "name": "q1-zero-kid",
         "text": "That gold line is zero—our halfway marker.",
+        "reference_audio": SCENE_DIR / "kid-09-lets-cross.wav",
+        "reference_text": "Let's cross!",
+        "temperature": 0.9,
+    },
+    {
+        "name": "q1-found-kid",
+        "text": "Found it—four levels below zero!",
         "reference_audio": SCENE_DIR / "kid-09-lets-cross.wav",
         "reference_text": "Let's cross!",
         "temperature": 0.9,

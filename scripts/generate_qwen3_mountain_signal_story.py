@@ -1,5 +1,5 @@
 """Generate the Signal Below Zero character dialogue with local Qwen3-TTS."""
-# Superseded by generate_qwen3_mountain_rescue_v2.py for q1/q3/q4-stage/finale lines; only the q2-* and q4-opening-* recordings remain canonical here.
+# generate_qwen3_mountain_rescue_v2.py is canonical for q1/q3/q4-stage/finale lines, so their stale entries were deleted here (rerunning this file would otherwise overwrite good v2 audio with old text). Only q2-* and q4-opening-* remain, since v2 doesn't touch those.
 
 import gc
 import subprocess
@@ -25,31 +25,6 @@ NOVA_DIRECTION = (
 
 NOVA_LINES = (
     {
-        "name": "q1-opening-02-nova",
-        "text": "It was at plus three. Let's follow it before the storm hides it.",
-        "emotion": "React quickly to a worrying signal loss, then turn it into a brave shared plan. Urgent but never frightening.",
-    },
-    {
-        "name": "q1-stage-01-nova",
-        "text": "The pod was above base camp. Where do you think its lost signal went?",
-        "emotion": "Ask a genuine curious guess while looking down a mountain. Invite an idea; do not quiz or judge.",
-    },
-    {
-        "name": "q1-stage-02-zero-nova",
-        "text": "That gold line is zero—our halfway marker!",
-        "emotion": "Call out an important landmark during fast movement, with a small burst of discovery and relief.",
-    },
-    {
-        "name": "q1-stage-03-nova",
-        "text": "Above zero is positive. Base camp is zero. Below zero is negative.",
-        "emotion": "Share a just-discovered pattern with a close friend. Sound delighted and clear, not instructional.",
-    },
-    {
-        "name": "q1-stage-04-nova",
-        "text": "Plus three, through zero, to minus four. We tracked the whole fall!",
-        "emotion": "Replay a successful rescue route with rhythmic excitement, then celebrate the shared win.",
-    },
-    {
         "name": "q2-opening-02-nova",
         "text": "Then the rescue team could climb the wrong way. Let's rebuild the route.",
         "emotion": "Recognize the danger, think fast, and invite a close friend into a confident rescue plan.",
@@ -65,59 +40,13 @@ NOVA_LINES = (
         "emotion": "Name the pattern that the two friends just used. Keep a warm, conspiratorial sense of discovery.",
     },
     {
-        "name": "q3-opening-02-nova",
-        "text": "Every gust moves it up or down. Stay with me and track each move.",
-        "emotion": "Speak over a sudden storm with alert energy. Reassure the friend that the two of you can handle it together.",
-    },
-    {
-        "name": "q3-stage-01-nova",
-        "text": "Pod moved again—keep the running position!",
-        "emotion": "Call out a live movement during an active storm game. Quick, focused, and encouraging.",
-    },
-    {
-        "name": "q3-stage-03-nova",
-        "text": "Adding a positive move sends the pod up. Adding a negative move sends it down.",
-        "emotion": "Connect the visible gust movements to a newly discovered rule. Sound excited by the pattern, never teacherly.",
-    },
-    {
         "name": "q4-opening-02-nova",
         "text": "The safe ledge is at plus two. Our winch can reverse the whole fall.",
         "emotion": "Spot the rescue solution after a tense search. Sound relieved, inventive, and eager to act.",
     },
-    {
-        "name": "q4-stage-02-nova",
-        "text": "The route reversed perfectly. Down six returned us to minus four.",
-        "emotion": "React with delighted surprise when the reverse route lands exactly at the starting point.",
-    },
-    {
-        "name": "q4-stage-03-nova",
-        "text": "Adding six and subtracting six are inverse moves—they undo each other.",
-        "emotion": "Share the name of the pattern only after seeing it work. Friendly wonder and a crisp, memorable finish.",
-    },
 )
 
 CLONED_LINES = (
-    {
-        "name": "q1-opening-01-scout",
-        "text": "Nova! The rescue pod's signal just dropped!",
-        "reference_audio": SCENE_DIR / "rider-07-crossover.wav",
-        "reference_text": "Crossover trick?",
-        "temperature": 0.9,
-    },
-    {
-        "name": "q1-opening-03-kid",
-        "text": "I'll track it past base camp.",
-        "reference_audio": SCENE_DIR / "kid-09-lets-cross.wav",
-        "reference_text": "Let's cross!",
-        "temperature": 0.86,
-    },
-    {
-        "name": "q1-stage-02-found-kid",
-        "text": "Found it—four levels below zero!",
-        "reference_audio": SCENE_DIR / "kid-09-lets-cross.wav",
-        "reference_text": "Let's cross!",
-        "temperature": 0.9,
-    },
     {
         "name": "q2-opening-01-scout",
         "text": "Four checkpoint lights are blinking out of order!",
@@ -147,34 +76,6 @@ CLONED_LINES = (
         "temperature": 0.9,
     },
     {
-        "name": "q3-opening-01-scout",
-        "text": "Wind burst incoming! The pod is drifting!",
-        "reference_audio": SCENE_DIR / "rider-07-crossover.wav",
-        "reference_text": "Crossover trick?",
-        "temperature": 0.92,
-    },
-    {
-        "name": "q3-opening-03-kid",
-        "text": "Call the gusts. I'll follow the pod.",
-        "reference_audio": SCENE_DIR / "kid-09-lets-cross.wav",
-        "reference_text": "Let's cross!",
-        "temperature": 0.88,
-    },
-    {
-        "name": "q3-stage-02-kid",
-        "text": "New storm, same idea. I'm tracking every move.",
-        "reference_audio": SCENE_DIR / "kid-09-lets-cross.wav",
-        "reference_text": "Let's cross!",
-        "temperature": 0.88,
-    },
-    {
-        "name": "q3-stage-04-scout",
-        "text": "Storm route confirmed. The pod finished at plus one!",
-        "reference_audio": SCENE_DIR / "rider-07-crossover.wav",
-        "reference_text": "Crossover trick?",
-        "temperature": 0.9,
-    },
-    {
         "name": "q4-opening-01-scout",
         "text": "Signal found—but the pod is still trapped at minus four!",
         "reference_audio": SCENE_DIR / "rider-07-crossover.wav",
@@ -187,20 +88,6 @@ CLONED_LINES = (
         "reference_audio": SCENE_DIR / "kid-09-lets-cross.wav",
         "reference_text": "Let's cross!",
         "temperature": 0.88,
-    },
-    {
-        "name": "q4-stage-01-kid",
-        "text": "Safe ledge reached—six levels up from minus four!",
-        "reference_audio": SCENE_DIR / "kid-09-lets-cross.wav",
-        "reference_text": "Let's cross!",
-        "temperature": 0.9,
-    },
-    {
-        "name": "q4-stage-04-scout",
-        "text": "Every route is secure. Mountain Rescue complete!",
-        "reference_audio": SCENE_DIR / "rider-07-crossover.wav",
-        "reference_text": "Crossover trick?",
-        "temperature": 0.92,
     },
 )
 
